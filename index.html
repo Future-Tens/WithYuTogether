@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>永恆深淵的餘燼 | 官方網站 - Discord TRPG</title>
+    <!-- 設定 Favicon -->
+    <link rel="icon" type="image/png" href="icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
     <style>
@@ -29,6 +31,14 @@
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
         }
+        /* Icon 呼吸燈效果 */
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 10px rgba(255, 80, 0, 0.3)); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 30px rgba(255, 80, 0, 0.6)); transform: scale(1.05); }
+        }
+        .animate-icon {
+            animation: pulse-glow 4s ease-in-out infinite;
+        }
     </style>
 </head>
 <body class="antialiased scroll-smooth">
@@ -36,8 +46,8 @@
     <!-- 導覽列 -->
     <nav class="fixed w-full z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <span class="text-2xl">🕯️</span>
+            <div class="flex items-center space-x-3">
+                <img src="icon.png" class="w-8 h-8 rounded-md" alt="永恆深淵的餘燼 Logo">
                 <span class="text-xl font-serif font-bold tracking-wider text-white">永恆深淵的餘燼</span>
             </div>
             <div class="hidden md:flex items-center space-x-8 text-sm font-medium tracking-wide">
@@ -58,8 +68,12 @@
         <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-black/60"></div>
         
         <div class="relative z-10 text-center px-6">
-            <p class="text-red-500 font-bold tracking-[0.3em] mb-4 uppercase">Roguelike-Lite Discord TRPG</p>
-            <h1 class="text-6xl md:text-8xl font-serif font-bold text-white mb-6 ember-glow">永恆深淵的餘燼</h1>
+            <div class="mb-8 flex justify-center">
+                <img src="icon.png" class="w-32 h-32 md:w-40 md:h-40 rounded-3xl animate-icon shadow-3xl" alt="深淵圖示">
+            </div>
+
+            <p class="text-red-500 font-bold tracking-[0.3em] mb-4 uppercase text-sm md:text-base">Roguelike-Lite Discord TRPG</p>
+            <h1 class="text-5xl md:text-8xl font-serif font-bold text-white mb-6 ember-glow">永恆深淵的餘燼</h1>
             <p class="max-w-2xl mx-auto text-lg md:text-xl text-gray-400 mb-10 leading-relaxed italic">
                 「深淵不歡迎懦夫，只有具備智慧與勇氣的人，才能將名字刻在英雄榜上。」
             </p>
@@ -75,53 +89,59 @@
 
     <!-- 遊戲簡介 Section -->
     <section id="about" class="py-24 px-6 bg-abyss border-t border-white/5">
-        <div class="max-w-5xl mx-auto">
+        <div class="max-w-6xl mx-auto">
             <div class="grid md:grid-cols-2 gap-16 items-center">
                 <div>
                     <h2 class="text-4xl font-serif font-bold text-white mb-6">越深入，越致命</h2>
-                    <p class="text-gray-400 leading-relaxed mb-6">
-                        這是一場發生在 Discord 頻道中的硬核探險。深淵的怪物會隨著層數不斷進化。每往下一層，怪物的生命與攻擊力都會提升 <span class="text-red-500 font-bold">2.5%</span>。在第 50 層的史萊姆將遠比第 1 層強大。
+                    <p class="text-gray-400 leading-relaxed mb-8">
+                        這是一場發生在 Discord 頻道中的硬核探險。深淵的怪物會隨著層數不斷進化。每往下一層，怪物的生命與攻擊力都會提升 <span class="text-red-500 font-bold">2.5%</span>。
                     </p>
-                    <div class="space-y-4">
+                    <div class="space-y-6">
                         <div class="flex items-start space-x-4">
-                            <div class="bg-red-900/30 p-2 rounded">💀</div>
+                            <div class="bg-red-900/30 p-2 rounded text-xl">💀</div>
                             <div>
                                 <h4 class="text-white font-bold">永久死亡 (Permadeath)</h4>
                                 <p class="text-sm text-gray-500">一旦死亡，角色資料將被永久抹除，僅留下冒險日誌。</p>
                             </div>
                         </div>
                         <div class="flex items-start space-x-4">
-                            <div class="bg-red-900/30 p-2 rounded">📦</div>
+                            <div class="bg-red-900/30 p-2 rounded text-xl">📦</div>
                             <div>
                                 <h4 class="text-white font-bold">遺產系統</h4>
                                 <p class="text-sm text-gray-500">你的遺產將隨機留給下一位冒險者，傳遞餘燼的火種。</p>
                             </div>
                         </div>
                         <div class="flex items-start space-x-4">
-                            <div class="bg-red-900/30 p-2 rounded">🏆</div>
+                            <div class="bg-red-900/30 p-2 rounded text-xl">🏆</div>
                             <div>
                                 <h4 class="text-white font-bold">全域排行榜</h4>
-                                <p class="text-sm text-gray-500">前往深淵的道路不只一條，來自各地的火苗阿，燃燒吧。</p>
+                                <p class="text-sm text-gray-500">前往深淵的道路不只一條，燃燒吧，來自各地的火苗。</p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-zinc-900 p-8 rounded-2xl border border-white/5 text-center">
-                        <div class="text-3xl font-bold text-red-500 mb-2">20+</div>
-                        <div class="text-xs text-gray-500 uppercase tracking-widest">怪物種類</div>
+
+                <!-- 修正後的數據網格 (不再錯落) -->
+                <div class="grid grid-cols-2 gap-4 h-full">
+                    <!-- 怪物種類 -->
+                    <div class="bg-zinc-900/50 p-8 rounded-2xl border border-white/5 text-center flex flex-col justify-center items-center card-hover transition-all">
+                        <div class="text-3xl md:text-4xl font-bold text-red-500 mb-2">20+</div>
+                        <div class="text-xs text-gray-500 uppercase tracking-widest font-bold">怪物種類</div>
                     </div>
-                    <div class="bg-zinc-900 p-8 rounded-2xl border border-white/5 text-center mt-8">
-                        <div class="text-3xl font-bold text-red-500 mb-2">∞</div>
-                        <div class="text-xs text-gray-500 uppercase tracking-widest">無盡層數</div>
+                    <!-- 無盡層數 -->
+                    <div class="bg-zinc-900/50 p-8 rounded-2xl border border-white/5 text-center flex flex-col justify-center items-center card-hover transition-all">
+                        <div class="text-3xl md:text-4xl font-bold text-red-500 mb-2">∞</div>
+                        <div class="text-xs text-gray-500 uppercase tracking-widest font-bold">無盡層數</div>
                     </div>
-                    <div class="bg-zinc-900 p-8 rounded-2xl border border-white/5 text-center -mt-8">
-                        <div class="text-3xl font-bold text-red-500 mb-2">4</div>
-                        <div class="text-xs text-gray-500 uppercase tracking-widest">初始職業</div>
+                    <!-- 初始職業 -->
+                    <div class="bg-zinc-900/50 p-8 rounded-2xl border border-white/5 text-center flex flex-col justify-center items-center card-hover transition-all">
+                        <div class="text-3xl md:text-4xl font-bold text-red-500 mb-2">4</div>
+                        <div class="text-xs text-gray-500 uppercase tracking-widest font-bold">初始職業</div>
                     </div>
-                    <div class="bg-zinc-900 p-8 rounded-2xl border border-white/5 text-center">
-                        <div class="text-3xl font-bold text-red-500 mb-2">100%</div>
-                        <div class="text-xs text-gray-500 uppercase tracking-widest">數據驅動</div>
+                    <!-- 數據驅動 -->
+                    <div class="bg-zinc-900/50 p-8 rounded-2xl border border-white/5 text-center flex flex-col justify-center items-center card-hover transition-all">
+                        <div class="text-3xl md:text-4xl font-bold text-red-500 mb-2">100%</div>
+                        <div class="text-xs text-gray-500 uppercase tracking-widest font-bold">數據驅動</div>
                     </div>
                 </div>
             </div>
@@ -136,45 +156,45 @@
                 <p class="text-gray-500 italic">目前的深淵中，有四種靈魂可以傳承</p>
             </div>
             
-            <div class="grid md:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
                 <!-- 破壁者 -->
-                <div class="bg-zinc-900/50 border border-white/10 p-8 rounded-3xl card-hover transition-all duration-300">
-                    <div class="text-4xl mb-6">🛡️</div>
-                    <h3 class="text-xl font-bold text-white mb-2">破壁者</h3>
-                    <p class="text-sm text-gray-400 mb-6 min-h-[4rem]">鋼鐵般的肉體，在混亂中屹立不搖。擁有最高的防禦成長。</p>
-                    <div class="border-t border-white/5 pt-6">
-                        <span class="text-xs font-bold text-red-500 uppercase tracking-tighter">專屬能力</span>
-                        <p class="text-sm font-bold text-white mt-1">碎骨一擊：高傷害，且有機率造成1.5倍物理重擊</p>
+                <div class="flex flex-col h-full bg-zinc-900/40 border border-white/10 p-8 rounded-3xl card-hover transition-all duration-300">
+                    <div class="text-4xl mb-6 text-center lg:text-left">🛡️</div>
+                    <h3 class="text-xl font-bold text-white mb-3 text-center lg:text-left">破壁者</h3>
+                    <p class="text-sm text-gray-400 mb-8 flex-grow leading-relaxed">鋼鐵般的肉體，在混亂中屹立不搖。具備卓越的生存能力與最高的防禦成長。</p>
+                    <div class="border-t border-white/10 pt-6 mt-auto">
+                        <span class="text-xs font-bold text-red-500 uppercase tracking-widest block mb-2">專屬能力</span>
+                        <p class="text-sm font-bold text-white leading-snug">碎骨一擊：造成高額傷害，且有機率觸發 1.5 倍重擊。</p>
                     </div>
                 </div>
                 <!-- 幻影行者 -->
-                <div class="bg-zinc-900/50 border border-white/10 p-8 rounded-3xl card-hover transition-all duration-300">
-                    <div class="text-4xl mb-6">👣</div>
-                    <h3 class="text-xl font-bold text-white mb-2">幻影行者</h3>
-                    <p class="text-sm text-gray-400 mb-6 min-h-[4rem]">靈巧的避難者，雖然生命較少，但能洞察先機。</p>
-                    <div class="border-t border-white/5 pt-6">
-                        <span class="text-xs font-bold text-red-500 uppercase tracking-tighter">專屬能力</span>
-                        <p class="text-sm font-bold text-white mt-1">預知未來：看穿路線類型，高減傷</p>
+                <div class="flex flex-col h-full bg-zinc-900/40 border border-white/10 p-8 rounded-3xl card-hover transition-all duration-300">
+                    <div class="text-4xl mb-6 text-center lg:text-left">👣</div>
+                    <h3 class="text-xl font-bold text-white mb-3 text-center lg:text-left">幻影行者</h3>
+                    <p class="text-sm text-gray-400 mb-8 flex-grow leading-relaxed">靈巧的避難者，雖然生命較為脆弱，但其敏捷的動作能洞察深淵的危險與未知路徑。</p>
+                    <div class="border-t border-white/10 pt-6 mt-auto">
+                        <span class="text-xs font-bold text-red-500 uppercase tracking-widest block mb-2">專屬能力</span>
+                        <p class="text-sm font-bold text-white leading-snug">預知未來：看穿路線類型，具備極高減傷特性。</p>
                     </div>
                 </div>
                 <!-- 血色祭司 -->
-                <div class="bg-zinc-900/50 border border-white/10 p-8 rounded-3xl card-hover transition-all duration-300">
-                    <div class="text-4xl mb-6">🩸</div>
-                    <h3 class="text-xl font-bold text-white mb-2">血色祭司</h3>
-                    <p class="text-sm text-gray-400 mb-6 min-h-[4rem]">禁忌的血咒使用者，以痛苦換取毀滅性的力量。</p>
-                    <div class="border-t border-white/5 pt-6">
-                        <span class="text-xs font-bold text-red-500 uppercase tracking-tighter">專屬能力</span>
-                        <p class="text-sm font-bold text-white mt-1">禁忌轉化：生命換取高額增傷</p>
+                <div class="flex flex-col h-full bg-zinc-900/40 border border-white/10 p-8 rounded-3xl card-hover transition-all duration-300">
+                    <div class="text-4xl mb-6 text-center lg:text-left">🩸</div>
+                    <h3 class="text-xl font-bold text-white mb-3 text-center lg:text-left">血色祭司</h3>
+                    <p class="text-sm text-gray-400 mb-8 flex-grow leading-relaxed">禁忌的血咒使用者，在痛苦中磨練靈魂，以鮮血為代價換取毀滅性的破壞力。</p>
+                    <div class="border-t border-white/10 pt-6 mt-auto">
+                        <span class="text-xs font-bold text-red-500 uppercase tracking-widest block mb-2">專屬能力</span>
+                        <p class="text-sm font-bold text-white leading-snug">禁忌轉化：消耗生命值換取基於 INT 係數的高額增傷。</p>
                     </div>
                 </div>
                 <!-- 求道者 -->
-                <div class="bg-zinc-900/50 border border-white/10 p-8 rounded-3xl card-hover transition-all duration-300">
-                    <div class="text-4xl mb-6">🔍</div>
-                    <h3 class="text-xl font-bold text-white mb-2">求道者</h3>
-                    <p class="text-sm text-gray-400 mb-6 min-h-[4rem]">潛能的開發者，擁有最多的成長點數與適應性。</p>
-                    <div class="border-t border-white/5 pt-6">
-                        <span class="text-xs font-bold text-red-500 uppercase tracking-tighter">專屬能力</span>
-                        <p class="text-sm font-bold text-white mt-1">一心求道：最大化起始點數</p>
+                <div class="flex flex-col h-full bg-zinc-900/40 border border-white/10 p-8 rounded-3xl card-hover transition-all duration-300">
+                    <div class="text-4xl mb-6 text-center lg:text-left">🔍</div>
+                    <h3 class="text-xl font-bold text-white mb-3 text-center lg:text-left">求道者</h3>
+                    <p class="text-sm text-gray-400 mb-8 flex-grow leading-relaxed">潛能的開發者，擁有深淵中最強的適應性與屬性成長潛力，不斷追求極限。</p>
+                    <div class="border-t border-white/10 pt-6 mt-auto">
+                        <span class="text-xs font-bold text-red-500 uppercase tracking-widest block mb-2">專屬能力</span>
+                        <p class="text-sm font-bold text-white leading-snug">一心求道：獲得最大化的初始屬性與升級點數。</p>
                     </div>
                 </div>
             </div>
@@ -182,84 +202,82 @@
     </section>
 
     <!-- 房間規則 Section -->
-    <section id="rules" class="py-24 px-6 bg-zinc-900/30">
+    <section id="rules" class="py-24 px-6 bg-zinc-900/30 border-y border-white/5">
         <div class="max-w-6xl mx-auto">
             <h2 class="text-3xl font-serif font-bold text-center text-white mb-16">深淵房間類型</h2>
             <div class="grid md:grid-cols-3 gap-12">
                 <div class="text-center">
                     <div class="text-5xl mb-6">🛤️</div>
                     <h4 class="text-lg font-bold text-white mb-3">普通房間</h4>
-                    <p class="text-sm text-gray-500">遭遇一般怪物或發生隨機事件，是累積經驗的基礎。</p>
+                    <p class="text-sm text-gray-500 leading-relaxed">遭遇一般怪物或發生隨機事件，是累積經驗的基礎。</p>
                 </div>
                 <div class="text-center">
                     <div class="text-5xl mb-6">🔶</div>
                     <h4 class="text-lg font-bold text-yellow-500 mb-3">精英房間</h4>
-                    <p class="text-sm text-gray-500">怪物屬性大幅強化，但提供 1.5 倍經驗與 2 倍掉落率。</p>
+                    <p class="text-sm text-gray-500 leading-relaxed">怪物屬性大幅強化，但提供 1.5 倍經驗與 2 倍掉落率。</p>
                 </div>
                 <div class="text-center">
                     <div class="text-5xl mb-6">💀</div>
                     <h4 class="text-lg font-bold text-red-600 mb-3">魔王房間</h4>
-                    <p class="text-sm text-gray-500">極度危險的挑戰，擊敗後必定獲得稀有道具。</p>
+                    <p class="text-sm text-gray-500 leading-relaxed">極度危險的挑戰，擊敗後必定獲得稀有道具。</p>
                 </div>
             </div>
             
-            <div class="mt-20 p-8 bg-black border-l-4 border-red-700 rounded-r-xl">
-                <h5 class="text-white font-bold mb-2">🕯️ 喘息的機會</h5>
-                <p class="text-gray-400 text-sm">每過 5 關，深淵會出現一次「特殊事件」（泉水或祭壇）。這是你唯一能恢復體力或提升屬性的地方。</p>
+            <div class="mt-20 p-8 bg-black border-l-4 border-red-700 rounded-r-xl shadow-lg">
+                <h5 class="text-white font-bold mb-2 flex items-center"><span class="mr-2">🕯️</span> 喘息的機會</h5>
+                <p class="text-gray-400 text-sm leading-relaxed">每過 5 關，深淵會出現一次「特殊事件」（泉水或祭壇）。這是你唯一能恢復體力或提升屬性的地方。</p>
             </div>
         </div>
     </section>
 
     <!-- 冒險指令 Section (終端機風格) -->
     <section id="commands" class="py-24 px-6 bg-abyss">
-        <div class="max-w-4xl mx-auto">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-serif font-bold text-white mb-4">冒險指令表</h2>
-                <p class="text-gray-500">在 Discord 頻道輸入以下指令開啟你的傳奇</p>
-            </div>
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-3xl font-serif font-bold text-white mb-4">冒險指令表</h2>
+            <p class="text-gray-500 mb-12">在 Discord 頻道輸入以下指令開啟你的傳奇</p>
             
-            <div class="bg-zinc-950 rounded-xl border border-white/10 overflow-hidden shadow-2xl">
+            <div class="bg-zinc-950 rounded-xl border border-white/10 overflow-hidden shadow-2xl text-left">
                 <div class="bg-zinc-900 px-4 py-2 border-b border-white/10 flex items-center space-x-2">
                     <div class="w-3 h-3 bg-red-500 rounded-full"></div>
                     <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
                     <div class="w-3 h-3 bg-green-500 rounded-full"></div>
                     <span class="ml-4 text-xs text-gray-500 font-mono italic underline">Embers of the Eternal Abyss - WithYuTogether</span>
                 </div>
-                <div class="p-6 font-mono text-sm space-y-4">
+                <div class="p-6 font-mono text-xs md:text-sm space-y-4">
                     <div class="flex items-center space-x-4">
-                        <span class="text-green-500">/開始冒險</span>
+                        <span class="text-green-500 w-32 shrink-0">/開始冒險</span>
                         <span class="text-gray-600">---</span>
                         <span class="text-gray-300">開啟你的英雄傳奇</span>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <span class="text-green-500">/探索</span>
+                        <span class="text-green-500 w-32 shrink-0">/探索</span>
                         <span class="text-gray-600">---</span>
                         <span class="text-gray-300">面對深淵的抉擇（注意路線標籤）</span>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <span class="text-green-500">/狀態</span>
+                        <span class="text-green-500 w-32 shrink-0">/狀態</span>
                         <span class="text-gray-600">---</span>
                         <span class="text-gray-300">檢查血量、狀態與等級</span>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <span class="text-green-500">/分配屬性</span>
+                        <span class="text-green-500 w-32 shrink-0">/分配屬性</span>
                         <span class="text-gray-600">---</span>
                         <span class="text-gray-300">強化你的能力（STR, DEX, INT, PER）</span>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <span class="text-green-500">/背包</span>
+                        <span class="text-green-500 w-32 shrink-0">/背包</span>
                         <span class="text-gray-600">---</span>
                         <span class="text-gray-300">使用道具或救命藥水</span>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <span class="text-green-500">/排行榜</span>
+                        <span class="text-green-500 w-32 shrink-0">/排行榜</span>
                         <span class="text-gray-600">---</span>
-                        <span class="text-gray-300"> 查看深淵中最偉大的先行者</span>
+                        <span class="text-gray-300">查看深淵中最偉大的先行者</span>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <span class="text-green-500">/冒險回顧 run_id</span>
+                        <span class="text-green-500 w-32 shrink-0">/冒險回顧</span>
                         <span class="text-gray-600">---</span>
-                        <span class="text-gray-300">先行者們的紀錄</span>
+                        <span class="text-gray-300 italic text-zinc-500">先行者們的紀錄</span>
                     </div>
                     <div class="mt-4 pt-4 border-t border-white/5 animate-pulse">
                         <span class="text-red-500">_</span>
@@ -270,16 +288,14 @@
     </section>
 
     <!-- Footer -->
-    <footer class="py-12 px-6 border-t border-white/5 text-center">
-        <div class="max-w-7xl mx-auto">
-            <div class="mb-4 flex justify-center space-x-6 text-sm">
+    <footer class="py-12 px-6 border-t border-white/5 text-center bg-black">
+        <div class="max-w-7xl mx-auto text-gray-600 text-xs tracking-widest leading-loose">
+            <div class="mb-6 flex justify-center space-x-6 text-sm text-gray-500">
                 <a href="updates.html" class="hover:text-white transition">更新日誌</a>
                 <a href="https://github.com/Future-Tens/WithYuTogether" class="hover:text-white transition">GitHub Repo</a>
             </div>
-            <p class="text-gray-600 text-xs tracking-widest leading-loose">
-                &copy; 2026 永恆深淵的餘燼 系統開發組. <br>
-                <span class="italic opacity-80 underline decoration-red-900/50 underline-offset-4 text-gray-500">願你的餘燼，能在這無盡的深淵中燃燒得久一點。</span>
-            </p>
+            &copy; 2026 永恆深淵的餘燼 系統開發組. <br>
+            <span class="italic opacity-80 underline decoration-red-900/50 underline-offset-4 text-gray-500">願你的餘燼，能在這無盡的深淵中燃燒得久一點。</span>
         </div>
     </footer>
 
@@ -287,10 +303,12 @@
         // 平滑滾動與導覽列透明度處理
         window.addEventListener('scroll', function() {
             const nav = document.querySelector('nav');
-            if (window.scrollY > 50) {
-                nav.classList.add('bg-black/95');
-            } else {
-                nav.classList.remove('bg-black/95');
+            if (nav) {
+                if (window.scrollY > 50) {
+                    nav.classList.add('bg-black/95');
+                } else {
+                    nav.classList.remove('bg-black/95');
+                }
             }
         });
     </script>
