@@ -24,6 +24,15 @@
             border-color: rgba(220, 38, 38, 0.4);
             background-color: rgba(24, 24, 27, 0.8);
         }
+        /* 數值強調色 */
+        .formula-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            font-family: monospace;
+            font-size: 0.875rem;
+        }
     </style>
 </head>
 <body class="antialiased scroll-smooth">
@@ -57,16 +66,104 @@
     <section class="py-16 px-6">
         <div class="max-w-4xl mx-auto space-y-16">
 
+            <!-- Version 1.2.0 (Newest) -->
+            <div class="relative pl-8 border-l-2 border-red-500">
+                <div class="absolute -left-[11px] top-0 w-5 h-5 bg-red-600 rounded-full shadow-[0_0_20px_rgba(220,38,38,1)]"></div>
+                <div class="update-card bg-zinc-900/80 border border-red-600/50 p-8 rounded-2xl transition-all duration-300">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-2">
+                        <div>
+                            <h2 class="text-3xl font-bold text-white flex items-center">
+                                Version 1.2.0
+                                <span class="ml-4 text-xs bg-red-600/30 text-red-400 px-3 py-1 rounded border border-red-600/50 uppercase tracking-widest animate-pulse font-bold">Latest Upgrade</span>
+                            </h2>
+                            <p class="text-gray-400 text-xs font-mono mt-1 opacity-70 italic">Released: 26/03/20</p>
+                        </div>
+                        <span class="text-red-400 text-sm font-mono tracking-tighter italic font-bold">經濟與裝備系統大改版 - 命運的波貝與深淵貿易</span>
+                    </div>
+
+                    <div class="space-y-8 text-gray-300">
+                        <!-- 職業新增與平衡 -->
+                        <div>
+                            <h3 class="text-red-500 font-bold mb-4 flex items-center text-lg">
+                                <span class="mr-2">🎭</span> 職業新增與平衡
+                            </h3>
+                            <div class="bg-red-950/20 p-4 rounded-xl border border-red-900/30 mb-4">
+                                <h4 class="text-white font-bold mb-2 flex items-center">新增職業：波貝 (Pobei)</h4>
+                                <p class="text-sm leading-relaxed italic text-zinc-400">「這隻波貝將會改變生態(?」</p>
+                                <ul class="list-disc list-inside mt-2 text-sm space-y-1 text-zinc-300">
+                                    <li><span class="text-yellow-500 font-bold">高幸運屬性</span>，被動技能「自然之力」：消耗品回血量 1.2 倍。</li>
+                                    <li><span class="text-red-400 font-bold">副作用：</span>看不懂中文... 可能在道路的抉擇稍有困難。</li>
+                                </ul>
+                            </div>
+                            <ul class="list-disc list-inside space-y-3 text-sm ml-2">
+                                <li><span class="text-white font-medium">破壁者：</span>真的太破格了！削弱暴擊機率 (25% → 15%) 及碎骨的額外爆傷 (50% → 35%)。</li>
+                                <li><span class="text-white font-medium">求道者：</span>神愛世人！修正了求道者升等時能力值異常低落的問題。</li>
+                                <li><span class="text-white font-medium">血色祭司：</span>血色祭司只剩一攤血，我們決定將他的「貧血體質」移除，增加生存力。</li>
+                                <li><span class="text-white font-medium">幻影行者：</span>修改探尋路線計算公式，現在幻影行者看得更清楚了（深淵相對論）。</li>
+                            </ul>
+                        </div>
+
+                        <!-- 系統改善 -->
+                        <div>
+                            <h3 class="text-yellow-600 font-bold mb-4 flex items-center text-lg">
+                                <span class="mr-2">⚙️</span> 系統改善：更有策略感的探險
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div class="bg-zinc-800/50 p-4 rounded-lg border border-white/5">
+                                    <h5 class="text-white font-bold text-sm mb-1">商人系統</h5>
+                                    <p class="text-xs text-zinc-400 leading-relaxed">在深淵中與死神交易。注意：在這裡消耗品會隨著關卡推進變得更貴！</p>
+                                </div>
+                                <div class="bg-zinc-800/50 p-4 rounded-lg border border-white/5">
+                                    <h5 class="text-white font-bold text-sm mb-1">裝備系統</h5>
+                                    <p class="text-xs text-zinc-400 leading-relaxed">裝備正式實裝。有些強大的神兵可是「打不到」的喔！</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-zinc-400 italic px-2">「深淵中所有物品都有價值啦！除了你的命！」</p>
+                        </div>
+
+                        <!-- 數值演算優化 -->
+                        <div>
+                            <h3 class="text-blue-400 font-bold mb-4 flex items-center text-lg">
+                                <span class="mr-2">📊</span> 數值與公式優化 (LUCKY!)
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="formula-box">
+                                    <p class="text-blue-300 mb-2 font-bold">// 新增第五屬性 LUK (幸運) ，幸運直接地影響爆擊機率與傷害</p>
+                                    Crit Chance = (job_config.crit_chance + (LUK / 250))<br>
+                                    Crit Mult = 1 + job_config.crit_mult + (LUK / 500)
+                                </div>
+                                <div class="formula-box">
+                                    <p class="text-blue-300 mb-2 font-bold">// 傷害計算公式優化</p>
+                                    最終傷害 = 基本傷害(稍有浮動) + 額外傷害(不觸發爆擊)
+                                </div>
+                                <ul class="list-disc list-inside text-xs text-zinc-400 space-y-2 ml-2 leading-relaxed">
+                                    <li><span class="text-white font-medium">爆擊條件：</span>攻擊力必須大於敵方防禦力才會觸發。</li>
+                                    <li><span class="text-white font-medium">傷害類型：</span>物理 (破壁者、幻影行者)、魔法 (血色祭司、求道者)、混傷 (波貝)。</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Bug Fixes -->
+                        <div>
+                            <h3 class="text-zinc-500 font-bold mb-3 flex items-center text-lg">
+                                <span class="mr-2">🔧</span> 修復項目 (Bug-fixes)
+                            </h3>
+                            <ul class="list-none space-y-2 text-sm ml-2 font-mono text-zinc-400">
+                                <li class="flex items-start"><span class="text-red-900 mr-2">|</span> 修復了創建角色按「重設點數」按鈕導致角色初始點數異常的情形。</li>
+                                <li class="flex items-start"><span class="text-red-900 mr-2">|</span> 修復偶爾會發生資料回溯 (Rollback) 的問題。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Version 1.1.1 -->
-            <div class="relative pl-8 border-l-2 border-red-600">
-                <div class="absolute -left-[9px] top-0 w-4 h-4 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,1)]"></div>
-                <div class="update-card bg-zinc-900/60 border border-red-900/30 p-8 rounded-2xl transition-all duration-300">
+            <div class="relative pl-8 border-l-2 border-red-900/40">
+                <div class="absolute -left-[7px] top-0 w-3 h-3 bg-red-900/60 rounded-full"></div>
+                <div class="update-card bg-zinc-900/60 border border-red-900/30 p-8 rounded-2xl opacity-90 transition-all duration-300">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-2">
                         <div>
-                            <h2 class="text-2xl font-bold text-white flex items-center">
-                                Version 1.1.1
-                                <span class="ml-4 text-xs bg-red-900/30 text-red-500 px-2 py-1 rounded border border-red-900/50 uppercase tracking-widest animate-pulse">Latest</span>
-                            </h2>
+                            <h2 class="text-2xl font-bold text-white flex items-center">Version 1.1.1</h2>
                             <p class="text-gray-500 text-xs font-mono mt-1 opacity-70 italic">Released: 26/03/18</p>
                         </div>
                         <span class="text-gray-400 text-sm font-mono tracking-tighter italic">深淵的躁動與優化</span>
@@ -74,9 +171,7 @@
 
                     <div class="space-y-6 text-gray-400">
                         <div>
-                            <h3 class="text-red-800 font-bold mb-3 flex items-center">
-                                <span class="mr-2">⚔️</span> 內容更動
-                            </h3>
+                            <h3 class="text-red-800 font-bold mb-3 flex items-center"><span class="mr-2">⚔️</span> 內容更動</h3>
                             <ul class="list-disc list-inside space-y-2 text-sm ml-2">
                                 <li><span class="text-white font-medium">官方網站：</span>正式上線，現在可以在網站中查看詳盡的遊戲數據與更新紀錄。</li>
                                 <li><span class="text-white font-medium">指令更動：</span>因應網站上線，原有的 /trpg版本 指令正式走入歷史。</li>
@@ -121,7 +216,7 @@
                             <h3 class="text-purple-500 font-bold mb-4 flex items-center">
                                 <span class="mr-2">🔮</span> 未來更新重點 (Roadmap)
                             </h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
                                 <div class="bg-purple-900/10 border border-purple-900/30 p-4 rounded-xl">
                                     <p class="text-xs text-purple-300 font-bold mb-1">系統擴充</p>
                                     <p class="text-sm">裝備系統實裝、技能連動與互動機制。</p>
@@ -144,13 +239,13 @@
             </div>
 
             <!-- Version 1.1.0 -->
-            <div class="relative pl-8 border-l-2 border-red-900/50">
-                <div class="absolute -left-[7px] top-0 w-3 h-3 bg-red-900/80 rounded-full"></div>
-                <div class="update-card bg-zinc-900/40 border border-white/5 p-8 rounded-2xl opacity-90 transition-all duration-300">
+            <div class="relative pl-8 border-l-2 border-red-900/20">
+                <div class="absolute -left-[7px] top-0 w-3 h-3 bg-red-900/40 rounded-full"></div>
+                <div class="update-card bg-zinc-900/40 border border-white/5 p-8 rounded-2xl opacity-80 transition-all duration-300">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-2">
                         <div>
-                            <h2 class="text-2xl font-bold text-white">Version 1.1.0</h2>
-                            <p class="text-gray-500 text-xs font-mono mt-1 opacity-70 italic">Released: 26/03/17</p>
+                            <h2 class="text-xl font-bold text-white">Version 1.1.0</h2>
+                            <p class="text-gray-600 text-xs font-mono mt-1 opacity-70 italic">Released: 26/03/17</p>
                         </div>
                         <span class="text-gray-400 text-sm font-mono italic">數據驅動與機制革新</span>
                     </div>
@@ -186,13 +281,13 @@
             <!-- Version 1.0.0 -->
             <div class="relative pl-8 border-l-2 border-zinc-800">
                 <div class="absolute -left-[7px] top-0 w-3 h-3 bg-zinc-800 rounded-full"></div>
-                <div class="update-card bg-zinc-900/20 border border-white/10 p-8 rounded-2xl opacity-80 transition-all duration-300">
+                <div class="update-card bg-zinc-900/20 border border-white/10 p-8 rounded-2xl opacity-60 transition-all duration-300 grayscale">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-2">
                         <div>
-                            <h2 class="text-xl font-bold text-zinc-400">Version 1.0.0</h2>
+                            <h2 class="text-xl font-bold text-zinc-500">Version 1.0.0</h2>
                             <p class="text-gray-600 text-xs font-mono mt-1 opacity-70 italic">Released: 26/03/16</p>
                         </div>
-                        <span class="text-zinc-500 text-xs font-mono italic">深淵啟動</span>
+                        <span class="text-zinc-600 text-xs font-mono italic">深淵啟動 (Foundation)</span>
                     </div>
 
                     <div class="grid md:grid-cols-2 gap-6 text-sm text-zinc-400">
