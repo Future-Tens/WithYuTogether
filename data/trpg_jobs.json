@@ -1,0 +1,122 @@
+{
+    "破壁者": {
+        "icon": "🛡️",
+        "description": "高STR。被動「碎骨」有機率造成1.35倍重擊，但DEX判定有大幅減益。",
+        "init_stats": {"STR": 21, "DEX": 9, "INT": 9, "PER": 10, "LUK": 10},
+        "hp_mod": 10,
+        "damage_type":"p",
+        "init_bonus_points": 10,
+        "sp_per_level": 2,
+        "hp_per_level": 4,
+        "max_hp_per_level": 2,
+        "trade_mult": 1,
+        "combat_config": {
+            "crit_chance": 0.15,
+            "crit_mult": 0.3,
+            "flat_bonus_atk": 0,
+            "hp_cost_per_atk": 0,
+            "dodge_div": 3.5
+        },
+        "passive_config": {
+            "heal_efficiency": 1.0,
+            "per_threshold_mod": 0,
+            "can_see_future": false
+        }
+    },
+    "幻影行者": {
+        "icon": "👣",
+        "description": "高DEX。被動「預知未來」必定看穿某一路線後的內容，但生命上限較低。",
+        "init_stats": {"STR": 10, "DEX": 22, "INT": 10, "PER": 10, "LUK": 10},
+        "hp_mod": -15,
+        "damage_type":"p",
+        "init_bonus_points": 10,
+        "sp_per_level": 2,
+        "hp_per_level": 3,
+        "max_hp_per_level": 1,
+        "trade_mult": 1,
+        "combat_config": {
+            "crit_chance": 0,
+            "crit_mult": 0.0,
+            "flat_bonus_atk": 0,
+            "hp_cost_per_atk": 0,
+            "dodge_div": 3
+        },
+        "passive_config": {
+            "heal_efficiency": 1.0,
+            "per_threshold_mod": 0,
+            "can_see_future": true
+        }
+    },
+    "血色祭司": {
+        "icon": "🩸",
+        "description": "高INT。被動「禁忌轉化」以血換傷，但所有藥水效果僅剩60%。",
+        "init_stats": {"STR": 10, "DEX": 10, "INT": 17, "PER": 10, "LUK": 10},
+        "hp_mod": 0,
+        "damage_type":"m",
+        "init_bonus_points": 10,
+        "sp_per_level": 2,
+        "hp_per_level": 3,
+        "max_hp_per_level": 1,
+        "trade_mult": 1,
+        "combat_config": {
+            "crit_chance": 0,
+            "crit_mult": 0.0,
+            "flat_bonus_atk": 10,
+            "hp_cost_per_atk": 3,
+            "dodge_div": 4
+        },
+        "passive_config": {
+            "heal_efficiency": 0.8,
+            "per_threshold_mod": 0,
+            "can_see_future": false
+        }
+    },
+    "求道者": {
+        "icon": "📕",
+        "description": "高PER。被動「一心求道」初始點數極多，高成長，無額外能力。",
+        "init_stats": {"STR": 10, "DEX": 10, "INT": 10, "PER": 20, "LUK": 10},
+        "hp_mod": 20,
+        "damage_type":"m",
+        "init_bonus_points": 20,
+        "sp_per_level": 3,
+        "hp_per_level": 2,
+        "max_hp_per_level": 2,
+        "trade_mult": 1,
+        "combat_config": {
+            "crit_chance": 0,
+            "crit_mult": 0.0,
+            "flat_bonus_atk": 0,
+            "hp_cost_per_atk": 0,
+            "dodge_div": 3.5
+        },
+        "passive_config": {
+            "heal_efficiency": 1.0,
+            "per_threshold_mod": 5,
+            "can_see_future": false
+        }
+    },
+    "波貝": {
+        "icon": "🦫",
+        "description": "無特別能力。被動「???」 - 這隻波貝將會改變生態。",
+        "init_stats": {"STR": 10, "DEX": 10, "INT": 10, "PER": 10, "LUK": 25},
+        "hp_mod": -10,
+        "damage_type":"c",
+        "init_bonus_points": 30,
+        "sp_per_level": 2,
+        "hp_per_level": 3,
+        "max_hp_per_level": 2,
+        "trade_mult": 1,
+        "combat_config": {
+            "crit_chance": 0,
+            "crit_mult": 0.1,
+            "flat_bonus_atk": 0,
+            "hp_cost_per_atk": 0,
+            "dodge_div": 3
+        },
+        "passive_config": {
+            "heal_efficiency": 1.2,
+            "per_threshold_mod": 10,
+            "can_see_future": false
+        }
+    }
+}

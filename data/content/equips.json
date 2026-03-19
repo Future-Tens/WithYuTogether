@@ -1,0 +1,199 @@
+[
+    {
+        "id": "rusty_sword",
+        "name": "生鏽的鐵劍",
+        "description": "雖然佈滿鐵鏽，但總比空手強。",
+        "type": "weapon",
+        "stats": {
+            "STR": 3
+        },
+        "min_stage": 10,
+        "rarity": 0.2,
+        "gold": 300,
+        "dropable": true,
+        "icon_file": "https://example.com/rusty_sword.png"
+    },
+    {
+        "id": "rusty_armor",
+        "name": "破舊的皮甲",
+        "description": "充滿補丁，能擋住一點抓痕。",
+        "type": "armor",
+        "stats": {
+            "DEX": 1,
+            "STR": 1
+        },
+        "min_stage": 10,
+        "rarity": 0.2,
+        "gold": 300,
+        "dropable": true,
+        "icon_file": "https://example.com/rusty_armor.png"
+    },
+    {
+        "id": "old_pendant",
+        "name": "褪色的護身符",
+        "description": "帶來微弱的心靈慰藉。",
+        "type": "accessory",
+        "stats": {
+            "PER": 2
+        },
+        "min_stage": 10,
+        "rarity": 0.15,
+        "gold": 300,
+        "dropable": true,
+        "icon_file": "https://example.com/old_pendant.png"
+    },
+    {
+        "id": "steel_mace",
+        "name": "精鋼重錘",
+        "description": "沈重且致命，能輕易粉碎骨骼。",
+        "type": "weapon",
+        "stats": {
+            "STR": 8,
+            "DEX": -2
+        },
+        "min_stage": 10,
+        "rarity": 0.1,
+        "gold": 1250,
+        "dropable": true,
+        "icon_file": "https://example.com/steel_mace.png"
+    },
+    {
+        "id": "steel_plate",
+        "name": "衛兵胸甲",
+        "description": "正規軍使用的制式鎧甲。",
+        "type": "armor",
+        "stats": {
+            "STR": 2,
+            "DEX": 3
+        },
+        "min_stage": 10,
+        "rarity": 0.1,
+        "gold": 1250,
+        "dropable": true,
+        "icon_file": "https://example.com/steel_plate.png"
+    },
+    {
+        "id": "knight_helm",
+        "name": "騎士全覆面盔",
+        "description": "提供極佳保護，但視野受限。",
+        "type": "helmet",
+        "stats": {
+            "STR": 2,
+            "PER": -1
+        },
+        "min_stage": 10,
+        "rarity": 0.1,
+        "gold": 1250,
+        "dropable": true,
+        "icon_file": "https://example.com/knight_helm.png"
+    },
+    {
+        "id": "ritual_dagger",
+        "name": "儀式祭刀",
+        "description": "刀刃流轉著不詳的紫光。",
+        "type": "weapon",
+        "stats": {
+            "INT": 12,
+            "STR": 12
+        },
+        "min_stage": 35,
+        "rarity": 0.05,
+        "gold": 13500,
+        "dropable": true,
+        "icon_file": "https://example.com/ritual_dagger.png"
+    },
+    {
+        "id": "mage_robe",
+        "name": "編織法袍",
+        "description": "附魔絲綢製成，能感應環境中的魔力。",
+        "type": "armor",
+        "stats": {
+            "INT": 5,
+            "PER": 5
+        },
+        "min_stage": 35,
+        "rarity": 0.05,
+        "gold": 13500,
+        "dropable": true,
+        "icon_file": "https://example.com/mage_robe.png"
+    },
+    {
+        "id": "wizard_hat",
+        "name": "尖頂智者帽",
+        "description": "帽簷下藏著無盡的知識。",
+        "type": "helmet",
+        "stats": {
+            "INT": 8
+        },
+        "min_stage": 35,
+        "rarity": 0.05,
+        "gold": 13500,
+        "dropable": false,
+        "icon_file": "https://example.com/wizard_hat.png"
+    },
+    {
+        "id": "abyssal_blade",
+        "name": "深淵餘燼之劍",
+        "description": "這把劍本身就是深淵的一部分。",
+        "type": "weapon",
+        "stats": {
+            "STR": 25,
+            "INT": 15,
+            "LUK": 10
+        },
+        "min_stage": 70,
+        "rarity": 0.005,
+        "gold": 120000,
+        "dropable": false,
+        "icon_file": "https://example.com/abyssal_blade.png"
+    },
+    {
+        "id": "abyssal_plate",
+        "name": "餘燼重鎧",
+        "description": "由永恆燃燒的餘燼鍛造而成。",
+        "type": "armor",
+        "stats": {
+            "STR": 10,
+            "DEX": 10,
+            "PER": 10
+        },
+        "min_stage": 70,
+        "rarity": 0.005,
+        "gold": 120000,
+        "dropable": false,
+        "icon_file": "https://example.com/abyssal_plate.png"
+    },
+    {
+        "id": "abyssal_crown",
+        "name": "千面冠冕",
+        "description": "戴上它，你將聽見深淵的低語。",
+        "type": "helmet",
+        "stats": {
+            "INT": 15,
+            "PER": 15
+        },
+        "min_stage": 70,
+        "rarity": 0.005,
+        "gold": 120000,
+        "dropable": false,
+        "icon_file": "https://example.com/abyssal_crown.png"
+    },
+    {
+        "id": "eternal_soul",
+        "name": "永恆靈魂石",
+        "description": "深淵中唯一的亮光。",
+        "type": "accessory",
+        "stats": {
+            "STR": 8,
+            "DEX": 8,
+            "INT": 8,
+            "PER": 8,
+            "LUK": 8
+        },
+        "min_stage": 70,
+        "rarity": 0.005,
+        "gold": 8888,
+        "dropable": false,
+        "icon_file": "https://example.com/eternal_soul.png"
+    }
+]

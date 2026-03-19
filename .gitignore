@@ -1,6 +1,10 @@
 config.json
-data/*.json
+data/*_users.json
+data/*legacy*
+data/*leaderboard*
+data/reminder*
 __pycache__/
+data/users/*
 *.pyc
 .env
 data/logs/*

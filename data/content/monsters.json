@@ -1,0 +1,128 @@
+[
+    {
+        "name": "地牢史萊姆",
+        "min_stage": 1,
+        "hp": 25, "atk": 4, "def": 1, "exp": 25, "gold": 50, "drop_rate": 0.1,
+        "note": "基礎金幣：足以購買最廉價的草藥"
+    },
+    {
+        "name": "狂暴野狼",
+        "min_stage": 1,
+        "hp": 20, "atk": 5, "def": 0, "exp": 30, "gold": 60, "drop_rate": 0.1,
+        "note": "高風險高回報的小怪"
+    },
+    {
+        "name": "小惡魔精靈",
+        "min_stage": 5,
+        "hp": 15, "atk": 4, "def": 5, "exp": 40, "gold": 120, "drop_rate": 0.12,
+        "note": "身上帶著偷來的小錢袋"
+    },
+    {
+        "name": "招潮魚人",
+        "min_stage": 5,
+        "hp": 45, "atk": 6, "def": 3, "exp": 60, "gold": 135, "drop_rate": 0.1,
+        "note": "來自海洋的積蓄"
+    },
+    {
+        "name": "腐朽髒比",
+        "min_stage": 10,
+        "hp": 70, "atk": 7, "def": 2, "exp": 90, "gold": 250, "drop_rate": 0.15,
+        "note": "生前留下的破碎銀幣"
+    },
+    {
+        "name": "隱影蝠",
+        "min_stage": 10,
+        "hp": 40, "atk": 7, "def": 5, "exp": 110, "gold": 265, "drop_rate": 0.15,
+        "note": "棲息在金礦附近的蝙蝠"
+    },
+    {
+        "name": "金屬史萊姆",
+        "min_stage": 10,
+        "hp": 10, "atk": 2, "def": 25, "exp": 300, "gold": 1000, "drop_rate": 0.5,
+        "note": "財富與經驗的化身！擊敗牠直接暴富"
+    },
+    {
+        "name": "靈魂寄居蟹",
+        "min_stage": 15,
+        "hp": 40, "atk": 5, "def": 4, "exp": 150, "gold": 380, "drop_rate": 0.2,
+        "note": "財富與經驗的化身！擊敗牠直接暴富"
+    },
+    {
+        "name": "石像鬼守衛",
+        "min_stage": 20,
+        "hp": 60, "atk": 7, "def": 12, "exp": 210, "gold": 450, "drop_rate": 0.25,
+        "note": "???護著古?"
+    },
+    {
+        "name": "碎骨巨獸",
+        "min_stage": 20,
+        "hp": 55, "atk": 7, "def": 12, "exp": 210, "gold": 450, "drop_rate": 0.25,
+        "note": "守護著???"
+    },
+    {
+        "name": "深淵骷髏兵",
+        "min_stage": 25,
+        "hp": 75, "atk": 8, "def": 10, "exp": 250, "gold": 650, "drop_rate": 0.2,
+        "note": "來自深淵..."
+    },
+    {
+        "name": "詛咒祭司",
+        "min_stage": 25,
+        "hp": 60, "atk": 9, "def": 5, "exp": 350, "gold": 650, "drop_rate": 0.3,
+        "note": "帶著大量祭祀用的獻金"
+    },
+    {
+        "name": "餘燼飛蛾",
+        "min_stage": 30,
+        "hp": 150, "atk": 2, "def": 4, "exp": 1000, "gold": 1250, "drop_rate": 0.3,
+        "note": "甲殼下藏著被吞噬者的財產"
+    },
+    {
+        "name": "巨型蜈蚣",
+        "min_stage": 30,
+        "hp": 120, "atk": 3, "def": 10, "exp": 700, "gold": 1550, "drop_rate": 0.3,
+        "note": "甲殼下藏著被吞噬者的財產"
+    },
+    {
+        "name": "深淵煉獄騎士",
+        "min_stage": 40,
+        "hp": 150, "atk": 11, "def": 14, "exp": 600, "gold": 2800, "drop_rate": 0.4,
+        "note": "高階將領，賞金豐厚"
+    },
+    {
+        "name": "暗影祭司",
+        "min_stage": 40,
+        "hp": 180, "atk": 10, "def": 16, "exp": 600, "gold": 4800, "drop_rate": 0.4,
+        "note": "高階將領，賞金豐厚"
+    },
+    {
+        "name": "虛空蠕行者",
+        "min_stage": 40,
+        "hp": 120, "atk": 10, "def": 15, "exp": 750, "gold": 4200, "drop_rate": 0.45,
+        "note": "吞噬虛空精華的怪獸"
+    },
+    {
+        "name": "遠古監視者",
+        "min_stage": 50,
+        "hp": 600, "atk": 14, "def": 17, "exp": 1500, "gold": 13000, "drop_rate": 0.7,
+        "note": "監視遠古者，能否看到另一頭呢?"
+    },
+    {
+        "name": "千面沉默者",
+        "min_stage": 50,
+        "hp": 500, "atk": 14, "def": 20, "exp": 1500, "gold": 13000, "drop_rate": 0.7,
+        "note": "收藏著所有死在深淵中之人的臉孔"
+    },
+    {
+        "name": "伊菲尼特．諾特伊",
+        "min_stage": 88,
+        "hp": 888, "atk": 18, "def": 18, "exp": 2800, "gold": 88000, "drop_rate": 0.88,
+        "note": "伊特諾．特尼菲伊"
+    },
+    {
+        "name": "伊特諾．特尼菲伊",
+        "min_stage": 88,
+        "hp": 888, "atk": 18, "def": 18, "exp": 2800, "gold": 88000, "drop_rate": 0.88,
+        "note": "伊菲尼特．諾特伊"
+    }
+]

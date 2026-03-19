@@ -10,17 +10,55 @@ import datetime
 import random
 from utils.trpg_engine import TRPGEngine
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 AUTHOR = "波貝小語"
 
 
 class TRPGCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.users_path = "data/trpg_users.json"
+        self.users_dir = "data/users"
         self.leaderboard_path = "data/trpg_leaderboard.json"
-        self.jobs_path = "data/trpg_jobs.json"
+        self.content_dir = "data/content"
 
+        # 💡 實作快取：初始化時載入
+        self.load_all_content()
+        
+        os.makedirs(self.users_dir, exist_ok=True)
+        os.makedirs("data/logs", exist_ok=True)
+
+    def load_all_content(self):
+        """讀取所有內容檔案並存入記憶體"""
+        # 1. 快取職業內容
+        self.jobs_cache = self.load_json(f"data/trpg_jobs.json", default_type=dict)
+        # 2. 怪物與事件使用清單格式
+        self.monsters_cache = self.load_json(f"{self.content_dir}/monsters.json", default_type=list)
+        self.events_cache = self.load_json(f"{self.content_dir}/events.json", default_type=list)
+        # 3. 道具與裝備合併成一個字典，方便用 ID 直接查詢 (O(1) 速度)
+        items_list = self.load_json(f"{self.content_dir}/items.json", default_type=list)
+        equips_list = self.load_json(f"{self.content_dir}/equips.json", default_type=list)
+        
+        # 合併並轉換格式：{ "item_id": {資料...} }
+        self.items_cache = {i["id"]: i for i in (items_list + equips_list)}
+        
+        print(f"✅ TRPG 內容載入完成：{len(self.monsters_cache)} 種怪物, {len(self.items_cache)} 件物品")
+
+    def get_user_path(self, user_id):
+        return os.path.join(self.users_dir, f"{user_id}.json")
+
+
+    def load_player(self, user_id):
+        path = self.get_user_path(user_id)
+        if not os.path.exists(path): return None
+        with open(path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+
+
+    def save_player(self, user_id, data):
+        path = self.get_user_path(user_id)
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+    
     def load_json(self, path, default_type=dict):
         if not os.path.exists(path): return default_type()
         with open(path, 'r', encoding='utf-8') as f:
@@ -37,7 +75,7 @@ class TRPGCog(commands.Cog):
             super().__init__(timeout=120)
             self.user_id = user_id
             self.cog = cog
-            self.jobs_data = cog.load_json(cog.jobs_path)
+            self.jobs_data = self.cog.jobs_cache
             self.create_buttons()
         
         def create_buttons(self):
@@ -63,7 +101,7 @@ class TRPGCog(commands.Cog):
                 await interaction.response.edit_message(
                     content=f"你選擇了 **{name}**！{config['description']}\n現在請分配獎勵點數：",
                     embed=view.create_embed(), 
-                    view=view
+                    view=view,
                 )
             return callback
 
@@ -74,15 +112,18 @@ class TRPGCog(commands.Cog):
             self.user_id = str(user_id)
             self.cog = cog
             self.job = job_data["job"]
-            self.stats = job_data["base_stats"].copy()
-            self.points = job_data["bonus_points"]
             self.max_hp = job_data["max_hp"]
+            self.initial_stats = job_data["base_stats"].copy()
+            self.initial_points = job_data["bonus_points"]
+
+            self.stats = self.initial_stats.copy()
+            self.points = self.initial_points
 
         def create_embed(self):
-            embed = discord.Embed(title=f"🏹 角色建立 - {self.job}", color=discord.Color.blue())
+            embed = discord.Embed(title=f"⚔️ 角色建立 - {self.job}", color=discord.Color.blue())
             embed.description = f"剩餘可分配點數：**{self.points}**"
-            for stat, val in self.stats.items():
-                embed.add_field(name=stat, value=str(val), inline=True)
+            for k, v in self.stats.items():
+                embed.add_field(name=f"📜 {k}", value=f"**{v}**", inline=True)
             embed.set_footer(text="點數分配完畢後點擊確認。")
             return embed
 
@@ -121,6 +162,9 @@ class TRPGCog(commands.Cog):
         @discord.ui.button(label="PER +1", style=discord.ButtonStyle.primary, row=0)
         async def per_1(self, interaction, button): await self.add_val(interaction, "PER", 1)
 
+        @discord.ui.button(label="LUK +1", style=discord.ButtonStyle.primary, row=0)
+        async def luk_1(self, interaction, button): await self.add_val(interaction, "LUK", 1)
+
         # --- 第二行: +5 快捷按鈕 ---
         @discord.ui.button(label="STR +5", style=discord.ButtonStyle.secondary, row=1)
         async def str_5(self, interaction, button): await self.add_val(interaction, "STR", 5)
@@ -134,11 +178,15 @@ class TRPGCog(commands.Cog):
         @discord.ui.button(label="PER +5", style=discord.ButtonStyle.secondary, row=1)
         async def per_5(self, interaction, button): await self.add_val(interaction, "PER", 5)
 
+        @discord.ui.button(label="LUK +5", style=discord.ButtonStyle.secondary, row=1)
+        async def luk_5(self, interaction, button): await self.add_val(interaction, "LUK", 5)
+
         # --- 第三行: 控制按鈕 ---
         @discord.ui.button(label="♻️ 重設", style=discord.ButtonStyle.danger, row=2)
         async def reset(self, interaction, button):
-            self.points = 20
-            self.stats = {"STR": 10, "DEX": 10, "INT": 10, "PER": 10}
+            # 💡 改為使用 initial 變數
+            self.points = self.initial_points
+            self.stats = self.initial_stats.copy()
             await self.update_message(interaction)
 
         @discord.ui.button(label="✅ 確認角色", style=discord.ButtonStyle.success)
@@ -149,8 +197,7 @@ class TRPGCog(commands.Cog):
             import hashlib, time
             run_id = hashlib.md5(f"{self.user_id}-{time.time()}".encode()).hexdigest()[:8]
 
-            users = self.cog.load_json(self.cog.users_path)
-            users[self.user_id] = {
+            new_player_data = {
                 "job": self.job, # 儲存職業
                 "health": self.max_hp,
                 "max_health": self.max_hp,
@@ -160,25 +207,26 @@ class TRPGCog(commands.Cog):
                 "attributes": self.stats,
                 "stage": 0, # 從第 0 關開始，第一步會變成第 1 關
                 "turns": 0,
+                "gold": 0, # 新增金幣
+                "equips": {
+                    "weapon": None, "armor": None, "helmet": None, "accessory": None
+                },
                 "inventory": [],
                 "active_monster": None,
                 "run_id": run_id,
                 "version": VERSION,
                 "logs": [f"[{datetime.datetime.now().strftime('%H:%M:%S')}] 冒險開始！職業：{self.job}"]
             }
-            self.cog.save_json(self.cog.users_path, users)
+            self.cog.save_player(self.user_id, new_player_data)
             await interaction.response.edit_message(content=f"⚔️ **冒險開始！**\n你的 Run ID 為 `{run_id}`，請點擊 `/探索` 開始你的傳奇冒險。", embed=None, view=None)
 
     @app_commands.command(name="開始冒險", description="選擇職業並開啟你的深淵之旅")
     async def start_adventure(self, interaction: discord.Interaction):
-        users = self.load_json(self.users_path)
-        user_id = str(interaction.user.id)
 
-        if user_id in users:
+        if user_data := self.load_player(str(interaction.user.id)):
             return await interaction.response.send_message("你已經在深淵中了。若要重新開始，請先在 `/狀態` 中放棄冒險。", ephemeral=True)
         _description = ""
-        jobs_data = self.load_json(self.jobs_path)
-        for job_name, config in jobs_data.items():
+        for job_name, config in self.jobs_cache.items():
             _description+=f"**{config['icon']} {job_name}**：{config['description']}\n"
         # 顯示職業選擇說明 Embed
         embed = discord.Embed(
@@ -190,7 +238,7 @@ class TRPGCog(commands.Cog):
         )
         
         view = self.JobSelectionView(interaction.user.id, self)
-        await interaction.response.send_message(embed=embed, view=view)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     @app_commands.command(name="排行榜", description="查看英雄榜")
     async def leaderboard(self, interaction: discord.Interaction):
@@ -199,13 +247,13 @@ class TRPGCog(commands.Cog):
             return await interaction.response.send_message("目前英雄榜空空如也。")
 
         # 排序：關卡由大到小，回合由小到大
-        sorted_records = sorted(records, key=lambda x: (-x['max_stage'], x['total_turns']))[:10]
+        sorted_records = sorted(records, key=lambda x: (-x['max_stage'], x['total_turns']))[:15]
         
         embed = discord.Embed(title=f"🏆永恆深淵英雄榜(當前版本{VERSION})", color=discord.Color.gold())
         for i, r in enumerate(sorted_records, 1):
             embed.add_field(
-                name=f"第 {i} 名: {r['user_name']} ({r['job']})",
-                value=f"關卡: {r['max_stage']} | 回合: {r['total_turns']}\n死因: {r['cause_of_death']}\n`run_id`: `{r['run_id']}`\n遊戲版本: {r['version']}",
+                name=f"第 {i} 名: {r['user_name']} (LV{r['level']} {r['job']})",
+                value=f"[{r['run_id']}]\n關卡: {r['max_stage']} | 回合: {r['total_turns']}\n死因: {r['cause_of_death']}\n遊戲版本: {r['version']}",
                 inline=False
             )
         await interaction.response.send_message(embed=embed)
@@ -218,6 +266,7 @@ class TRPGCog(commands.Cog):
         timestamp = datetime.datetime.now().strftime("%H:%M:%S")
         log_entry = f"[{timestamp}] 第 {user_data['stage']} 層: {message}"
         user_data["logs"].append(log_entry)
+    
 
     def get_progress_bar(self, current, maximum, length=10):
             """產生視覺化進度條"""
@@ -245,6 +294,8 @@ class TRPGCog(commands.Cog):
         record = {
             "run_id": run_id,
             "user_name": user_name,
+            "attr": user_data['stat'],
+            "level": user_data['levle'],
             "job": user_data["job"],
             "max_stage": user_data["stage"],
             "total_turns": user_data["turns"],
@@ -268,10 +319,9 @@ class TRPGCog(commands.Cog):
             self.save_json("data/trpg_legacy.json", legacy_pool)
 
         # 4. 刪除存檔 (Permadeath)
-        users = self.load_json(self.users_path)
-        if user_id in users:
-            del users[user_id]
-        self.save_json(self.users_path, users)
+        path = self.get_user_path(user_id)
+        if os.path.exists(path):
+            os.remove(path)
 
         embed = discord.Embed(
             title="🏁 冒險紀錄結算", 
@@ -289,7 +339,6 @@ class TRPGCog(commands.Cog):
             self.user_id = str(user_id)
             self.cog = cog
             self.data = user_data
-            self.content = cog.load_json("data/trpg_content.json")
             self.update_buttons() # 初始化按鈕狀態
 
         def get_room_type(self):
@@ -307,11 +356,11 @@ class TRPGCog(commands.Cog):
             統一產生怪物物件並套用倍率
             """
             stage = self.data["stage"]
-            available = [m for m in self.content["monsters"] if m["min_stage"] <= stage]
+            available = [m for m in self.cog.monsters_cache if m["min_stage"] <= stage]
             monster = random.choice(available).copy()
 
             # 1. 取得關卡縮放倍率 (例如每層 +2%)
-            stage_scaling = 1 + (stage * 0.02)
+            stage_scaling = 1 + (stage * 0.025)
             
             # 2. 取得房間類型倍率
             type_scaling_hp = 1.0
@@ -337,7 +386,7 @@ class TRPGCog(commands.Cog):
             monster["hp"] = int(monster["hp"] * stage_scaling * type_scaling_hp)
             monster["max_hp"] = monster["hp"] # 同步設定最大血量供 UI 使用
             monster["atk"] = int(monster["atk"] * stage_scaling * type_scaling_atk)
-            monster["def"] = int(monster.get("def", 0) * stage_scaling)
+            monster["def"] = monster.get("def", 0)
             monster["exp"] = int(monster.get("exp", 10) * stage_scaling * exp_mult)
             monster["drop_rate"] = min(1.0, monster.get("drop_rate", 0.1) * drop_mult)
 
@@ -368,26 +417,23 @@ class TRPGCog(commands.Cog):
                     "a": self.get_room_type(),
                     "b": self.get_room_type()
                 }
-                # 立即存檔，防止玩家透過刷新指令來洗掉這兩條路
-                users = self.cog.load_json(self.cog.users_path) # 先讀取完整存檔
-                users[self.user_id] = self.data
-                self.cog.save_json(self.cog.users_path, users)
+                self.cog.save_player(self.user_id, self.data)
 
             # 如果沒有戰鬥，顯示雙路線選擇
             routes = self.data["pending_routes"]
             self.route_a_type = routes["a"]
             self.route_b_type = routes["b"]
 
-            jobs_data = self.cog.load_json(self.cog.jobs_path)
+            jobs_data = self.cog.jobs_cache
             passive = jobs_data.get(self.data["job"], {}).get("passive_config", {})
             per_mod = passive.get("per_threshold_mod", 0)
             # 能力預知
-            if self.data["attributes"]['PER'] > (7 + per_mod + self.data["stage"]//2):
+            if self.data["attributes"]['PER'] > (7 + per_mod + self.data["stage"]//2.5):
                 label_a = f"🛤️ 路線甲 ({self.route_a_type})"
             else:
                 label_a = "🛤️ 路線甲 (???)"
             # 職業預知
-            if passive.get("can_see_future") or self.data["attributes"]['PER'] > (7 + per_mod + self.data["stage"]//4):
+            if passive.get("can_see_future") or self.data["attributes"]['PER'] > (7 + per_mod + self.data["stage"]//1.5):
                 label_b = f"🛤️ 路線乙 ({self.route_b_type})"
             else:
                 label_b = "🛤️ 路線乙 (???)"
@@ -404,6 +450,8 @@ class TRPGCog(commands.Cog):
 
         async def route_callback(self, interaction: discord.Interaction, route_type):
             """點擊路線按鈕的回呼"""
+            # 每次選擇更新user狀態
+            self.data = self.cog.load_player(self.user_id)
             self.data["turns"] += 1
 
             # 如果是特殊事件，執行完後要關閉 Flag
@@ -430,22 +478,47 @@ class TRPGCog(commands.Cog):
 
         async def resolve_special_event(self, interaction):
             """每 5 關的休息點/稀有事件"""
+            # 1. 執行事件邏輯 (Rest vs Altar)
             rand = random.random()
             if rand < 0.85:
-                # 休息事件: 恢復已損失生命 25% (向上取整)
                 lost_hp = self.data["max_health"] - self.data["health"]
                 heal = math.ceil(lost_hp * 0.25)
                 self.data["health"] += heal
-                msg = f"🌿 **第 {self.data['stage']} 關：林間休息點**\n你在這裡稍作喘息，恢復了 {heal} 點 HP。"
+                msg = f"🌿 **林間休息點**：你稍作喘息，恢復了 {heal} 點 HP。"
                 self.cog.add_log(self.data, f"休息點回復了 {heal} HP")
             else:
-                # 稀有事件: 全屬性 +1
-                msg = f"✨ **第 {self.data['stage']} 關：神祕祭壇**\n古老的力量湧入體內，你的全屬性永久提升了！"
-                for s in self.data["attributes"]: self.data["attributes"][s] += 1
+                msg = f"✨ **神祕祭壇**：古老力量湧入，全屬性永久提升了！"
+                for s in self.data["attributes"]: 
+                    self.data["attributes"][s] += 1
                 self.cog.add_log(self.data, "觸發稀有事件：全屬性 +1")
 
-            embed = discord.Embed(title="🔔 特殊事件", description=msg, color=discord.Color.green())
-            await self.finish_turn(interaction, embed)
+            # 2. 商店初始化 (如果還沒生成過)
+            if not self.data.get("current_shop"):
+                stage = self.data["stage"]
+                available_ids = [
+                    i_id for i_id, i_data in self.cog.items_cache.items() 
+                    if i_data.get("min_stage", 0) <= stage
+                ]
+                sample_count = min(3, len(available_ids))
+                rolled_items = random.sample(available_ids, sample_count)
+                
+                self.data["current_shop"] = {
+                    "items": rolled_items,
+                    "sold": [False] * sample_count
+                }
+            
+            # 3. 儲存玩家狀態
+            self.cog.save_player(self.user_id, self.data)
+
+            # 4. 關鍵修正：將事件結果 msg 傳給 ShopView 的 Embed
+            shop_view = self.cog.ShopView(self.user_id, self.cog, self.data)
+            
+            # 我們直接修改 generate_shop_embed 的內容，把事件訊息塞進去
+            shop_embed = shop_view.generate_shop_embed()
+            shop_embed.insert_field_at(0, name="🔔 事件結果", value=msg, inline=False)
+            
+            # 顯示商店介面，這裡不呼叫 finish_turn
+            await interaction.response.edit_message(embed=shop_embed, view=shop_view)
 
         async def resolve_normal_room(self, interaction):
             """處理普通房間: 80% 怪物, 17% 事件, 3% 遺產 (依你 code 的權重)"""
@@ -455,10 +528,10 @@ class TRPGCog(commands.Cog):
             if rand < 0.8: # 怪物
                 self.data["active_monster"] = self.generate_monster("普通")
                 self.cog.add_log(self.data, f"遭遇怪物: {self.data['active_monster']['name']}")
-                await self.attack_callback(interaction) # 直接進入第一回合戰鬥
+                await self.attack_callback(interaction, reload=False) # 直接進入第一回合戰鬥
             
             elif rand < 0.97: # 事件
-                event = random.choice(self.content["events"])
+                event = random.choice(self.cog.events_cache)
                 option = random.choice(event["options"])
                 roll = TRPGEngine.roll_d20(self.data["attributes"][option["stat"]])
                 success = roll >= option["dc"]
@@ -475,31 +548,42 @@ class TRPGCog(commands.Cog):
             """遭遇精英怪"""
             self.data["active_monster"] = self.generate_monster("精英")
             self.cog.add_log(self.data, f"⚠️ 遭遇精英怪: {self.data['active_monster']['name']}")
-            await self.attack_callback(interaction)
+            await self.attack_callback(interaction, reload=False)
 
         async def resolve_boss_room(self, interaction):
             """遭遇魔王"""
             self.data["active_monster"] = self.generate_monster("魔王")
             self.cog.add_log(self.data, f"💀 遭遇魔王: {self.data['active_monster']['name']}")
-            await self.attack_callback(interaction)
+            await self.attack_callback(interaction, reload=False)
 
-        async def attack_callback(self, interaction: discord.Interaction):
+        async def attack_callback(self, interaction: discord.Interaction, reload=True):
             """戰鬥邏輯核心"""
+            # 每次戰鬥更新user狀態
+            if reload: self.data = self.cog.load_player(self.user_id)
+
+            self.data["turns"] += 1
+
             monster = self.data["active_monster"]
-            jobs_data = self.cog.load_json(self.cog.jobs_path)
+            jobs_data = self.cog.jobs_cache
             job_config = jobs_data.get(self.data["job"], {}).get("combat_config", {})
 
+            # 💡 核心修正：計算總屬性並傳入
+            items_db = self.cog.items_cache
+            total_stats = TRPGEngine.get_total_stats(self.data, items_db)
+            
             # 傳入 job_config 到 Engine
-            p_dmg, m_dmg = TRPGEngine.calculate_combat(self.data, monster, job_config)
+            p_dmg, m_dmg = TRPGEngine.calculate_combat(self.data, monster, job_config, total_stats)
             
             m_hp_bar = self.cog.get_progress_bar(max(0, monster['hp']), monster['max_hp'])
             result = f"你對 **{monster['name']}** 造成 {p_dmg} 傷害。\n"
-            
+            self.cog.add_log(self.data, f"你對 {monster['name']} 造成 {p_dmg} 傷害。怪物血量: {monster['hp']}/{monster['max_hp']}")
             if monster["hp"] <= 0:
-                result += f"✨ 擊敗了怪物！獲得了 {monster.get('exp', 10)} 經驗。"
+                result += f"✨ 擊敗了怪物！獲得了 {monster.get('exp', 10)} 經驗以及 {monster.get('gold',0)} 金幣。"
+                self.cog.add_log(self.data, f"勝利！獲得了 {monster.get('exp', 10)} 經驗以及 {monster.get('gold',0)} 金幣。")
                 self.data["active_monster"] = None
                 # 經驗與升級處理
                 self.data["exp"] += monster.get("exp", 10)
+                self.data["gold"] += monster.get("gold", 0)
                 if TRPGEngine.check_level_up(self.data):
                     self.data["level"] += 1
                     sp = jobs_data.get(self.data["job"], {}).get("sp_per_level", 2)
@@ -507,19 +591,30 @@ class TRPGCog(commands.Cog):
                     maxhp = jobs_data.get(self.data["job"], {}).get("max_hp_per_level", 2)
                     self.data["skill_points"] += sp
                     self.data["max_health"] += maxhp 
-                    self.data["health"] = min(self.data["max_health"], self.data["health"] + hp + maxhp)
+                    self.data["health"] = int(min(self.data["max_health"], self.data["health"] + hp + maxhp))
                     result += f"\n🎊 **等級提升至 Lv.{self.data['level']}！**"
-                    result += f"\n🎊 **血量上限提升了{maxhp}， 並恢復了 {hp}點！**"
+                    result += f"\n🎊 **血量上限提升了 {maxhp} ， 並恢復了 {hp}點！**"
+                    result += f"\n🎊 **獲得了技能點數 {sp} 點，你還有 {self.data['skill_points']} 點未使用！！**"
+                    self.cog.add_log(self.data, f"等級提升至 Lv.{self.data['level']}，血量上限提升了{maxhp}， 並恢復了 {hp}點！ 玩家血量:{self.data['health']}/{self.data['max_health']}")
                 # 掉落處理
                 if random.random() < monster.get("drop_rate", 0.1):
-                    items = self.content.get("items", [])
-                    drop = random.choices(items, weights=[i["rarity"] for i in items], k=1)[0]
-                    if len(self.data.get("inventory", [])) < 5:
-                        self.data["inventory"].append(drop["id"])
-                        result += f"\n🎁 獲得道具: **{drop['name']}**"
+                    # 將快取字典的值轉為列表，並過濾掉不可掉落物品
+                    dropable_pool = [i for i in self.cog.items_cache.values() if i.get("dropable", True)]
+                    
+                    if dropable_pool:
+                        # 使用過濾後的列表與對應權重進行隨機選取
+                        drop = random.choices(
+                            dropable_pool, 
+                            weights=[i.get("rarity", 0.1) for i in dropable_pool], 
+                            k=1
+                        )[0]
+                        
+                        if len(self.data.get("inventory", [])) < 5:
+                            self.data["inventory"].append(drop["id"])
+                            result += f"\n🎁 獲得道具: **{drop['name']}**"
             else:
                 result += f"🏮 遭受反擊，失去 {m_dmg} HP。\n👾 怪物血量: {m_hp_bar}"
-            
+                self.cog.add_log(self.data, f"遭受反擊，失去 {m_dmg} HP。 玩家血量:{self.data['health']}/{self.data['max_health']}")
             embed = discord.Embed(title=f"⚔️ 第 {self.data['stage']} 層 - 戰鬥", description=result, color=discord.Color.red())
             await self.finish_turn(interaction, embed)
 
@@ -534,7 +629,8 @@ class TRPGCog(commands.Cog):
             else:
                 msg = "空蕩蕩的房間，你在角落撿到一點乾糧 (HP+5)"
                 self.data["health"] = min(self.data["max_health"], self.data["health"] + 5)
-            
+            log = msg.replace("*","")
+            self.cog.add_log(self.data, log)
             embed = discord.Embed(title="🕯️ 英雄遺跡", description=msg, color=discord.Color.gold())
             await self.finish_turn(interaction, embed)
 
@@ -547,9 +643,7 @@ class TRPGCog(commands.Cog):
             embed.add_field(name="🚩 進度", value=f"`第 {self.data['stage']} 層`", inline=True)
 
             # 存檔
-            users = self.cog.load_json(self.cog.users_path)
-            users[self.user_id] = self.data
-            self.cog.save_json(self.cog.users_path, users)
+            self.cog.save_player(self.user_id, self.data)
 
             # 判斷生死
             if self.data["health"] <= 0:
@@ -564,13 +658,10 @@ class TRPGCog(commands.Cog):
     # --- 新增探索指令 ---
     @app_commands.command(name="探索", description="深入深淵的一個房間")
     async def explore_command(self, interaction: discord.Interaction):
-        users = self.load_json(self.users_path)
-        user_id = str(interaction.user.id)
 
-        if user_id not in users:
+        if not(user_data := self.load_player(str(interaction.user.id))):
             return await interaction.response.send_message("你還沒有角色！請先使用 `/開始冒險`。", ephemeral=True)
 
-        user_data = users[user_id]
         view = self.ExplorationView(interaction.user.id, self, user_data)
         
         embed = discord.Embed(
@@ -632,6 +723,9 @@ class TRPGCog(commands.Cog):
         @discord.ui.button(label="PER +1", style=discord.ButtonStyle.primary, row=0)
         async def per_1(self, interaction, button): await self.add_val(interaction, "PER", 1)
 
+        @discord.ui.button(label="LUK +1", style=discord.ButtonStyle.primary, row=0)
+        async def luk_1(self, interaction, button): await self.add_val(interaction, "LUK", 1)
+
         # --- 第二行: +5 快捷按鈕 ---
         @discord.ui.button(label="STR +5", style=discord.ButtonStyle.secondary, row=1)
         async def str_5(self, interaction, button): await self.add_val(interaction, "STR", 5)
@@ -645,6 +739,9 @@ class TRPGCog(commands.Cog):
         @discord.ui.button(label="PER +5", style=discord.ButtonStyle.secondary, row=1)
         async def per_5(self, interaction, button): await self.add_val(interaction, "PER", 5)
 
+        @discord.ui.button(label="LUK +5", style=discord.ButtonStyle.secondary, row=1)
+        async def luk_5(self, interaction, button): await self.add_val(interaction, "LUK", 5)
+
         # --- 第三行: 功能按鈕 ---
         @discord.ui.button(label="♻️ 重設", style=discord.ButtonStyle.danger, row=2)
         async def reset(self, interaction, button):
@@ -657,37 +754,20 @@ class TRPGCog(commands.Cog):
             # 將結果寫回玩家資料
             self.data["skill_points"] = self.current_points
             self.data["attributes"] = self.current_stats
-            
-            users = self.cog.load_json(self.cog.users_path)
-            users[self.user_id] = self.data
-            self.cog.save_json(self.cog.users_path, users)
+            # 儲存玩家資料
+            self.cog.save_player(self.user_id, self.data)
             
             await interaction.response.edit_message(content="🎉 **角色強化完成！** 你的新力量已覺醒。", embed=None, view=None)
 
-            # ... (以此類推重複 DEX, INT, PER 的按鈕) ...
 
-            @discord.ui.button(label="✅ 確認分配", style=discord.ButtonStyle.success)
-            async def confirm(self, interaction, button):
-                # 更新存檔
-                self.data["skill_points"] = self.points
-                self.data["attributes"] = self.stats
-                users = self.cog.load_json(self.cog.users_path)
-                users[self.user_id] = self.data
-                self.cog.save_json(self.cog.users_path, users)
-                
-                await interaction.response.edit_message(content="✅ 屬性已強化！", embed=None, view=None)
 
     # 在 TRPGCog 中新增指令
     @app_commands.command(name="分配屬性", description="使用升級獲得的點數強化你的各項能力")
     async def allocate_points(self, interaction: discord.Interaction):
         # 1. 讀取玩家資料
-        users = self.load_json(self.users_path)
-        user_id = str(interaction.user.id)
-
-        if user_id not in users:
+        if not(user_data:=self.load_player(str(interaction.user.id))):
             return await interaction.response.send_message("你還沒有建立角色，請先使用 `/開始冒險`。", ephemeral=True)
 
-        user_data = users[user_id]
 
         # 2. 檢查是否有剩餘點數
         if user_data.get("skill_points", 0) <= 0:
@@ -698,7 +778,7 @@ class TRPGCog(commands.Cog):
 
         # 3. 呼叫配點介面
         view = self.LevelUpView(interaction.user.id, self, user_data)
-        await interaction.response.send_message(embed=view.create_embed(), view=view)
+        await interaction.response.send_message(embed=view.create_embed(), view=view, ephemeral=True)
 
     # --- 狀態管理介面---
     class StatusView(discord.ui.View):
@@ -737,27 +817,38 @@ class TRPGCog(commands.Cog):
     # --- 新增狀態指令 ---
     @app_commands.command(name="狀態", description="查看當前冒險狀態與詳細數據")
     async def status(self, interaction: discord.Interaction):
-        users = self.load_json(self.users_path)
-        user_id = str(interaction.user.id)
-        if user_id not in users:
+        if not (user_data := self.load_player(str(interaction.user.id))):
             return await interaction.response.send_message("目前沒有進行中的冒險。", ephemeral=True)
         
-        d = users[user_id]
-        req_exp = TRPGEngine.get_required_exp(d['level']) # 確保這裡呼叫正確
-        exp_bar = self.get_progress_bar(d['exp'], req_exp)
-        hp_bar = self.get_progress_bar(d['health'], d['max_health'])
+        items_db = self.items_cache
+
+        # 1. 準備數值文字
+        req_exp = TRPGEngine.get_required_exp(user_data['level'])
+        exp_bar = self.get_progress_bar(user_data['exp'], req_exp)
+        hp_bar = self.get_progress_bar(user_data['health'], user_data['max_health'])
         
-        embed = discord.Embed(title=f"🛡️ {interaction.user.display_name} (Lv.{d['level']})", color=discord.Color.green())
+        # 💡 裝備文字
+        eq = user_data.get("equips", {})
+        eq_text = ""
+        for slot, i_id in eq.items():
+            name = items_db.get(i_id, {"name": "`(空)`"})["name"]
+            slot_name = {"weapon": "⚔️ 武器", "armor": "🛡️ 防具", "helmet": "🪖 頭盔", "accessory": "💍 飾品"}.get(slot, slot)
+            eq_text += f"{slot_name}: {name}\n"
+        
+        # 💡 屬性文字 (必須在 Embed 之前定義)
+        attr_text = "\n".join([f"**{k}**: `{v}`" for k, v in user_data['attributes'].items()])
+
+        # 2. 建立 Embed
+        embed = discord.Embed(title=f"🛡️ {interaction.user.display_name} (Lv.{user_data['level']})", color=discord.Color.green())
         embed.add_field(name="❤️ HP 狀態", value=hp_bar, inline=False)
         embed.add_field(name="🔷 經驗進度", value=exp_bar, inline=False)
-        
-        attr_text = "\n".join([f"**{k}**: `{v}`" for k, v in d['attributes'].items()])
         embed.add_field(name="📊 角色屬性", value=attr_text, inline=True)
-        embed.add_field(name="🚩 進度", value=f"第 {d['stage']} 層\n共 {d['turns']} 回合", inline=True)
+        embed.add_field(name="🛡️ 當前武裝", value=eq_text, inline=True)
+        embed.add_field(name="🪙 持有金幣", value=user_data["gold"], inline=False)
+        embed.add_field(name="🚩 進度", value=f"第 {user_data['stage']} 層\n共 {user_data['turns']} 回合", inline=True)
         
-        # 呼叫我們剛剛建立的 StatusView
-        view = self.StatusView(interaction.user.id, self, d)
-        await interaction.response.send_message(embed=embed, view=view)
+        view = self.StatusView(interaction.user.id, self, user_data)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     class InventoryView(discord.ui.View):
         def __init__(self, user_id, cog, user_data):
@@ -765,8 +856,7 @@ class TRPGCog(commands.Cog):
             self.user_id = str(user_id)
             self.cog = cog
             self.data = user_data
-            self.content = cog.load_json("data/trpg_content.json")
-            self.items_db = {i["id"]: i for i in self.content.get("items", [])}
+            self.items_db = cog.items_cache
 
         def generate_embed(self):
             embed = discord.Embed(title="🎒 冒險者的背包", color=discord.Color.dark_green())
@@ -779,7 +869,6 @@ class TRPGCog(commands.Cog):
                     item = self.items_db.get(i_id)
                     item_desc += f"• **{item['name']}**\n└ {item['description']}\n"
                 embed.description = item_desc
-                # --- 修正圖片讀取邏輯 ---
                 # 抓取背包裡第一個物品的 ID
                 first_item_id = inv[0] 
                 # 從字典中查找該物品的詳細資料
@@ -791,59 +880,96 @@ class TRPGCog(commands.Cog):
             embed.set_footer(text=f"容量限制：{len(inv)} / 5")
             return embed
 
-        @discord.ui.button(label="使用第一個道具", style=discord.ButtonStyle.success)
-        async def use_item(self, interaction: discord.Interaction, button: discord.ui.Button):
-            users = self.cog.load_json(self.cog.users_path)
-            self.data = users.get(self.user_id)
-            
-            if not self.data:
-                return await interaction.response.send_message("找不到你的冒險紀錄。", ephemeral=True)
+        @discord.ui.button(label="⚡ 使用/裝備第一格", style=discord.ButtonStyle.success)
+        async def use_first(self, interaction: discord.Interaction, button: discord.ui.Button):
+            # 同步最新存檔
+            self.data = self.cog.load_player(self.user_id)
             inv = self.data.get("inventory", [])
-            if not inv:
-                return await interaction.response.send_message("你沒有道具可以動用。", ephemeral=True)
+            if not inv: return await interaction.response.send_message("背包空空如也。", ephemeral=True)
 
-            item_id = inv.pop(0) # 為了簡化，每次使用背包的第一個
+            item_id = inv[0] # 核心策略：只能用第一個
             item = self.items_db.get(item_id)
-            msg = f"你使用了 **{item['name']}**。"
+            
+            # 裝備類型判定
+            if item["type"] in ["weapon", "armor", "helmet", "accessory"]:
+                slot = item["type"]
+                old_item = self.data.get("equips", {}).get(slot)
+                
+                inv.pop(0) # 穿上
+                self.data.setdefault("equips", {})[slot] = item_id
+                if old_item: inv.append(old_item) # 舊裝備排隊到最後面
+                msg = f"🛡️ 裝備了 **{item['name']}**。"
+            else:
+                # 消耗品邏輯
+                inv.pop(0)
+                item = self.items_db.get(item_id)
+                msg = f"你使用了 **{item['name']}**。"
 
-            if item["type"] == "heal":
-                heal_val = item["value"]
-                if self.data.get("job") == "血色祭司":
-                    original_val = heal_val
-                    heal_val = int(heal_val * 0.6) # 效果降低 40%
-                    msg = f"使用了 {item['name']}，但因**貧血體質**，效果僅剩 {heal_val} (原 {original_val})。"
-                else:
-                    msg = f"使用了 {item['name']}，回復了 {heal_val} 點。"
-                self.data["health"] = min(self.data["max_health"], self.data["health"] + heal_val)
-            elif item["type"] == "stamina":
-                self.data["stamina"] += item["value"]
-                msg += f" 回復了 {item['value']} 點體力。"
-            elif item["type"] == "boost":
-                attr = random.choice(["STR", "DEX", "INT", "PER"])
-                self.data["attributes"][attr] += item["value"]
-                #self.data["stress"] += 20
-                #msg += f" 永久提升了 {attr}，但感到一股精神壓力..."
-                msg += f" 能力值 {attr} 因應卷軸出現了奇妙的變化"
+                if item["type"] == "heal":
+                    heal_val = item["value"]
+                    passive = self.cog.jobs_cache.get(self.data.get("job"), {}).get('passive_config')
+                    heal_efficiency = passive.get('heal_efficiency')
+                    if heal_efficiency != 1:
+                        heal_val = int(heal_val * heal_efficiency) # 效果降低 40%
+                        msg = f"使用了 {item['name']}，但因被動效果回復了 {heal_val} 點。"
+                    else:
+                        msg = f"使用了 {item['name']}，回復了 {heal_val} 點。"
+                    self.data["health"] = min(self.data["max_health"], self.data["health"] + heal_val)
+                elif item["type"] == "stamina":
+                    self.data["stamina"] += item["value"]
+                    msg += f" 回復了 {item['value']} 點體力。"
+                elif item["type"] == "boost":
+                    attr = random.choice(["STR", "DEX", "INT", "PER"])
+                    self.data["attributes"][attr] += item["value"]
+                    #self.data["stress"] += 20
+                    #msg += f" 永久提升了 {attr}，但感到一股精神壓力..."
+                    msg += f"🧪 使用了 **{item['name']}**。"
+                    msg += f" 能力值 {attr} 因應卷軸出現了奇妙的變化"
+                elif item["type"] == "boost-all":
+                    for attr in self.data["attributes"]:
+                        attr += item["value"]
+                    msg += f"🧪 使用了 **{item['name']}**。"
+                    msg += f" 所有能力值回應了卷軸的力量"
 
-            # 儲存更新後的玩家資料
-            users = self.cog.load_json(self.cog.users_path)
-            users[self.user_id] = self.data
-            self.cog.save_json(self.cog.users_path, users)
-            self.cog.add_log(self.data, msg)
+            self.cog.add_log(self.data, f" 使用了 {item['name']}。")
+            self.cog.save_player(self.user_id, self.data)
             await interaction.response.edit_message(embed=self.generate_embed(), view=self)
             await interaction.followup.send(msg, ephemeral=True)
+
+        @discord.ui.button(label="🗑️ 處置裝備", style=discord.ButtonStyle.secondary)
+        async def discard_equip(self, interaction: discord.Interaction, button: discord.ui.Button):
+            inv = self.data.get("inventory", [])
+            # 僅過濾出裝備
+            options = []
+            for idx, i_id in enumerate(inv):
+                it = self.items_db.get(i_id)
+                if it and it["type"] in ["weapon", "armor", "helmet", "accessory"]:
+                    options.append(discord.SelectOption(label=it["name"], value=str(idx), description=it["description"]))
+
+            if not options:
+                return await interaction.response.send_message("❌ 背包中沒有可丟棄的裝備（消耗品無法丟棄）！", ephemeral=True)
+
+            select = discord.ui.Select(placeholder="選擇要毀棄的裝備...", options=options)
+
+            async def select_callback(itn: discord.Interaction):
+                target_idx = int(select.values[0])
+                removed_id = inv.pop(target_idx)
+                self.cog.save_player(self.user_id, self.data)
+                await itn.response.edit_message(content=f"已將 **{self.items_db[removed_id]['name']}** 丟棄。", view=None)
+
+            select.callback = select_callback
+            view = discord.ui.View(); view.add_item(select)
+            await interaction.response.send_message("⚠️ 請選擇要永久移除的裝備：", view=view, ephemeral=True)
 
     # 在 TRPGCog 類別下新增指令
     @app_commands.command(name="背包", description="查看並使用你收集到的道具")
     async def open_inventory(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
-        users = self.load_json(self.users_path)
-        user_id = str(interaction.user.id)
-        if user_id not in users:
+        if not (user_data := self.load_player(str(interaction.user.id))):
             return await interaction.response.send_message("死人不需要背包，請先 `/開始冒險`。", ephemeral=True)
 
-        view = self.InventoryView(interaction.user.id, self, users[user_id])
+        view = self.InventoryView(interaction.user.id, self, user_data)
         await interaction.followup.send(embed=view.generate_embed(), view=view)
 
     @app_commands.command(name="冒險回顧", description="使用 Run ID 查看過往的冒險日誌")
@@ -856,126 +982,160 @@ class TRPGCog(commands.Cog):
         # 以「檔案」形式發送，避免 Discord 字數限制 (2000字)
         await interaction.response.send_message(
             content=f"📜 這是冒險編號 `{run_id}` 的詳細紀錄：",
-            file=discord.File(file_path)
+            file=discord.File(file_path),
+            ephemeral=True
         )
 
-    @app_commands.command(name="關於trpg", description="查看《永恆深淵的餘燼》遊戲說明與版本資訊")
-    async def about_game(self, interaction: discord.Interaction):
-        # 遊戲基本資訊
-        version = "v1.1.0"  # 你可以隨時手動更新版本號
-        author = "波貝小語"  # 這裡放你的大名
-        _description = ""
-        jobs_data = self.load_json(self.jobs_path)
-        for job_name, config in jobs_data.items():
-            _description+=f"**{config['icon']} {job_name}**：{config['description']}\n"
+    ##!!--xx 商店系統<1.2.0> xx--!!##
+    class ShopView(discord.ui.View):
+        def __init__(self, user_id, cog, user_data):
+            super().__init__(timeout=300)
+            self.user_id = str(user_id)
+            self.cog = cog
+            self.data = user_data
+            self.items_cache = cog.items_cache
+            self.shop_data = self.data.get("current_shop", {"items": [], "sold": []})
+            self.create_buttons()
 
+        def get_random_greeting(self):
+            greetings = [
+                "「只要代價足夠，深淵能提供你任何東西...」",
+                "「金幣在死人手裡只是廢鐵，但在我這裡...它是命。」",
+                "「歡迎來到深淵的唯一綠洲。別擔心，我收的稅比死神輕一點。」",
+                "「看看我的收藏，或許能讓你多活五分鐘。」"
+            ]
+            return random.choice(greetings)
+        
+        def create_buttons(self):
+            self.clear_items()
+            stage = self.data["stage"]
+            
+            # 建立商品按鈕
+            for idx, item_id in enumerate(self.shop_data["items"]):
+                is_sold = self.shop_data["sold"][idx]
+                item = self.items_cache.get(item_id)
+                price = TRPGEngine.get_shop_price(item, stage)
+                
+                label = f"{item['name']} ({price}G)"
+                style = discord.ButtonStyle.secondary
+                if is_sold:
+                    label = f"已售罄 - {item['name']}"
+                    style = discord.ButtonStyle.danger
+                
+                btn = discord.ui.Button(label=label, style=style, disabled=is_sold, row=idx // 2)
+                btn.callback = self.make_purchase_callback(idx, item, price)
+                self.add_item(btn)
+
+            # 前往下一關按鈕
+            next_btn = discord.ui.Button(label="離開商店，繼續前行", style=discord.ButtonStyle.primary, row=2)
+            next_btn.callback = self.leave_shop
+            self.add_item(next_btn)
+
+        def make_purchase_callback(self, idx, item, price):
+            async def callback(interaction: discord.Interaction):
+                # 檢查金幣與背包空間
+                if self.data["gold"] < price:
+                    taunts = [
+                        "❌ 「窮鬼？在深淵裡，貧窮比怪物更致命。滾去多殺幾隻史萊姆吧。」",
+                        "❌ 「你手裡的那些銅板連灰塵都買不起。別浪費我的時間。」"
+                    ]
+                    return await interaction.response.send_message(random.choice(taunts), ephemeral=True)
+                if len(self.data["inventory"]) >= 5:
+                    return await interaction.response.send_message("❌ 背包已滿！你拿不下更多東西了。", ephemeral=True)
+
+                # 執行購買
+                self.data["gold"] -= price
+                self.data["inventory"].append(item["id"])
+                self.shop_data["sold"][idx] = True
+                self.data["current_shop"] = self.shop_data # 更新狀態
+                
+                self.cog.save_player(self.user_id, self.data)
+                self.cog.add_log(self.data, f"從商人處購買了 {item['name']} (花費 {price}G)")
+                
+                self.create_buttons() # 重新整理 UI
+                embed = self.generate_shop_embed()
+                await interaction.response.edit_message(embed=embed, view=self)
+                await interaction.followup.send(f"✅ 成功購買 **{item['name']}**！", ephemeral=True)
+            return callback
+
+        async def leave_shop(self, interaction: discord.Interaction):
+            self.data["current_shop"] = None # 清空商店，下次重新生成
+            self.data["event_ready"] = False
+            self.cog.save_player(self.user_id, self.data)
+            taunts = [
+                        "「走吧，走吧...黑暗在前面等著你。」",
+                        "「下次見面時，希望你帶了更多的金幣...或者更有趣的靈魂。」",
+                        "「祝你好運，冒險者。雖然在深淵，好運通常是昂貴的。」",
+                        "「別回頭，死神不喜歡猶豫不決的人。」",
+                        "你告別了商人，沒入黑暗的走廊..."
+                    ]
+            goodbye_msg = random.choice(taunts)
+
+            # 3. 💡 建立新的探索介面，讓按鈕重新出現
+            # 這裡我們直接利用 ExplorationView 的初始化邏輯來產生下一層的按鈕
+            next_view = self.cog.ExplorationView(self.user_id, self.cog, self.data)
+
+            # 4. 產生回歸探索的 Embed
+            embed = discord.Embed(
+                title="🔦 繼續前行",
+                description=f"{goodbye_msg}\n\n當前層數：**第 {self.data['stage']} 層**",
+                color=discord.Color.light_gray()
+            )
+
+            # 5. 更新訊息：顯示告別語並「換回」探索按鈕
+            await interaction.response.edit_message(content=None, embed=embed, view=next_view)
+
+        def generate_shop_embed(self):
+            embed = discord.Embed(title="🏮 深淵祕寶商人", color=discord.Color.dark_orange())
+            embed.description = self.get_random_greeting()
+            embed.add_field(name="💰 你的錢包", value=f"`{self.data['gold']} G`", inline=False)
+            embed.set_footer(text=f"目前層數：{self.data['stage']} | 消耗品價格每 5 層翻倍")
+            return embed
+
+
+    # 在 TRPGCog 類別內建立一個簡單的連結 View
+    class AboutLinksView(discord.ui.View):
+        def __init__(self):
+            super().__init__()
+            # 官方網站按鈕
+            self.add_item(discord.ui.Button(
+                label="🌐 前往官方網站", 
+                url="https://future-tens.github.io/WithYuTogether/",
+                style=discord.ButtonStyle.link
+            ))
+            # 更新日誌按鈕
+            self.add_item(discord.ui.Button(
+                label="📜 查看更新日誌", 
+                url="https://future-tens.github.io/WithYuTogether/updates.html",
+                style=discord.ButtonStyle.link
+            ))
+
+    @app_commands.command(name="關於trpg", description="查看《永恆深淵的餘燼》官方網站與資訊")
+    async def about_game(self, interaction: discord.Interaction):
+        # 建立你指定的精簡版 Embed
         embed = discord.Embed(
             title="🔥 永恆深淵的餘燼 (Embers of the Eternal Abyss)",
             description=(
-                "這是一款極高難度的 **Roguelike TRPG**。\n"
+                "這是一款極高難度的 **Roguelike-lite TRPG**。\n"
                 "死亡不是終點，而是下一位冒險者起點的餘燼。"
             ),
             color=discord.Color.dark_gold()
         )
-
-        # 1. 🎭 職業指南 (核心內容)
-        embed.add_field(
-            name="🎭 職業指南 (Professions)",
-            value=(
-                _description
-            ),
-            inline=False
-        )
-
-        # 2. 🚩 關卡與生存 (Mechanics)
-        embed.add_field(
-            name="🚩 關卡機制",
-            value=(
-                "**雙路選擇**：每層提供兩條路徑，權重為：普通(85%)、精英(13.5%)、魔王(1.5%)。\n"
-                "**補給點**：每 5 關觸發一次補給點事件。休息點恢復 **25% 已損失生命**，祭壇則永久提升全屬性。\n"
-                "**戰鬥鎖定**：遭遇怪物後無法逃跑，必須決戰到一方倒下為止。"
-            ),
-            inline=False
-        )
         
-        # 3. 🕯️ 系統特色
+        # 加入一個提示訊息，引導玩家點擊按鈕
         embed.add_field(
-            name="💀 永久死亡", 
-            value="HP 歸零即刪檔，但紀錄會寫入排行榜與 `.txt` 冒險日誌。", 
-            inline=True
-        )
-        embed.add_field(
-            name="🕯️ 遺產池", 
-            value="死者有機率留下道具，供後續探險者在「遺跡房間」拾取。", 
-            inline=True
-        )
-        
-        # 4. 指令清單
-        embed.add_field(
-            name="🛠️ 冒險指令",
-            value=(
-                "`/開始冒險` - 選擇職業並建立角色\n"
-                "`/探索` - 進入深淵房間（雙路線）\n"
-                "`/狀態` - 檢查數值、升級進度或**放棄冒險**\n"
-                "`/分配屬性` - 強化等級提升獲得的點數\n"
-                "`/背包` - 使用藥水與神祕道具\n"
-                "`/冒險回顧` - 輸入 Run ID 讀取過往日誌"
-            ),
+            name="📍 獲取更多資訊",
+            value="詳細的職業介紹、關卡機制、裝備數據與開發進度，請至我們的官方網站查閱。",
             inline=False
         )
         
         # 頁尾資訊
-        embed.set_footer(text=f"版本：{version} | 作者：{author} | 祝你好運，冒險者。")
+        embed.set_footer(text=f"版本：v{VERSION} | 作者：{AUTHOR} | 願你在深淵中生存。")
         
-        await interaction.response.send_message(embed=embed)
-
-    @app_commands.command(name="trpg版本日誌", description="查看《永恆深淵的餘燼》版本日誌")
-    async def game_version(self, interaction: discord.Interaction):
+        # 呼叫連結按鈕 View
+        view = self.AboutLinksView()
         
-        embed = discord.Embed(
-            title="📖 歷版本改版資訊",
-            description=(
-                "🔥《永恆深淵的餘燼》🔥\n"
-            ),
-            color=discord.Color.dark_gold()
-        )
-        # V1.1.0
-        embed.add_field(
-            name="📜 Version 1.1.0",
-            value=(
-                "`職業` - 新增四種職業`破壁者`、`幻影行者`、`血色祭司`、`求道者`\n"
-                "`探索` - 改為雙路線機制\n"
-                "`怪物` - 新增更多怪物，有機率遇到高難度怪物\n"
-                "`記錄` - 可以查看過關詳細資訊\n"
-                "`狀態` - 現在可以透過狀態放棄該場遊戲\n"
-                "`機制` - 修改經驗值公式`<50*(LVL^LVL)>`\n"
-                "`Bug-fixed` - \n"
-                "| 修復喝藥水會觸發異常不死無法結算的情形\n"
-                "| 修復遺物異常無法掉落的情形\n"
-                "| 修復怪物不會隨著關卡變強的情形\n"
-                "\t- 因應上述修復修正怪物基礎能力值\n"
-
-            ),
-            inline=False
-        )
-        # V1.0.0
-        embed.add_field(
-            name="📜 Version 1.0.0",
-            value=(
-                "`/開始冒險` - 選擇職業並建立角色\n"
-                "`/探索` - 進入深淵房間（雙路線）\n"
-                "`/狀態` - 檢查數值、升級進度或**放棄冒險**\n"
-                "`/分配屬性` - 強化等級提升獲得的點數\n"
-                "`/背包` - 使用藥水與神祕道具\n"
-                "`/排行榜` - 查看深淵中最偉大的先行者n"
-                "`/冒險回顧` - 輸入 Run ID 讀取過往日誌"
-            ),
-            inline=False
-        )
-        # 頁尾資訊
-        embed.set_footer(text=f"版本：{VERSION} | 作者：{AUTHOR} | 有任何問題歡迎找我。")
-        
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, view=view)
 
 async def setup(bot):
     await bot.add_cog(TRPGCog(bot))

@@ -1,0 +1,156 @@
+[
+    {
+        "id": 0,
+        "name": "0 愚者 (The Fool)",
+        "meaning_up": "新的開始、冒險、純真、自發性、自由。",
+        "meaning_rev": "魯莽、冒險、粗心、猶豫不決、愚蠢。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg"
+    },
+    {
+        "id": 1,
+        "name": "1 魔術師 (The Magician)",
+        "meaning_up": "創造力、行動、專注、能力、展現理想。",
+        "meaning_rev": "操縱、計畫不周、未開發的潛力、欺騙。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg"
+    },
+    {
+        "id": 2,
+        "name": "2 女教皇 (The High Priestess)",
+        "meaning_up": "直覺、潛意識、神秘、內在聲音、智慧。",
+        "meaning_rev": "隱瞞動機、表面化、忽略直覺、秘密洩漏。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/8/88/RWS_Tarot_02_High_Priestess.jpg"
+    },
+    {
+        "id": 3,
+        "name": "3 皇后 (The Empress)",
+        "meaning_up": "豐盛、母性、感官、孕育、自然界的美。",
+        "meaning_rev": "創造力受阻、依賴、空虛、缺乏成長。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/d/d2/RWS_Tarot_03_Empress.jpg"
+    },
+    {
+        "id": 4,
+        "name": "4 皇帝 (The Emperor)",
+        "meaning_up": "權威、結構、父親形象、堅固的基礎、控制。",
+        "meaning_rev": "專制、缺乏紀律、僵化、權力濫用。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/c/c3/RWS_Tarot_04_Emperor.jpg"
+    },
+    {
+        "id": 5,
+        "name": "5 教皇 (The Hierophant)",
+        "meaning_up": "傳統、體制、精神指引、符合社會期望、學習。",
+        "meaning_rev": "反叛、挑戰現狀、個人信念、不墨守成規。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/8/8d/RWS_Tarot_05_Hierophant.jpg"
+    },
+    {
+        "id": 6,
+        "name": "6 戀人 (The Lovers)",
+        "meaning_up": "愛、和諧、關係、價值觀契合、重大抉擇。",
+        "meaning_rev": "失和、自我失衡、逃避責任、錯誤的選擇。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_06_Lovers.jpg"
+    },
+    {
+        "id": 7,
+        "name": "7 戰車 (The Chariot)",
+        "meaning_up": "勝利、意志力、自我控制、決心、克服障礙。",
+        "meaning_rev": "失控、方向不明、缺乏動力、侵略性。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/9/9b/RWS_Tarot_07_Chariot.jpg"
+    },
+    {
+        "id": 8,
+        "name": "8 力量 (Strength)",
+        "meaning_up": "勇氣、耐心、內在力量、溫柔的控制、同情心。",
+        "meaning_rev": "自卑、軟弱、缺乏自信、情緒失控。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/f/f5/RWS_Tarot_08_Strength.jpg"
+    },
+    {
+        "id": 9,
+        "name": "9 隱者 (The Hermit)",
+        "meaning_up": "內省、尋求真理、獨處、引導、沉思。",
+        "meaning_rev": "孤立、隱蔽、孤僻、與社會脫節。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/4/4d/RWS_Tarot_09_Hermit.jpg"
+    },
+    {
+        "id": 10,
+        "name": "10 命運之輪 (Wheel of Fortune)",
+        "meaning_up": "好運、業力、轉捩點、循環、不可控的改變。",
+        "meaning_rev": "壞運氣、阻礙、外部力量干擾、抗拒改變。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg"
+    },
+    {
+        "id": 11,
+        "name": "11 正義 (Justice)",
+        "meaning_up": "公正、真理、法律、因果報應、平衡。",
+        "meaning_rev": "不公正、逃避責任、偏見、不公平的結果。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/e/e0/RWS_Tarot_11_Justice.jpg"
+    },
+    {
+        "id": 12,
+        "name": "12 倒吊人 (The Hanged Man)",
+        "meaning_up": "犧牲、等待、換位思考、暫停、放手。",
+        "meaning_rev": "停滯不前、徒勞無功、拖延、猶豫不決。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/2/2b/RWS_Tarot_12_Hanged_Man.jpg"
+    },
+    {
+        "id": 13,
+        "name": "13 死亡 (Death)",
+        "meaning_up": "結束、轉變、過渡、放下過去、重生。",
+        "meaning_rev": "抗拒改變、恐懼結束、停滯、重生受阻。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/d/d7/RWS_Tarot_13_Death.jpg"
+    },
+    {
+        "id": 14,
+        "name": "14 節制 (Temperance)",
+        "meaning_up": "平衡、中庸、耐心、目的明確、融合。",
+        "meaning_rev": "失衡、極端、缺乏遠見、衝突。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/f/f8/RWS_Tarot_14_Temperance.jpg"
+    },
+    {
+        "id": 15,
+        "name": "15 惡魔 (The Devil)",
+        "meaning_up": "束縛、成癮、物質主義、陰暗面、誘惑。",
+        "meaning_rev": "解脫、覺醒、重獲自由、打破束縛。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/5/55/RWS_Tarot_15_Devil.jpg"
+    },
+    {
+        "id": 16,
+        "name": "16 塔 (The Tower)",
+        "meaning_up": "突發的變故、破壞、覺醒、災難、劇烈震盪。",
+        "meaning_rev": "躲過災難、害怕改變、推遲不可避免的事。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/5/53/RWS_Tarot_16_Tower.jpg"
+    },
+    {
+        "id": 17,
+        "name": "17 星星 (The Star)",
+        "meaning_up": "希望、信念、靈感、療癒、平靜。",
+        "meaning_rev": "失望、缺乏希望、焦慮、靈感乾涸。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_17_Star.jpg"
+    },
+    {
+        "id": 18,
+        "name": "18 月亮 (The Moon)",
+        "meaning_up": "幻覺、恐懼、焦慮、潛意識、混亂。",
+        "meaning_rev": "真相大白、克服恐懼、混亂解除、平靜。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/7/7f/RWS_Tarot_18_Moon.jpg"
+    },
+    {
+        "id": 19,
+        "name": "19 太陽 (The Sun)",
+        "meaning_up": "成功、快樂、光亮、生命力、自信。",
+        "meaning_rev": "暫時的低潮、過度樂觀、虛榮、推遲的成功。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/1/17/RWS_Tarot_19_Sun.jpg"
+    },
+    {
+        "id": 20,
+        "name": "20 審判 (Judgement)",
+        "meaning_up": "覺醒、重獲新生、重大決定、業力總結。",
+        "meaning_rev": "自我懷疑、逃避評判、猶豫、錯失機會。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/d/dd/RWS_Tarot_20_Judgement.jpg"
+    },
+    {
+        "id": 21,
+        "name": "21 世界 (The World)",
+        "meaning_up": "圓滿、完成、旅行、整合、成功。",
+        "meaning_rev": "未完成、延遲、缺乏結尾、欠缺完美。",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/f/ff/RWS_Tarot_21_World.jpg"
+    }
+]

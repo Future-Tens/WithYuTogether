@@ -1,0 +1,67 @@
+[
+    {
+        "id": "small_potion",
+        "name": "劣質紅色藥水",
+        "description": "回復 5 點 HP。",
+        "type": "heal",
+        "value": 5,
+        "rarity": 0.4,
+        "gold": 100,
+        "dropable": true,
+        "icon_file": "https://media.discordapp.net/attachments/1483554231762944080/1483554302839754822/061922bd11665f58.png?ex=69bb031c&is=69b9b19c&hm=98d571f6d2930370080a6c719631bb8cab2f837f972d663ca4da3ab1697882db&=&format=webp&quality=lossless&width=903&height=903"
+    },
+    {
+        "id": "life_frag",
+        "name": "生命碎片",
+        "description": "回復 12 點 HP。",
+        "type": "heal",
+        "value": 12,
+        "rarity": 0.1,
+        "gold": 300,
+        "dropable": true,
+        "icon_file": "https://media.discordapp.net/attachments/1483554231762944080/1483554904852267088/94932d6ea42687df.png?ex=69bb03ac&is=69b9b22c&hm=437e41cd40c3faff8a2fb41b400d31b54333e3d80766c297184b0e5ec4f477fa&=&format=webp&quality=lossless&width=747&height=747"
+    },
+    {
+        "id": "life_essence",
+        "name": "純淨生命精華",
+        "description": "回復 50 點 HP。",
+        "type": "heal",
+        "value": 50,
+        "rarity": 0.05,
+        "gold": 1500,
+        "dropable": true,
+        "icon_file": "https://media.discordapp.net/attachments/1483554231762944080/1483554905519292446/f597016ad33aec88.png?ex=69bb03ac&is=69b9b22c&hm=ade09feca24acaac59e9f283cac8ea28992643a102ca0f6c5394a5a3ec24ef2a&=&format=webp&quality=lossless&width=747&height=747"
+    },
+    {
+        "id": "mystery_scroll",
+        "name": "神祕的古代卷軸",
+        "description": "透過神秘的力量隨機增加屬性 2 點。",
+        "type": "boost",
+        "value": 2,
+        "rarity": 0.15,
+        "gold": 1000,
+        "dropable": true,
+        "icon_file": "https://media.discordapp.net/attachments/1483554231762944080/1483554904172793957/c08c43bb3ff1dd9e.png?ex=69bb03ac&is=69b9b22c&hm=a1cbfddd4d03203e1f6c01a67d30375f9af8d57d8b58254ba93fe01eb84254a6&=&format=webp&quality=lossless&width=747&height=747"
+    },
+    {
+        "id": "blessed_scroll",
+        "name": "被祝福的卷軸",
+        "description": "純淨的能量，永久提升全屬性 1 點。",
+        "type": "boost-all",
+        "value": 1,
+        "rarity": 0.05,
+        "gold": 2000,
+        "dropable": false,
+        "icon_file": "https://example.com/blessed_scroll.png"
+    },
+    {
+        "id": "curse_scroll",
+        "name": "詛咒的古代卷軸",
+        "description": "隨機減少屬性。",
+        "type": "boost",
+        "value": -1,
+        "rarity": 0.1,
+        "dropable": true,
+        "icon_file": "https://media.discordapp.net/attachments/1483554231762944080/1483554903409557676/0eede99a3c1f6ee5.png?ex=69bb03ac&is=69b9b22c&hm=e11a0fa77446522c545fd2d33fc87d3b8b81a7723eb525e4047ab7fc107ca9cc&=&format=webp&quality=lossless&width=747&height=747"
+    }
+]
