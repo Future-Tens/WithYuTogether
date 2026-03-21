@@ -46,9 +46,7 @@ def run_bot():
     with open(config_path, 'r', encoding='utf-8') as f:
         config = json.load(f)
     
-    token = config.get("token")
-    
-    if not token or token == "你的_DISCORD_BOT_TOKEN_在這邊":
+    if not (token := config.get("token")):
         print("錯誤：config.json 內的 token 為空或未設定。")
         return
 

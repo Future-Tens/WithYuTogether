@@ -44,6 +44,9 @@ class TRPGEngine:
         傳入 job_config 參數字典，不再依賴 job 名稱判斷
         job_config 應包含: crit_chance, crit_mult, flat_bonus_atk, hp_cost_per_atk
         """
+        if monster is None:
+            return 0, 0
+
         damage_type = job_config.get("damage_type", "p")
         if damage_type == "p":
             p_atk = final_stats["STR"]

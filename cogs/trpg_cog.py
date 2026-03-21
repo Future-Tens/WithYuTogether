@@ -10,7 +10,7 @@ import datetime
 import random
 from utils.trpg_engine import TRPGEngine
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 AUTHOR = "波貝小語"
 
 
@@ -225,12 +225,13 @@ class TRPGCog(commands.Cog):
 
         if user_data := self.load_player(str(interaction.user.id)):
             return await interaction.response.send_message("你已經在深淵中了。若要重新開始，請先在 `/狀態` 中放棄冒險。", ephemeral=True)
-        _description = ""
+        _description = "🎭 選擇你的職業\n\n"
+
         for job_name, config in self.jobs_cache.items():
             _description+=f"**{config['icon']} {job_name}**：{config['description']}\n"
         # 顯示職業選擇說明 Embed
         embed = discord.Embed(
-            title="🎭 選擇你的職業",
+            title=f"目前遊玩版本:{VERSION}",
             description=(
                 _description
             ),
@@ -294,8 +295,8 @@ class TRPGCog(commands.Cog):
         record = {
             "run_id": run_id,
             "user_name": user_name,
-            "attr": user_data['stat'],
-            "level": user_data['levle'],
+            "attr": user_data['attributes'],
+            "level": user_data['level'],
             "job": user_data["job"],
             "max_stage": user_data["stage"],
             "total_turns": user_data["turns"],
@@ -351,46 +352,53 @@ class TRPGCog(commands.Cog):
             else:
                 return "魔王"
         
-        def generate_monster(self, m_type="普通"):
-            """
-            統一產生怪物物件並套用倍率
-            """
+        def pre_bake_route(self, r_type):
+            """預先決定房間內容與掉落物"""
             stage = self.data["stage"]
-            available = [m for m in self.cog.monsters_cache if m["min_stage"] <= stage]
-            monster = random.choice(available).copy()
-
-            # 1. 取得關卡縮放倍率 (例如每層 +2%)
-            stage_scaling = 1 + (stage * 0.025)
+            subtype = "monster" # 預設是怪物
             
-            # 2. 取得房間類型倍率
-            type_scaling_hp = 1.0
-            type_scaling_atk = 1.0
-            exp_mult = 1.0
-            drop_mult = 1.0
+            # 💡 只有「普通」房間會觸發多樣性判定
+            if r_type == "普通":
+                rand = random.random()
+                if rand < 0.8: 
+                    subtype = "monster"
+                elif rand < 0.97: 
+                    subtype = "event" # 這裡決定它是事件！
+                else: 
+                    subtype = "legacy"
 
-            if m_type == "精英":
-                monster["name"] = f"🔶 精英·{monster['name']}"
-                type_scaling_hp = 1.5
-                type_scaling_atk = 1.2
-                exp_mult = 1.5
-                drop_mult = 2.0
-            elif m_type == "魔王":
-                monster["name"] = f"💀 魔王·{monster['name']}"
-                type_scaling_hp = 3.0
-                type_scaling_atk = 1.5
-                exp_mult = 3.0
-                drop_mult = 10.0 # 魔王必定掉落
+            # 1. 篩選符合層數的怪物
+            monster_tpl = None
+            drop_id = None
+            if subtype == "monster" or r_type in ["精英", "魔王"]:
+                available = [m for m in self.cog.monsters_cache if m["min_stage"] <= self.data["stage"]]
+                monster_tpl = random.choice(available)
+            
+                # 2. 預演掉落邏輯
+                # 這裡我們模擬一次掉落判定，決定這隻怪「預計」會掉什麼
+                drop_id = None
+                # 考慮房間倍率 (如精英怪掉落率更高)
+                drop_mult = 2.0 if r_type == "精英" else (10.0 if r_type == "魔王" else 1.0)
+                final_drop_rate = min(1.0, monster_tpl.get("drop_rate", 0.1) * drop_mult)
+                
+                if random.random() < final_drop_rate:
+                    # 從快取中抓取可掉落物
+                    dropable_pool = [i for i in self.cog.items_cache.values() if i.get("dropable", True)]
+                    if dropable_pool:
+                        drop_item = random.choices(
+                            dropable_pool, 
+                            weights=[i.get("rarity", 0.1) for i in dropable_pool], 
+                            k=1
+                        )[0]
+                        drop_id = drop_item["id"]
 
-            # 3. 【核心優化】一次性寫入最終數值
-            # 最終數值 = 基礎值 * 關卡縮放 * 房間類型縮放
-            monster["hp"] = int(monster["hp"] * stage_scaling * type_scaling_hp)
-            monster["max_hp"] = monster["hp"] # 同步設定最大血量供 UI 使用
-            monster["atk"] = int(monster["atk"] * stage_scaling * type_scaling_atk)
-            monster["def"] = monster.get("def", 0)
-            monster["exp"] = int(monster.get("exp", 10) * stage_scaling * exp_mult)
-            monster["drop_rate"] = min(1.0, monster.get("drop_rate", 0.1) * drop_mult)
-
-            return monster
+            return {
+                "type": r_type,
+                "subtype": subtype, # 💡 存入子類型
+                "monster_tpl": monster_tpl,
+                "monster": monster_tpl["name"] if monster_tpl else "神祕氣息",
+                "drop": drop_id                 
+            }
 
 
         def update_buttons(self):
@@ -414,8 +422,8 @@ class TRPGCog(commands.Cog):
                 
             if "pending_routes" not in self.data or self.data["pending_routes"] is None:
                 self.data["pending_routes"] = {
-                    "a": self.get_room_type(),
-                    "b": self.get_room_type()
+                    "a": self.pre_bake_route(self.get_room_type()),
+                    "b": self.pre_bake_route(self.get_room_type())
                 }
                 self.cog.save_player(self.user_id, self.data)
 
@@ -424,57 +432,104 @@ class TRPGCog(commands.Cog):
             self.route_a_type = routes["a"]
             self.route_b_type = routes["b"]
 
-            jobs_data = self.cog.jobs_cache
-            passive = jobs_data.get(self.data["job"], {}).get("passive_config", {})
+            per = self.data["attributes"]['PER']
+            stage = self.data["stage"]
+            passive = self.cog.jobs_cache.get(self.data["job"], {}).get("passive_config", {})
             per_mod = passive.get("per_threshold_mod", 0)
-            # 能力預知
-            if self.data["attributes"]['PER'] > (7 + per_mod + self.data["stage"]//2.5):
-                label_a = f"🛤️ 路線甲 ({self.route_a_type})"
-            else:
-                label_a = "🛤️ 路線甲 (???)"
-            # 職業預知
-            if passive.get("can_see_future") or self.data["attributes"]['PER'] > (7 + per_mod + self.data["stage"]//1.5):
-                label_b = f"🛤️ 路線乙 ({self.route_b_type})"
-            else:
-                label_b = "🛤️ 路線乙 (???)"
+
+            def resolve_label(route_data, threshold_base):
+                r_type = route_data["type"]
+                subtype = route_data.get("subtype", "monster")
+                m_name = route_data["monster"]
+                d_id = route_data["drop"]
+                d_name = self.cog.items_cache.get(d_id, {}).get("name", "未知") if d_id else "無"
+
+                # 層級 1：幻影行者直接看穿
+                if passive.get("can_see_future") and subtype=="monster":
+                    loot_msg = f" | 🎁 預感：{d_name}" if d_id else " | 💨 無掉落感"
+                    return f"🛤️ {r_type}：{m_name}{loot_msg}"
+
+                # 層級 2：看穿怪物名稱 (極高感知)
+                if passive.get("can_see_future") or per > (7 + per_mod + stage // threshold_base):
+                    desc = "有生物氣息" if subtype == "monster" else "神祕的氣息"
+                    return f"🛤️ {r_type}：{desc}"
+                
+                return "🛤️ 探索路線 (???)"
+
+                
+            # 應用到 A/B 路線 (維持你原本的 A/B 難度區分)
+            label_a = resolve_label(self.data["pending_routes"]["a"], 2.5)
+            label_b = resolve_label(self.data["pending_routes"]["b"], 1.5)
 
 
             route_a = discord.ui.Button(label=label_a, style=discord.ButtonStyle.secondary, custom_id="route_a")
             route_b = discord.ui.Button(label=label_b, style=discord.ButtonStyle.secondary, custom_id="route_b")
-            async def callback_a(interaction): await self.route_callback(interaction, self.route_a_type)
-            async def callback_b(interaction): await self.route_callback(interaction, self.route_b_type)
+            async def callback_a(interaction): 
+                await self.route_callback(interaction, self.data["pending_routes"]["a"])
+            async def callback_b(interaction): 
+                await self.route_callback(interaction, self.data["pending_routes"]["b"])
             route_a.callback = callback_a
             route_b.callback = callback_b
             self.add_item(route_a)
             self.add_item(route_b)
 
-        async def route_callback(self, interaction: discord.Interaction, route_type):
-            """點擊路線按鈕的回呼"""
-            # 每次選擇更新user狀態
+        async def route_callback(self, interaction: discord.Interaction, baked_data):
+            """
+            修改參數：直接接收點擊路徑時對應的 baked_data
+            """
             self.data = self.cog.load_player(self.user_id)
             self.data["turns"] += 1
-
-            # 如果是特殊事件，執行完後要關閉 Flag
-            if route_type == "特殊":
-                self.data["event_ready"] = False # 💡 結束事件，回到正常流程
-                return await self.resolve_special_event(interaction)
-
-            # 一般房間：增加關卡數並清除預選
-            self.data["stage"] += 1
-            self.data["pending_routes"] = None
             
-            # 💡 重要判定：如果新關卡是 5 的倍數，標記「下次要進特殊事件」
+            route_type = baked_data["type"]
+            self.data["stage"] += 1
+            self.data["pending_routes"] = None # 進入房間後清除預選
+            
             if self.data["stage"] % 5 == 0:
                 self.data["event_ready"] = True
 
-            if route_type =="特殊":
-                return await self.resolve_special_event(interaction)
-            elif route_type =="普通": 
-                await self.resolve_normal_room(interaction)
-            elif route_type =="精英":
-                await self.resolve_elite_room(interaction)
-            elif route_type =="魔王":
-                await self.resolve_boss_room(interaction)
+            # 💡 資料同步：直接將預報的怪物進行實體化 (Hydrate)
+            if route_type == "普通":
+                subtype = baked_data.get("subtype", "monster")
+                if subtype == "monster":
+                    monster = self.hydrate_monster(baked_data)
+                    self.data["active_monster"] = monster
+                    await self.attack_callback(interaction, reload=False)
+                elif subtype == "event":
+                    # 💡 呼叫處理事件的函式
+                    await self.resolve_random_event_room(interaction)
+                elif subtype == "legacy":
+                    await self.resolve_legacy(interaction)
+                    
+            elif route_type in ["精英", "魔王"]:
+                monster = self.hydrate_monster(baked_data)
+                self.data["active_monster"] = monster
+                await self.attack_callback(interaction, reload=False)
+                
+            elif route_type == "特殊":
+                await self.resolve_special_event(interaction)
+
+        def hydrate_monster(self, baked_data):
+            """將預烘焙的原型套用層數縮放與掉落標記"""
+            monster = baked_data["monster_tpl"].copy()
+            stage = self.data["stage"]
+            r_type = baked_data["type"]
+
+            # 套用你原本的層數與類型縮放公式
+            scaling = 1 + (stage * 0.025)
+            m_hp = 1.5 if r_type == "精英" else (3.0 if r_type == "魔王" else 1.0)
+            m_atk = 1.2 if r_type == "精英" else (1.5 if r_type == "魔王" else 1.0)
+
+            monster["hp"] = int(monster["hp"] * scaling * m_hp)
+            monster["max_hp"] = monster["hp"]
+            monster["atk"] = int(monster["atk"] * scaling * m_atk)
+            
+            # 💡 關鍵同步：將預定的掉落物 ID 帶入戰鬥物件
+            monster["expected_drop"] = baked_data["drop"]
+            
+            if r_type == "精英": monster["name"] = f"🔶 精英·{monster['name']}"
+            elif r_type == "魔王": monster["name"] = f"💀 魔王·{monster['name']}"
+            
+            return monster
 
         async def resolve_special_event(self, interaction):
             """每 5 關的休息點/稀有事件"""
@@ -519,51 +574,38 @@ class TRPGCog(commands.Cog):
             
             # 顯示商店介面，這裡不呼叫 finish_turn
             await interaction.response.edit_message(embed=shop_embed, view=shop_view)
-
-        async def resolve_normal_room(self, interaction):
-            """處理普通房間: 80% 怪物, 17% 事件, 3% 遺產 (依你 code 的權重)"""
-            rand = random.random()
-            stage = self.data["stage"]
+        
+        # 普通房間的事件類觸發
+        async def resolve_random_event_room(self, interaction):
+            """處理預報中已確定的隨機事件"""
+            event = random.choice(self.cog.events_cache)
+            option = random.choice(event["options"])
             
-            if rand < 0.8: # 怪物
-                self.data["active_monster"] = self.generate_monster("普通")
-                self.cog.add_log(self.data, f"遭遇怪物: {self.data['active_monster']['name']}")
-                await self.attack_callback(interaction, reload=False) # 直接進入第一回合戰鬥
+            # 使用 Engine 進行 D20 判定
+            roll = TRPGEngine.roll_d20(self.data["attributes"][option["stat"]])
+            success = roll >= option["dc"]
+            res = option["success_text"] if success else option["fail_text"]
             
-            elif rand < 0.97: # 事件
-                event = random.choice(self.cog.events_cache)
-                option = random.choice(event["options"])
-                roll = TRPGEngine.roll_d20(self.data["attributes"][option["stat"]])
-                success = roll >= option["dc"]
-                res = option["success_text"] if success else option["fail_text"]
-                if not success: self.data["health"] -= 2
-                self.cog.add_log(self.data, f"事件: {event['id']} ({'成功' if success else '失敗'})")
-                embed = discord.Embed(title="📜 隨機事件", description=f"**{event['id']}**\n{res}", color=discord.Color.blue())
-                await self.finish_turn(interaction, embed)
-                
-            else: # 遺產
-                await self.resolve_legacy(interaction)
+            if not success: 
+                self.data["health"] -= 2*(self.data['stage']//5)
+            
+            self.cog.add_log(self.data, f"事件: {event['id']} ({'成功' if success else '失敗'})")
+            embed = discord.Embed(title="📜 隨機事件", description=f"**{event['id']}**\n{res}", color=discord.Color.blue())
+            await self.finish_turn(interaction, embed)
 
-        async def resolve_elite_room(self, interaction):
-            """遭遇精英怪"""
-            self.data["active_monster"] = self.generate_monster("精英")
-            self.cog.add_log(self.data, f"⚠️ 遭遇精英怪: {self.data['active_monster']['name']}")
-            await self.attack_callback(interaction, reload=False)
-
-        async def resolve_boss_room(self, interaction):
-            """遭遇魔王"""
-            self.data["active_monster"] = self.generate_monster("魔王")
-            self.cog.add_log(self.data, f"💀 遭遇魔王: {self.data['active_monster']['name']}")
-            await self.attack_callback(interaction, reload=False)
 
         async def attack_callback(self, interaction: discord.Interaction, reload=True):
             """戰鬥邏輯核心"""
             # 每次戰鬥更新user狀態
             if reload: self.data = self.cog.load_player(self.user_id)
+            monster = self.data["active_monster"]
+            if not monster:
+                # 如果怪物不存在（可能已被擊敗），則嘗試刷新介面回到探索狀態
+                self.update_buttons()
+                embed = discord.Embed(title="⚠️ 戰鬥已結束", description="怪物已然消逝，而你仍需持續向前", color=discord.Color.orange())
+                return await interaction.response.edit_message(embed=embed, view=self)
 
             self.data["turns"] += 1
-
-            monster = self.data["active_monster"]
             jobs_data = self.cog.jobs_cache
             job_config = jobs_data.get(self.data["job"], {}).get("combat_config", {})
 
@@ -597,21 +639,16 @@ class TRPGCog(commands.Cog):
                     result += f"\n🎊 **獲得了技能點數 {sp} 點，你還有 {self.data['skill_points']} 點未使用！！**"
                     self.cog.add_log(self.data, f"等級提升至 Lv.{self.data['level']}，血量上限提升了{maxhp}， 並恢復了 {hp}點！ 玩家血量:{self.data['health']}/{self.data['max_health']}")
                 # 掉落處理
-                if random.random() < monster.get("drop_rate", 0.1):
-                    # 將快取字典的值轉為列表，並過濾掉不可掉落物品
-                    dropable_pool = [i for i in self.cog.items_cache.values() if i.get("dropable", True)]
-                    
-                    if dropable_pool:
-                        # 使用過濾後的列表與對應權重進行隨機選取
-                        drop = random.choices(
-                            dropable_pool, 
-                            weights=[i.get("rarity", 0.1) for i in dropable_pool], 
-                            k=1
-                        )[0]
-                        
+                drop_id = monster.get("expected_drop")
+                if drop_id:
+                    drop_data = self.cog.items_cache.get(drop_id)
+                    if drop_data:
                         if len(self.data.get("inventory", [])) < 5:
-                            self.data["inventory"].append(drop["id"])
-                            result += f"\n🎁 獲得道具: **{drop['name']}**"
+                            self.data["inventory"].append(drop_id)
+                            result += f"\n🎁 **獲得道具**: {drop_data['name']}"
+                            self.cog.add_log(self.data, f"獲得掉落物: {drop_data['name']}")
+                        else:
+                            result += f"\n⚠️ 背包已滿，無法取得 **{drop_data['name']}**！"
             else:
                 result += f"🏮 遭受反擊，失去 {m_dmg} HP。\n👾 怪物血量: {m_hp_bar}"
                 self.cog.add_log(self.data, f"遭受反擊，失去 {m_dmg} HP。 玩家血量:{self.data['health']}/{self.data['max_health']}")
@@ -757,28 +794,28 @@ class TRPGCog(commands.Cog):
             # 儲存玩家資料
             self.cog.save_player(self.user_id, self.data)
             
-            await interaction.response.edit_message(content="🎉 **角色強化完成！** 你的新力量已覺醒。", embed=None, view=None)
+            shop_view = self.cog.ShopView(self.user_id, self.cog, self.data)
+            await interaction.response.edit_message(
+                content="**全新的力量已深深刻入你的靈魂之中，在餘燼熄滅之前持續邁進吧。**", 
+                embed=shop_view.generate_shop_embed(), 
+                view=shop_view
+            )
+            
+        @discord.ui.button(label="🔙 返回商店", style=discord.ButtonStyle.gray, row=2)
+        async def back(self, interaction, button):
+            shop_view = self.cog.ShopView(self.user_id, self.cog, self.data)
+            await interaction.response.edit_message(embed=shop_view.generate_shop_embed(), view=shop_view)
 
 
 
     # 在 TRPGCog 中新增指令
-    @app_commands.command(name="分配屬性", description="使用升級獲得的點數強化你的各項能力")
+    @app_commands.command(name="分配屬性", description="查看屬性分配說明")
     async def allocate_points(self, interaction: discord.Interaction):
-        # 1. 讀取玩家資料
-        if not(user_data:=self.load_player(str(interaction.user.id))):
-            return await interaction.response.send_message("你還沒有建立角色，請先使用 `/開始冒險`。", ephemeral=True)
-
-
-        # 2. 檢查是否有剩餘點數
-        if user_data.get("skill_points", 0) <= 0:
-            return await interaction.response.send_message(
-                f"你目前沒有可分配的點數 (Lv.{user_data['level']})。請透過戰鬥升級來獲取點數！", 
-                ephemeral=True
-            )
-
-        # 3. 呼叫配點介面
-        view = self.LevelUpView(interaction.user.id, self, user_data)
-        await interaction.response.send_message(embed=view.create_embed(), view=view, ephemeral=True)
+        # 💡 增加硬核感：提示玩家只能在休息處配點
+        await interaction.response.send_message(
+            "❌ 深淵的低語在此處震耳欲聾，你無法凝聚靈魂的餘燼\n屬性強化現在只能在每 5 層的**『休息處』**或**『商店』**進行。", 
+            ephemeral=True
+        )
 
     # --- 狀態管理介面---
     class StatusView(discord.ui.View):
@@ -1026,10 +1063,24 @@ class TRPGCog(commands.Cog):
                 btn.callback = self.make_purchase_callback(idx, item, price)
                 self.add_item(btn)
 
+            if self.data.get("skill_points", 0) > 0:
+                stat_btn = discord.ui.Button(
+                    label=f"🔧 強化能力 ({self.data['skill_points']}點)", 
+                    style=discord.ButtonStyle.success, 
+                    row=2
+                )
+                stat_btn.callback = self.go_to_stats
+                self.add_item(stat_btn)
+
+
             # 前往下一關按鈕
             next_btn = discord.ui.Button(label="離開商店，繼續前行", style=discord.ButtonStyle.primary, row=2)
             next_btn.callback = self.leave_shop
             self.add_item(next_btn)
+            
+        async def go_to_stats(self, interaction):
+            view = self.cog.LevelUpView(self.user_id, self.cog, self.data)
+            await interaction.response.edit_message(embed=view.create_embed(), view=view)
 
         def make_purchase_callback(self, idx, item, price):
             async def callback(interaction: discord.Interaction):
@@ -1041,7 +1092,7 @@ class TRPGCog(commands.Cog):
                     ]
                     return await interaction.response.send_message(random.choice(taunts), ephemeral=True)
                 if len(self.data["inventory"]) >= 5:
-                    return await interaction.response.send_message("❌ 背包已滿！你拿不下更多東西了。", ephemeral=True)
+                    return await interaction.response.send_message("❌ 你的背包不像深淵這麼有肚量...", ephemeral=True)
 
                 # 執行購買
                 self.data["gold"] -= price
