@@ -22,12 +22,23 @@
         "icon_file": "https://media.discordapp.net/attachments/1483554231762944080/1483554904852267088/94932d6ea42687df.png?ex=69bb03ac&is=69b9b22c&hm=437e41cd40c3faff8a2fb41b400d31b54333e3d80766c297184b0e5ec4f477fa&=&format=webp&quality=lossless&width=747&height=747"
     },
     {
+        "id": "abyssal_ember_fire",
+        "name": "餘燼之火",
+        "description": "回復 30 點 HP。",
+        "type": "heal",
+        "value": 30,
+        "rarity": 0.05,
+        "gold": 800,
+        "dropable": true,
+        "icon_file": "https://example.com/ember_fire.png"
+    },
+    {
         "id": "life_essence",
         "name": "純淨生命精華",
         "description": "回復 50 點 HP。",
         "type": "heal",
         "value": 50,
-        "rarity": 0.05,
+        "rarity": 0.015,
         "gold": 1500,
         "dropable": true,
         "icon_file": "https://media.discordapp.net/attachments/1483554231762944080/1483554905519292446/f597016ad33aec88.png?ex=69bb03ac&is=69b9b22c&hm=ade09feca24acaac59e9f283cac8ea28992643a102ca0f6c5394a5a3ec24ef2a&=&format=webp&quality=lossless&width=747&height=747"
@@ -63,5 +74,65 @@
         "rarity": 0.1,
         "dropable": true,
         "icon_file": "https://media.discordapp.net/attachments/1483554231762944080/1483554903409557676/0eede99a3c1f6ee5.png?ex=69bb03ac&is=69b9b22c&hm=e11a0fa77446522c545fd2d33fc87d3b8b81a7723eb525e4047ab7fc107ca9cc&=&format=webp&quality=lossless&width=747&height=747"
+    },
+    {
+        "id": "scroll_of_str",
+        "name": "力量殘卷",
+        "description": "記載著古代體術，永久提升 STR 2 點。",
+        "type": "boost",
+        "attr": "STR",
+        "value": 2,
+        "rarity": 0.07,
+        "gold": 1000,
+        "dropable": true,
+        "icon_file": "https://example.com/dex_scroll.png"
+    },
+    {
+        "id": "scroll_of_dex",
+        "name": "敏捷殘卷",
+        "description": "記載著古代步法，永久提升 DEX 2 點。",
+        "type": "boost",
+        "attr": "DEX",
+        "value": 2,
+        "rarity": 0.07,
+        "gold": 1000,
+        "dropable": true,
+        "icon_file": "https://example.com/dex_scroll.png"
+    },
+    {
+        "id": "scroll_of_int",
+        "name": "致力殘卷",
+        "description": "記載著古代法術，永久提升 INT 2 點。",
+        "type": "boost",
+        "attr": "INT",
+        "value": 2,
+        "rarity": 0.07,
+        "gold": 1000,
+        "dropable": true,
+        "icon_file": "https://example.com/dex_scroll.png"
+    },
+    {
+        "id": "scroll_of_per",
+        "name": "感知殘卷",
+        "description": "記載著古代步法，永久提升 PER 2 點。",
+        "type": "boost",
+        "attr": "PER",
+        "value": 2,
+        "rarity": 0.07,
+        "gold": 1000,
+        "dropable": true,
+        "icon_file": "https://example.com/dex_scroll.png"
+    },
+    {
+        "id": "scroll_of_per",
+        "name": "幸運殘卷",
+        "description": "向著女神祈禱，永久提升 LUK 2 點。",
+        "type": "boost",
+        "attr": "LUK",
+        "value": 2,
+        "rarity": 0.05,
+        "gold": 1500,
+        "dropable": true,
+        "icon_file": "https://example.com/dex_scroll.png"
     }
 ]

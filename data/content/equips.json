@@ -57,16 +57,20 @@
         "icon_file": "https://example.com/old_pendant.png"
     },
     {
-        "id": "old_pendant",
-        "name": "褪色的護身符<PER+2>",
-        "description": "帶來微弱的心靈慰藉。",
+        "id": "old_heart",
+        "name": "老舊的心臟<全屬性+2>",
+        "description": "傳來虛弱的心跳聲...。",
         "type": "accessory",
         "stats": {
+            "STR": 2,
+            "DEX": 2,
+            "INT": 2,
+            "LUK": 2,
             "PER": 2
         },
-        "min_stage": 10,
+        "min_stage": 25,
         "rarity": 0.15,
-        "gold": 300,
+        "gold": 500,
         "dropable": true,
         "icon_file": "https://example.com/old_pendant.png"
     },
@@ -117,13 +121,74 @@
         "icon_file": "https://example.com/knight_helm.png"
     },
     {
+        "id": "hunter_crossbow",
+        "name": "獵人的陷阱弩<STR+2 DEX+6 PER+4>",
+        "description": "簡單卻有效的遠程武器，適合預判敵人的行動。",
+        "type": "weapon",
+        "stats": {
+            "STR": 2,
+            "DEX": 6,
+            "PER": 4
+        },
+        "min_stage": 20,
+        "rarity": 0.12,
+        "gold": 2800,
+        "dropable": true,
+        "icon_file": "https://example.com/hunter_crossbow.png"
+    },
+    {
+        "id": "shadow_step_boots",
+        "name": "影步長靴<DEX+4 LUK+2>",
+        "description": "穿上它，腳步輕盈得彷彿踩在陰影中。",
+        "type": "armor",
+        "stats": {
+            "DEX": 4,
+            "LUK": 2
+        },
+        "min_stage": 20,
+        "rarity": 0.12,
+        "gold": 2200,
+        "dropable": true,
+        "icon_file": "https://example.com/shadow_boots.png"
+    },
+    {
+        "id": "prophet_ball",
+        "name": "預言者的水晶球<INT+6 PER+6>",
+        "description": "球體內閃爍著不穩定的極光，能強化法術的精準度。",
+        "type": "weapon",
+        "stats": {
+            "INT": 6,
+            "PER": 6
+        },
+        "min_stage": 20,
+        "rarity": 0.12,
+        "gold": 2800,
+        "dropable": true,
+        "icon_file": "https://example.com/prophet_ball.png"
+    },
+    {
+        "id": "heavy_tower_shield",
+        "name": "巨型塔盾<STR+10 DEX-4>",
+        "description": "極其沈重，防禦力驚人但大幅犧牲了靈活性。",
+        "type": "armor",
+        "stats": {
+            "STR": 10,
+            "DEX": -4
+        },
+        "min_stage": 25,
+        "rarity": 0.1,
+        "gold": 3500,
+        "dropable": true,
+        "icon_file": "https://example.com/tower_shield.png"
+    },
+    {
         "id": "ritual_dagger",
-        "name": "儀式祭刀<STR+12 INT+12>",
+        "name": "儀式祭刀<STR+10 INT+10>",
         "description": "刀刃流轉著不詳的紫光。",
         "type": "weapon",
         "stats": {
-            "INT": 12,
-            "STR": 12
+            "INT": 10,
+            "STR": 10
         },
         "min_stage": 35,
         "rarity": 0.05,
@@ -159,6 +224,98 @@
         "gold": 13500,
         "dropable": false,
         "icon_file": "https://example.com/wizard_hat.png"
+    },
+    {
+        "id": "shadow_cloak",
+        "name": "暗影斗篷<DEX+8 LUK+5>",
+        "description": "斗篷邊緣隱約消散在空氣中，適合遁入陰影的刺客。",
+        "type": "armor",
+        "stats": {
+            "DEX": 8,
+            "LUK": 5
+        },
+        "min_stage": 40,
+        "rarity": 0.08,
+        "gold": 15000,
+        "dropable": true,
+        "icon_file": "https://example.com/shadow_cloak.png"
+    },
+    {
+        "id": "prophet_orb",
+        "name": "預言者的水晶球<INT+12 PER+8>",
+        "description": "球體內閃爍著不穩定的極光，能強化法術的精準度。",
+        "type": "weapon",
+        "stats": {
+            "INT": 12,
+            "PER": 8
+        },
+        "min_stage": 45,
+        "rarity": 0.06,
+        "gold": 18000,
+        "dropable": true,
+        "icon_file": "https://example.com/prophet_orb.png"
+    },
+    {
+        "id": "berserker_axe",
+        "name": "受咒的狂戰士斧<STR+22 PER-8>",
+        "description": "斧刃上的血跡永遠不會乾涸，賦予力量的同時會擾亂心智。",
+        "type": "weapon",
+        "stats": {
+            "STR": 22,
+            "PER": -8
+        },
+        "min_stage": 55,
+        "rarity": 0.04,
+        "gold": 45000,
+        "dropable": true,
+        "icon_file": "https://example.com/berserker_axe.png"
+    },
+    {
+        "id": "destiny_mirror",
+        "name": "碎裂的命運之鏡<LUK+15 PER-5>",
+        "description": "鏡中映照出的不是現實，而是無數種可能性。\n LUK+15 PER-5",
+        "type": "accessory",
+        "stats": {
+            "LUK": 15,
+            "PER": -5
+        },
+        "min_stage": 50,
+        "rarity": 0.03,
+        "gold": 15000,
+        "dropable": true,
+        "icon_file": "https://example.com/destiny_mirror.png"
+    },
+    {
+        "id": "eternal_soul",
+        "name": "永恆靈魂石<全屬性+8>",
+        "description": "深淵中唯一的亮光。",
+        "type": "accessory",
+        "stats": {
+            "STR": 8,
+            "DEX": 8,
+            "INT": 8,
+            "PER": 8,
+            "LUK": 8
+        },
+        "min_stage": 50,
+        "rarity": 0.005,
+        "gold": 8888,
+        "dropable": false,
+        "icon_file": "https://example.com/eternal_soul.png"
+    },
+    {
+        "id": "luck_coin_fake",
+        "name": "幸運女神的假幣<LUK+20>",
+        "description": "據說這枚硬幣兩面都是正面，能強行扭轉使用者的運氣。",
+        "type": "accessory",
+        "stats": {
+            "LUK": 20
+        },
+        "min_stage": 60,
+        "rarity": 0.02,
+        "gold": 65000,
+        "dropable": true,
+        "icon_file": "https://example.com/luck_coin.png"
     },
     {
         "id": "abyssal_blade",
@@ -208,21 +365,20 @@
         "icon_file": "https://example.com/abyssal_crown.png"
     },
     {
-        "id": "eternal_soul",
-        "name": "永恆靈魂石<全屬性+8>",
-        "description": "深淵中唯一的亮光。",
-        "type": "accessory",
+        "id": "phantom_mask",
+        "name": "幽魂暗殺者的面具<STR+10 sDEX+15 LUK+10 PER+5>",
+        "description": "戴上它的人會逐漸失去實體，變得難以捉摸。",
+        "type": "helmet",
         "stats": {
-            "STR": 8,
-            "DEX": 8,
-            "INT": 8,
-            "PER": 8,
-            "LUK": 8
+            "STR": 10,
+            "DEX": 15,
+            "LUK": 10,
+            "PER": 5
         },
-        "min_stage": 50,
-        "rarity": 0.005,
-        "gold": 8888,
+        "min_stage": 65,
+        "rarity": 0.01,
+        "gold": 95000,
         "dropable": false,
-        "icon_file": "https://example.com/eternal_soul.png"
+        "icon_file": "https://example.com/phantom_mask.png"
     }
 ]

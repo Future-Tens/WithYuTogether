@@ -413,9 +413,9 @@ class TRPGCog(commands.Cog):
                 return
             # 每 5 關觸發特殊事件 (不包含在普通關卡類型中)
             if self.data.get("event_ready"):
-                route = discord.ui.Button(label="⛲ 休息點/特殊事件", style=discord.ButtonStyle.secondary)
+                route = discord.ui.Button(label="⛲ 休息點/商店", style=discord.ButtonStyle.secondary)
                 # 這裡 route_type 傳入 "特殊"
-                async def callback(interaction): await self.route_callback(interaction, "特殊")
+                async def callback(interaction): await self.route_callback(interaction, {"type": "特殊"})
                 route.callback = callback
                 self.add_item(route)
                 return
@@ -481,6 +481,10 @@ class TRPGCog(commands.Cog):
             self.data["turns"] += 1
             
             route_type = baked_data["type"]
+            if route_type == "特殊":
+                self.data["event_ready"] = False 
+                return await self.resolve_special_event(interaction)
+            
             self.data["stage"] += 1
             self.data["pending_routes"] = None # 進入房間後清除預選
             
@@ -504,9 +508,6 @@ class TRPGCog(commands.Cog):
                 monster = self.hydrate_monster(baked_data)
                 self.data["active_monster"] = monster
                 await self.attack_callback(interaction, reload=False)
-                
-            elif route_type == "特殊":
-                await self.resolve_special_event(interaction)
 
         def hydrate_monster(self, baked_data):
             """將預烘焙的原型套用層數縮放與掉落標記"""
@@ -532,7 +533,7 @@ class TRPGCog(commands.Cog):
             return monster
 
         async def resolve_special_event(self, interaction):
-            """每 5 關的休息點/稀有事件"""
+            """每 5 關的休息點/商店"""
             # 1. 執行事件邏輯 (Rest vs Altar)
             rand = random.random()
             if rand < 0.85:
@@ -956,12 +957,12 @@ class TRPGCog(commands.Cog):
                     self.data["stamina"] += item["value"]
                     msg += f" 回復了 {item['value']} 點體力。"
                 elif item["type"] == "boost":
-                    attr = random.choice(["STR", "DEX", "INT", "PER"])
+                    attr = item.get("attr",random.choice(["STR", "DEX", "INT", "PER"]))
                     self.data["attributes"][attr] += item["value"]
-                    #self.data["stress"] += 20
-                    #msg += f" 永久提升了 {attr}，但感到一股精神壓力..."
                     msg += f"🧪 使用了 **{item['name']}**。"
                     msg += f" 能力值 {attr} 因應卷軸出現了奇妙的變化"
+                    #self.data["stress"] += 20
+                    #msg += f" 永久提升了 {attr}，但感到一股精神壓力..."
                 elif item["type"] == "boost-all":
                     for attr in self.data["attributes"]:
                         attr += item["value"]
