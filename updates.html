@@ -66,240 +66,207 @@
     <section class="py-16 px-6">
         <div class="max-w-4xl mx-auto space-y-16">
 
-            <!-- Version 1.2.0 (Newest) -->
+            <!-- Version 1.2.1 (NEWEST) -->
             <div class="relative pl-8 border-l-2 border-red-500">
                 <div class="absolute -left-[11px] top-0 w-5 h-5 bg-red-600 rounded-full shadow-[0_0_20px_rgba(220,38,38,1)]"></div>
                 <div class="update-card bg-zinc-900/80 border border-red-600/50 p-8 rounded-2xl transition-all duration-300">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-2">
                         <div>
                             <h2 class="text-3xl font-bold text-white flex items-center">
-                                Version 1.2.0
-                                <span class="ml-4 text-xs bg-red-600/30 text-red-400 px-3 py-1 rounded border border-red-600/50 uppercase tracking-widest animate-pulse font-bold">Latest Upgrade</span>
+                                Version 1.2.1
+                                <span class="ml-4 text-xs bg-red-900/30 text-red-400 px-3 py-1 rounded border border-red-600/50 uppercase tracking-widest animate-pulse font-bold">Latest</span>
                             </h2>
-                            <p class="text-gray-400 text-xs font-mono mt-1 opacity-70 italic">Released: 26/03/20</p>
+                            <p class="text-gray-400 text-xs font-mono mt-1 opacity-70 italic">Released: 2026/03/21</p>
                         </div>
-                        <span class="text-red-400 text-sm font-mono tracking-tighter italic font-bold">經濟與裝備系統大改版 - 命運的波貝與深淵貿易</span>
+                        <span class="text-red-400 text-sm font-mono tracking-tighter italic font-bold">真實之眼與休憩的回響</span>
                     </div>
 
                     <div class="space-y-8 text-gray-300">
-                        <!-- 職業新增與平衡 -->
+                        <!-- 角色覺醒 -->
                         <div>
                             <h3 class="text-red-500 font-bold mb-4 flex items-center text-lg">
-                                <span class="mr-2">🎭</span> 職業新增與平衡
+                                <span class="mr-2">👣</span> 角色覺醒
                             </h3>
+                            <div class="bg-indigo-950/20 p-4 rounded-xl border border-indigo-900/30 mb-4">
+                                <h4 class="text-white font-bold mb-2">幻影行者：全場唯一真預言家</h4>
+                                <p class="text-sm leading-relaxed italic text-zinc-400">「他的預知未來，才是真正的預知未來。」</p>
+                                <p class="mt-2 text-sm text-zinc-300">
+                                    現在，幻影行者的預知能力更進一步。除了看清前方的路徑，他甚至能洞察路盡頭的<span class="text-red-400 font-bold">怪物種類</span>以及可能獲得的<span class="text-yellow-500 font-bold">掉落物</span>。深淵的祕密在他眼中無所遁形。
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- 系統更動 -->
+                        <div>
+                            <h3 class="text-yellow-600 font-bold mb-4 flex items-center text-lg">
+                                <span class="mr-2">⚔️</span> 系統與裝備升級
+                            </h3>
+                            <ul class="list-disc list-inside space-y-3 text-sm ml-2">
+                                <li><span class="text-white font-medium">武庫擴充：</span>新增了部分物品與裝備。面對深淵，你現在擁有更多翻盤的手段。</li>
+                                <li><span class="text-white font-medium">清晰決策：</span>我們現在可以直接知道<span class="text-blue-400 font-bold">附上屬性詳細標註</span>。資訊不對稱的時代結束了，請更好的做抉擇吧！</li>
+                            </ul>
+                        </div>
+
+                        <!-- 機制調整 (排版優化) -->
+                        <div>
+                            <h3 class="text-blue-400 font-bold mb-4 flex items-center text-lg">
+                                <span class="mr-2">⚙️</span> 系統改善與調整
+                            </h3>
+                            <div class="space-y-4 ml-2">
+                                <!-- 成長限制 -->
+                                <div class="bg-black/40 p-5 rounded-xl border border-white/5 text-sm">
+                                    <p class="mb-3 leading-relaxed text-zinc-300">
+                                        「皮繃緊了！現在冒險者在面對深淵的危脅無法再自由自在。」
+                                    </p>
+                                    <ul class="list-disc list-inside space-y-2 text-zinc-400">
+                                        <li>只有在<span class="text-white font-bold">休息處</span>才有辦法分配能力值、強化靈魂。</li>
+                                        <li class="text-red-400/80 italic font-medium">
+                                            安全感正在消失：原有的 <code class="bg-zinc-800 px-1.5 py-0.5 rounded text-red-400">/分配屬性</code> 指令現已停用，將於 v1.3.0 正式移除。
+                                        </li>
+                                    </ul>
+                                </div>
+                                
+                                <!-- 數值演算修正 -->
+                                <div class="bg-zinc-900/40 p-4 rounded-xl border border-white/5 text-sm">
+                                    <h4 class="text-zinc-200 font-bold mb-3 flex items-center">
+                                        <span class="mr-2">📊</span> 戰鬥演算修正
+                                    </h4>
+                                    <ul class="space-y-3 text-zinc-400">
+                                        <li class="flex items-start">
+                                            <span class="text-blue-500 mr-2">|</span>
+                                            <span><span class="text-white">魔法職業：</span>修正了基礎傷害錯誤選用力量（STR）而非智力（INT）計算的問題。</span>
+                                        </li>
+                                        <li class="flex items-start">
+                                            <span class="text-blue-500 mr-2">|</span>
+                                            <span><span class="text-white">混傷職業：</span>修正基礎傷害係數，當前傷害公式已同步為 <code class="bg-zinc-800 px-1.5 py-0.5 rounded text-blue-300">(STR + INT) × 0.8</code>。</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Version 1.2.0 (RESTORED FULL CONTENT) -->
+            <div class="relative pl-8 border-l-2 border-red-900/60">
+                <div class="absolute -left-[9px] top-0 w-4 h-4 bg-red-900/80 rounded-full"></div>
+                <div class="update-card bg-zinc-900/60 border border-red-900/30 p-8 rounded-2xl transition-all duration-300">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-2">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white flex items-center">Version 1.2.0</h2>
+                            <p class="text-gray-500 text-xs font-mono mt-1 opacity-70 italic">Released: 2026/03/20</p>
+                        </div>
+                        <span class="text-red-900 text-sm font-mono tracking-tighter italic font-bold">命運的波貝與深淵貿易</span>
+                    </div>
+
+                    <div class="space-y-8 text-gray-300">
+                        <div>
+                            <h3 class="text-red-500 font-bold mb-4 flex items-center text-lg">🎭 職業新增與平衡</h3>
                             <div class="bg-red-950/20 p-4 rounded-xl border border-red-900/30 mb-4">
-                                <h4 class="text-white font-bold mb-2 flex items-center">新增職業：波貝 (Pobei)</h4>
-                                <p class="text-sm leading-relaxed italic text-zinc-400">「這隻波貝將會改變生態(?」</p>
-                                <ul class="list-disc list-inside mt-2 text-sm space-y-1 text-zinc-300">
-                                    <li><span class="text-yellow-500 font-bold">高幸運屬性</span>，被動技能「自然之力」：消耗品回血量 1.2 倍。</li>
+                                <h4 class="text-white font-bold mb-2">新增職業：波貝 (Bober)</h4>
+                                <p class="text-sm italic text-zinc-400 mb-2">「這隻波貝將會改變生態(?」</p>
+                                <ul class="list-disc list-inside text-sm space-y-1 text-zinc-300">
+                                    <li><span class="text-yellow-500 font-bold">高幸運屬性</span>，被動「自然之力」：消耗品回血 1.2 倍。</li>
                                     <li><span class="text-red-400 font-bold">副作用：</span>看不懂中文... 可能在道路的抉擇稍有困難。</li>
                                 </ul>
                             </div>
-                            <ul class="list-disc list-inside space-y-3 text-sm ml-2">
-                                <li><span class="text-white font-medium">破壁者：</span>真的太破格了！削弱暴擊機率 (25% → 15%) 及碎骨的額外爆傷 (50% → 35%)。</li>
+                            <ul class="list-disc list-inside space-y-2 text-sm ml-2">
+                                <li><span class="text-white font-medium">破壁者：</span>真的太破格了！削弱爆擊機率 (25% -> 15%) 及碎骨額外爆傷 (50% -> 35%)。</li>
                                 <li><span class="text-white font-medium">求道者：</span>神愛世人！修正了求道者升等時能力值異常低落的問題。</li>
                                 <li><span class="text-white font-medium">血色祭司：</span>血色祭司只剩一攤血，我們決定將他的「貧血體質」移除，增加生存力。</li>
-                                <li><span class="text-white font-medium">幻影行者：</span>修改探尋路線計算公式，現在幻影行者看得更清楚了（深淵相對論）。</li>
+                                <li><span class="text-white font-medium">幻影行者：</span>修改探尋路線計算公式，現在幻影行者看得更清楚了。</li>
                             </ul>
                         </div>
 
-                        <!-- 系統改善 -->
                         <div>
-                            <h3 class="text-yellow-600 font-bold mb-4 flex items-center text-lg">
-                                <span class="mr-2">⚙️</span> 系統改善：更有策略感的探險
-                            </h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div class="bg-zinc-800/50 p-4 rounded-lg border border-white/5">
-                                    <h5 class="text-white font-bold text-sm mb-1">商人系統</h5>
-                                    <p class="text-xs text-zinc-400 leading-relaxed">在深淵中與死神交易。注意：在這裡消耗品會隨著關卡推進變得更貴！</p>
-                                </div>
-                                <div class="bg-zinc-800/50 p-4 rounded-lg border border-white/5">
-                                    <h5 class="text-white font-bold text-sm mb-1">裝備系統</h5>
-                                    <p class="text-xs text-zinc-400 leading-relaxed">裝備正式實裝。有些強大的神兵可是「打不到」的喔！</p>
-                                </div>
-                            </div>
-                            <p class="text-sm text-zinc-400 italic px-2">「深淵中所有物品都有價值啦！除了你的命！」</p>
+                            <h3 class="text-yellow-600 font-bold mb-4 flex items-center text-lg">⚙️ 系統改善</h3>
+                            <p class="text-sm mb-3">新增經濟與裝備系統，讓探險更有策略感！</p>
+                            <ul class="list-disc list-inside space-y-2 text-sm ml-2">
+                                <li><span class="text-white font-medium">商人：</span>在深淵與死神交易。消耗品價格隨關卡推進變貴。</li>
+                                <li><span class="text-white font-medium">裝備：</span>裝備正式實裝，有些強大神兵可是打不到的喔！</li>
+                                <li><span class="text-white font-medium">物品價值：</span>「深淵中所有物品都有價值啦！除了你的命！」</li>
+                            </ul>
                         </div>
 
-                        <!-- 數值演算優化 -->
-                        <div>
-                            <h3 class="text-blue-400 font-bold mb-4 flex items-center text-lg">
-                                <span class="mr-2">📊</span> 數值與公式優化 (LUCKY!)
-                            </h3>
-                            <div class="space-y-4">
-                                <div class="formula-box">
-                                    <p class="text-blue-300 mb-2 font-bold">// 新增第五屬性 LUK (幸運) ，幸運直接地影響爆擊機率與傷害</p>
-                                    Crit Chance = (job_config.crit_chance + (LUK / 250))<br>
-                                    Crit Mult = 1 + job_config.crit_mult + (LUK / 500)
-                                </div>
-                                <div class="formula-box">
-                                    <p class="text-blue-300 mb-2 font-bold">// 傷害計算公式優化</p>
-                                    最終傷害 = 基本傷害(稍有浮動) + 額外傷害(不觸發爆擊)
-                                </div>
-                                <ul class="list-disc list-inside text-xs text-zinc-400 space-y-2 ml-2 leading-relaxed">
-                                    <li><span class="text-white font-medium">爆擊條件：</span>攻擊力必須大於敵方防禦力才會觸發。</li>
-                                    <li><span class="text-white font-medium">傷害類型：</span>物理 (破壁者、幻影行者)、魔法 (血色祭司、求道者)、混傷 (波貝)。</li>
-                                </ul>
-                            </div>
+                        <div class="formula-box">
+                            <p class="text-blue-300 mb-2 font-bold">📊 數值演算優化 (LUCKY!)</p>
+                            // 新增 LUK (幸運) 影響爆擊機率與傷害<br>
+                            // 1 點 LUK (幸運) 相當於 0.4% 爆擊率和 0.2% 爆擊傷害<br>
+                            Crit Chance = (job_config.crit_chance + (LUK / 250))<br>
+                            Crit Mult = 1 + job_config.crit_mult + (LUK / 500)<br><br>
+                            // 傷害公式：最終傷害 = 基本傷害(稍有浮動) + 額外傷害(不觸發爆擊)
                         </div>
 
-                        <!-- Bug Fixes -->
                         <div>
-                            <h3 class="text-zinc-500 font-bold mb-3 flex items-center text-lg">
-                                <span class="mr-2">🔧</span> 修復項目 (Bug-fixes)
-                            </h3>
-                            <ul class="list-none space-y-2 text-sm ml-2 font-mono text-zinc-400">
-                                <li class="flex items-start"><span class="text-red-900 mr-2">|</span> 修復了創建角色按「重設點數」按鈕導致角色初始點數異常的情形。</li>
-                                <li class="flex items-start"><span class="text-red-900 mr-2">|</span> 修復偶爾會發生資料回溯 (Rollback) 的問題。</li>
+                            <h3 class="text-zinc-500 font-bold mb-3 flex items-center text-lg">🔧 修復項目</h3>
+                            <ul class="list-none space-y-1 text-sm ml-2 font-mono text-zinc-400">
+                                <li>| 修復創建角色按「重設點數」導致初始點數異常</li>
+                                <li>| 修復偶爾發生的資料回溯 (Rollback) 問題</li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Version 1.1.1 -->
+            <!-- Version 1.1.1 (RESTORED FULL CONTENT) -->
             <div class="relative pl-8 border-l-2 border-red-900/40">
                 <div class="absolute -left-[7px] top-0 w-3 h-3 bg-red-900/60 rounded-full"></div>
-                <div class="update-card bg-zinc-900/60 border border-red-900/30 p-8 rounded-2xl opacity-90 transition-all duration-300">
+                <div class="update-card bg-zinc-900/50 border border-red-900/20 p-8 rounded-2xl opacity-80 transition-all duration-300">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-2">
                         <div>
                             <h2 class="text-2xl font-bold text-white flex items-center">Version 1.1.1</h2>
-                            <p class="text-gray-500 text-xs font-mono mt-1 opacity-70 italic">Released: 26/03/18</p>
+                            <p class="text-gray-500 text-xs font-mono mt-1 opacity-70 italic">Released: 2026/03/18</p>
                         </div>
                         <span class="text-gray-400 text-sm font-mono tracking-tighter italic">深淵的躁動與優化</span>
                     </div>
-
-                    <div class="space-y-6 text-gray-400">
-                        <div>
-                            <h3 class="text-red-800 font-bold mb-3 flex items-center"><span class="mr-2">⚔️</span> 內容更動</h3>
-                            <ul class="list-disc list-inside space-y-2 text-sm ml-2">
-                                <li><span class="text-white font-medium">官方網站：</span>正式上線，現在可以在網站中查看詳盡的遊戲數據與更新紀錄。</li>
-                                <li><span class="text-white font-medium">指令更動：</span>因應網站上線，原有的 /trpg版本 指令正式走入歷史。</li>
-                                <li><span class="text-white font-medium">怪物擴充：</span>新增更多怪物原型，更多樣的怪物使深淵更令人摸不著頭緒。</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 class="text-red-500 font-bold mb-3 flex items-center">
-                                <span class="mr-2">📈</span> 怪物烘焙系統升級
-                            </h3>
-                            <div class="bg-black/40 p-4 rounded-lg border border-white/5 text-sm ml-2">
-                                關卡縮放倍率調整：<span class="text-white font-bold ml-2">2% → 2.5%</span><br>
-                                <code class="text-red-400 font-mono bg-zinc-800 px-2 py-1 rounded inline-block mt-2">Scaling = 1 + (stage * 0.025)</code>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h3 class="text-yellow-600 font-bold mb-3 flex items-center">
-                                <span class="mr-2">👾</span> 怪物與平衡性調整
-                            </h3>
-                            <ul class="list-disc list-inside space-y-2 text-sm leading-relaxed ml-2">
-                                <li><span class="text-white font-medium">怪物優化：</span>調弱部分怪物的基礎能力值（例如：<span class="text-zinc-300">深淵骷髏兵</span>）。</li>
-                                <li><span class="text-white font-medium">血色祭司：</span>血色祭司以命換血沒有達到想像中的效果，新增INT係數到增傷。</li>
-                                <li><span class="text-white font-medium">查看路線：</span>調整PER能力查看路線計算方式。</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 class="text-blue-500 font-bold mb-3 flex items-center">
-                                <span class="mr-2">🔧</span> 修復項目 (Bug-fixes)
-                            </h3>
-                            <ul class="list-none space-y-2 text-sm ml-2 font-mono">
-                                <li class="flex items-start">
-                                    <span class="text-blue-900 mr-2">|</span> 修復了獲得物品若點選先前背包會無法使用道具的問題。
-                                </li>
-                            </ul>
-                        </div>
-
-                        <!-- 未來更新重點 -->
-                        <div class="mt-8 pt-6 border-t border-white/5">
-                            <h3 class="text-purple-500 font-bold mb-4 flex items-center">
-                                <span class="mr-2">🔮</span> 未來更新重點 (Roadmap)
-                            </h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
-                                <div class="bg-purple-900/10 border border-purple-900/30 p-4 rounded-xl">
-                                    <p class="text-xs text-purple-300 font-bold mb-1">系統擴充</p>
-                                    <p class="text-sm">裝備系統實裝、技能連動與互動機制。</p>
-                                </div>
-                                <div class="bg-purple-900/10 border border-purple-900/30 p-4 rounded-xl">
-                                    <p class="text-xs text-purple-300 font-bold mb-1">經濟系統</p>
-                                    <p class="text-sm">商人交易與經濟體系開發。</p>
-                                </div>
-                                <div class="col-span-1 md:col-span-2 bg-indigo-900/10 border border-indigo-900/30 p-4 rounded-xl">
-                                    <p class="text-xs text-indigo-300 font-bold mb-1">紀錄優化 (Enhanced Logging)</p>
-                                    <p class="text-sm">提供更完整的戰鬥 Log、傷害細項分析與冒險持久化紀錄。</p>
-                                </div>
-                                <div class="col-span-1 md:col-span-2 bg-zinc-950/50 border border-zinc-800 p-4 rounded-xl italic text-center text-gray-500 text-sm">
-                                    「更深的深淵，更多的可能。誰知道深淵的另一頭有什麼？不，有另一頭嗎？」
-                                </div>
-                            </div>
-                        </div>
+                    <div class="space-y-6 text-gray-400 text-sm">
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><span class="text-white font-medium">官方網站上線：</span>取代 /trpg版本 指令，提供更完整的資訊展示。</li>
+                            <li><span class="text-white font-medium">怪物烘焙：</span>強度縮放從 2% 提升至 2.5%，深淵更致命了。</li>
+                            <li><span class="text-white font-medium">血色祭司強化：</span>新增 INT 係數至被動增傷邏輯。</li>
+                            <li><span class="text-white font-medium">修復：</span>解決獲得新物品後開啟舊背包介面導致道具無法使用的連線問題。</li>
+                        </ul>
                     </div>
                 </div>
             </div>
 
-            <!-- Version 1.1.0 -->
+            <!-- Version 1.1.0 (RESTORED FULL CONTENT) -->
             <div class="relative pl-8 border-l-2 border-red-900/20">
                 <div class="absolute -left-[7px] top-0 w-3 h-3 bg-red-900/40 rounded-full"></div>
-                <div class="update-card bg-zinc-900/40 border border-white/5 p-8 rounded-2xl opacity-80 transition-all duration-300">
+                <div class="update-card bg-zinc-900/40 border border-white/10 p-8 rounded-2xl opacity-60 transition-all duration-300">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-2">
                         <div>
                             <h2 class="text-xl font-bold text-white">Version 1.1.0</h2>
-                            <p class="text-gray-600 text-xs font-mono mt-1 opacity-70 italic">Released: 26/03/17</p>
+                            <p class="text-gray-600 text-xs font-mono mt-1 opacity-70 italic">Released: 2026/03/17</p>
                         </div>
-                        <span class="text-gray-400 text-sm font-mono italic">數據驅動與機制革新</span>
+                        <span class="text-gray-500 text-sm font-mono italic">數據驅動與機制革新</span>
                     </div>
-
-                    <div class="space-y-6 text-gray-400">
-                        <div>
-                            <h3 class="text-red-800 font-bold mb-3 flex items-center">
-                                <span class="mr-2">⚔️</span> 內容新增
-                            </h3>
-                            <ul class="list-disc list-inside space-y-2 text-sm ml-2">
-                                <li><span class="text-white font-medium">四職實裝：</span>破壁者、幻影行者、血色祭司、求道者。</li>
-                                <li><span class="text-white font-medium">探索進化：</span>全面改為雙路線機制。</li>
-                                <li><span class="text-white font-medium">怪物擴充：</span>新增更多怪物原型，增加遇見高難度怪物機率。</li>
-                                <li><span class="text-white font-medium">狀態功能：</span>新增放棄該場遊戲（自裁）的功能。</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 class="text-yellow-800 font-bold mb-2 text-sm">核心機制</h3>
-                            <p class="text-sm ml-2 mb-2">經驗值公式重構：<code class="text-gray-300 font-mono bg-zinc-800 px-2 py-0.5">50 * (LVL^LVL)</code></p>
-                        </div>
-                        <div>
-                            <h3 class="text-blue-800 font-bold mb-2 text-sm">修復項目</h3>
-                            <ul class="list-none space-y-1 text-xs ml-2 font-mono">
-                                <li>| 修復喝藥水觸發異常不死無法結算</li>
-                                <li>| 修復遺物異常無法掉落</li>
-                                <li>| 修復怪物不會隨關卡變強，並同步修正基礎能力值</li>
-                            </ul>
-                        </div>
+                    <div class="space-y-4 text-gray-400 text-sm">
+                        <p>實裝四職：破壁者、幻影行者、血色祭司、求道者。導入雙路線抉擇與放棄冒險功能。</p>
+                        <p>公式變動：EXP = 50 * (LVL^LVL)。修復藥水不死 Bug、遺物掉落 Bug 與怪物成長邏輯。</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Version 1.0.0 -->
+            <!-- Version 1.0.0 (RESTORED FULL CONTENT) -->
             <div class="relative pl-8 border-l-2 border-zinc-800">
                 <div class="absolute -left-[7px] top-0 w-3 h-3 bg-zinc-800 rounded-full"></div>
-                <div class="update-card bg-zinc-900/20 border border-white/10 p-8 rounded-2xl opacity-60 transition-all duration-300 grayscale">
+                <div class="update-card bg-zinc-900/20 border border-white/10 p-8 rounded-2xl opacity-40 transition-all duration-300 grayscale">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-2">
-                        <div>
-                            <h2 class="text-xl font-bold text-zinc-500">Version 1.0.0</h2>
-                            <p class="text-gray-600 text-xs font-mono mt-1 opacity-70 italic">Released: 26/03/16</p>
-                        </div>
-                        <span class="text-zinc-600 text-xs font-mono italic">深淵啟動 (Foundation)</span>
+                        <h2 class="text-lg font-bold text-zinc-500">Version 1.0.0</h2>
+                        <span class="text-zinc-600 text-[10px] font-mono italic">深淵啟動</span>
                     </div>
-
-                    <div class="grid md:grid-cols-2 gap-6 text-sm text-zinc-400">
-                        <div class="space-y-2">
-                            <p><span class="text-zinc-200 font-bold">/開始冒險</span> - 選擇職業並建立角色</p>
-                            <p><span class="text-zinc-200 font-bold">/探索</span> - 進入深淵房間（雙路線預選）</p>
-                            <p><span class="text-zinc-200 font-bold">/狀態</span> - 檢查數值與升級進度</p>
+                    <div class="grid md:grid-cols-2 gap-4 text-[11px] text-zinc-500 font-mono">
+                        <div>
+                            /開始冒險 - 職業選擇與初始化<br>
+                            /探索 - 基礎移動系統實裝<br>
+                            /狀態 - 基礎屬性檢查系統
                         </div>
-                        <div class="space-y-2">
-                            <p><span class="text-zinc-200 font-bold">/分配屬性</span> - 強化等級提升點數</p>
-                            <p><span class="text-zinc-200 font-bold">/排行榜</span> - 查看先行者數據</p>
-                            <p><span class="text-zinc-200 font-bold">/冒險回顧</span> - 透過 Run ID 讀取冒險日誌</p>
+                        <div>
+                            /分配屬性 - 等級強化機制<br>
+                            /背包 - 基本道具使用功能<br>
+                            /排行榜 - 全球英雄數據紀錄
                         </div>
                     </div>
                 </div>
