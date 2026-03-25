@@ -53,7 +53,7 @@ class TRPGEngine:
         elif damage_type == "m":
             p_atk = final_stats["INT"]
         else:
-            p_atk = final_stats["STR"]+final_stats["INT"]
+            p_atk = int((final_stats["STR"]+final_stats["INT"])*0.8)
         
         # 1. 處理扣血換傷 (血色祭司類)
         hp_cost = job_config.get("hp_cost_per_atk", 0)
@@ -81,10 +81,12 @@ class TRPGEngine:
         
         # 4. 怪物反擊
         monster_dmg = 0
+        stress_mul = 1 + (player.get('stress',0)/100)
         if monster['hp'] > 0:
             # 敏捷減傷公式優化
             monster_dmg = max(1, monster['atk'] - (final_stats['DEX'] // job_config.get("dodge_div", 4)))
-            player['health'] -= monster_dmg
+            player['health'] -= int(monster_dmg*stress_mul)
+            player["stress"] = min(200, player["stress"] + 2)
             
         return player_dmg, monster_dmg
 

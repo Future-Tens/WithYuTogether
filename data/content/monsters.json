@@ -1,5 +1,11 @@
 [
     {
+        "name": "深淵游靈",
+        "min_stage": 0,
+        "hp": 10, "atk": 4, "def": 1, "exp": 25, "gold": 50, "drop_rate": 0.01,
+        "note": "在入口遊蕩的靈魂，好像有種熟悉的感覺"
+    },
+    {
         "name": "地牢史萊姆",
         "min_stage": 1,
         "hp": 25, "atk": 4, "def": 1, "exp": 25, "gold": 50, "drop_rate": 0.1,
@@ -104,13 +110,13 @@
     {
         "name": "遠古監視者",
         "min_stage": 50,
-        "hp": 600, "atk": 14, "def": 17, "exp": 1500, "gold": 13000, "drop_rate": 0.7,
+        "hp": 300, "atk": 14, "def": 17, "exp": 1500, "gold": 13000, "drop_rate": 0.7,
         "note": "監視遠古者，能否看到另一頭呢?"
     },
     {
         "name": "千面沉默者",
         "min_stage": 50,
-        "hp": 500, "atk": 14, "def": 20, "exp": 1500, "gold": 13000, "drop_rate": 0.7,
+        "hp": 250, "atk": 14, "def": 20, "exp": 1500, "gold": 13000, "drop_rate": 0.7,
         "note": "收藏著所有死在深淵中之人的臉孔"
     },
     {

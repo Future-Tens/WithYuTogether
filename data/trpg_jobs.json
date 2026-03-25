@@ -15,7 +15,7 @@
             "crit_mult": 0.3,
             "flat_bonus_atk": 0,
             "hp_cost_per_atk": 0,
-            "dodge_div": 3.5
+            "dodge_div": 4
         },
         "passive_config": {
             "heal_efficiency": 1.0,
@@ -26,8 +26,8 @@
     "幻影行者": {
         "icon": "👣",
         "description": "高DEX。被動「預知未來」必定看穿某一路線後的內容，但生命上限較低。",
-        "init_stats": {"STR": 10, "DEX": 22, "INT": 10, "PER": 10, "LUK": 10},
-        "hp_mod": -15,
+        "init_stats": {"STR": 14, "DEX": 18, "INT": 10, "PER": 10, "LUK": 15},
+        "hp_mod": -5,
         "init_bonus_points": 10,
         "sp_per_level": 2,
         "hp_per_level": 3,
@@ -39,7 +39,7 @@
             "crit_mult": 0.0,
             "flat_bonus_atk": 0,
             "hp_cost_per_atk": 0,
-            "dodge_div": 3
+            "dodge_div": 4.5
         },
         "passive_config": {
             "heal_efficiency": 1.0,
@@ -111,7 +111,7 @@
             "crit_mult": 0.1,
             "flat_bonus_atk": 0,
             "hp_cost_per_atk": 0,
-            "dodge_div": 3
+            "dodge_div": 4.5
         },
         "passive_config": {
             "heal_efficiency": 1.2,

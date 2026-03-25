@@ -10,15 +10,16 @@ import datetime
 import random
 from utils.trpg_engine import TRPGEngine
 
-VERSION = "1.2.1"
+VERSION = "1.3.0"
 AUTHOR = "波貝小語"
+LBVERSION = "1_3"
 
 
 class TRPGCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.users_dir = "data/users"
-        self.leaderboard_path = "data/trpg_leaderboard.json"
+        self.leaderboard_path = f"data/leaderboard/v{LBVERSION}.json"
         self.content_dir = "data/content"
 
         # 💡 實作快取：初始化時載入
@@ -208,6 +209,7 @@ class TRPGCog(commands.Cog):
                 "stage": 0, # 從第 0 關開始，第一步會變成第 1 關
                 "turns": 0,
                 "gold": 0, # 新增金幣
+                "stress": 0,
                 "equips": {
                     "weapon": None, "armor": None, "helmet": None, "accessory": None
                 },
@@ -486,6 +488,7 @@ class TRPGCog(commands.Cog):
                 return await self.resolve_special_event(interaction)
             
             self.data["stage"] += 1
+            self.data["stress"] = min(200, self.data.get("stress", 0) + 3*(min(1,self.data["stage"]//20)))
             self.data["pending_routes"] = None # 進入房間後清除預選
             
             if self.data["stage"] % 5 == 0:
@@ -651,8 +654,9 @@ class TRPGCog(commands.Cog):
                         else:
                             result += f"\n⚠️ 背包已滿，無法取得 **{drop_data['name']}**！"
             else:
-                result += f"🏮 遭受反擊，失去 {m_dmg} HP。\n👾 怪物血量: {m_hp_bar}"
-                self.cog.add_log(self.data, f"遭受反擊，失去 {m_dmg} HP。 玩家血量:{self.data['health']}/{self.data['max_health']}")
+                result += f"🏮 遭受反擊，失去 {m_dmg} HP。\n👾 怪物血量: {m_hp_bar}\n"
+                result += f"🪬 目前壓力值: {self.data["stress"]} / 200。"
+                self.cog.add_log(self.data, f"遭受反擊，失去 {m_dmg} HP。 玩家血量:{self.data['health']}/{self.data['max_health']} 壓力值: {self.data["stress"]} / 200。")
             embed = discord.Embed(title=f"⚔️ 第 {self.data['stage']} 層 - 戰鬥", description=result, color=discord.Color.red())
             await self.finish_turn(interaction, embed)
 
@@ -864,22 +868,42 @@ class TRPGCog(commands.Cog):
         req_exp = TRPGEngine.get_required_exp(user_data['level'])
         exp_bar = self.get_progress_bar(user_data['exp'], req_exp)
         hp_bar = self.get_progress_bar(user_data['health'], user_data['max_health'])
+        stress_val = user_data.get("stress", 0)
+        stress_bar = self.get_progress_bar(stress_val, 200)
+        stress_mult = 1 + (stress_val / 200)
         
+        base_attrs = user_data['attributes']
+        bonuses = {k: 0 for k in base_attrs.keys()}
+
         # 💡 裝備文字
         eq = user_data.get("equips", {})
         eq_text = ""
         for slot, i_id in eq.items():
-            name = items_db.get(i_id, {"name": "`(空)`"})["name"]
+            item_data = items_db.get(i_id, {"name": "`(空)`"})
+            name = item_data["name"]
             slot_name = {"weapon": "⚔️ 武器", "armor": "🛡️ 防具", "helmet": "🪖 頭盔", "accessory": "💍 飾品"}.get(slot, slot)
             eq_text += f"{slot_name}: {name}\n"
+
+            if i_id:
+                # 假設裝備加成儲存在 item_data 的 "stats" 欄位中
+                item_stats = item_data.get("stats", {})
+                for stat, val in item_stats.items():
+                    if stat in bonuses:
+                        bonuses[stat] += val
         
-        # 💡 屬性文字 (必須在 Embed 之前定義)
-        attr_text = "\n".join([f"**{k}**: `{v}`" for k, v in user_data['attributes'].items()])
+        # 💡 組合屬性文字：基礎值 (+加成值)
+        attr_text = ""
+        for k, base_v in base_attrs.items():
+            bonus_v = bonuses.get(k, 0)
+            # 若加成大於 0 則顯示括號內容
+            bonus_str = f" `(+{bonus_v})`" if bonus_v > 0 else ""
+            attr_text += f"**{k}**: `{base_v}`{bonus_str}\n"
 
         # 2. 建立 Embed
         embed = discord.Embed(title=f"🛡️ {interaction.user.display_name} (Lv.{user_data['level']})", color=discord.Color.green())
         embed.add_field(name="❤️ HP 狀態", value=hp_bar, inline=False)
         embed.add_field(name="🔷 經驗進度", value=exp_bar, inline=False)
+        embed.add_field(name="🧠 壓力狀態", value=f"{stress_bar}\n(受傷倍率: `{stress_mult:.2f}x`)", inline=False)
         embed.add_field(name="📊 角色屬性", value=attr_text, inline=True)
         embed.add_field(name="🛡️ 當前武裝", value=eq_text, inline=True)
         embed.add_field(name="🪙 持有金幣", value=user_data["gold"], inline=False)
@@ -968,6 +992,11 @@ class TRPGCog(commands.Cog):
                         attr += item["value"]
                     msg += f"🧪 使用了 **{item['name']}**。"
                     msg += f" 所有能力值回應了卷軸的力量"
+                elif item["type"] == "calm":
+                    reduce_val = item.get("value", 20)
+                    self.data["stress"] = max(0, self.data.get("stress", 0) - reduce_val)
+                    msg = f"🧪 使用了 **{item['name']}**，緊繃的神經稍微放鬆了 (壓力 -{reduce_val})。"
+                    self.cog.add_log(self.data, f"使用了 {item['name']}，減壓 {reduce_val}")
 
             self.cog.add_log(self.data, f" 使用了 {item['name']}。")
             self.cog.save_player(self.user_id, self.data)
