@@ -9,3 +9,4 @@ data/users/*
 .env
 data/logs/*
 img/*
+.venv

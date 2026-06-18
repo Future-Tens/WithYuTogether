@@ -134,5 +134,38 @@
         "gold": 1500,
         "dropable": true,
         "icon_file": "https://example.com/dex_scroll.png"
+    },
+    {
+        "id": "stress_buster_small",
+        "name": "小型紓壓劑",
+        "description": "緩解了緊張的感覺，但仍止不住深淵的恐懼。",
+        "type": "calm",
+        "value": 15,
+        "rarity": 0.2,
+        "gold": 1500,
+        "dropable": true,
+        "icon_file": "https://example.com/dex_scroll.png"
+    },
+    {
+        "id": "stress_buster_mideum",
+        "name": "鎮靜劑",
+        "description": "強效的紓壓方式，進め!",
+        "type": "calm",
+        "value": 25,
+        "rarity": 0.1,
+        "gold": 3500,
+        "dropable": true,
+        "icon_file": "https://example.com/dex_scroll.png"
+    },
+    {
+        "id": "stress_reliever",
+        "name": "一次性紓壓小物",
+        "description": "氣定神閒，穩如泰山",
+        "type": "calm",
+        "value": 35,
+        "rarity": 0.025,
+        "gold": 5000,
+        "dropable": true,
+        "icon_file": "https://example.com/dex_scroll.png"
     }
 ]

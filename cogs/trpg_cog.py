@@ -1031,11 +1031,10 @@ class TRPGCog(commands.Cog):
     # 在 TRPGCog 類別下新增指令
     @app_commands.command(name="背包", description="查看並使用你收集到的道具")
     async def open_inventory(self, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True)
-
         if not (user_data := self.load_player(str(interaction.user.id))):
             return await interaction.response.send_message("死人不需要背包，請先 `/開始冒險`。", ephemeral=True)
-
+        
+        await interaction.response.defer(ephemeral=True)
         view = self.InventoryView(interaction.user.id, self, user_data)
         await interaction.followup.send(embed=view.generate_embed(), view=view)
 
