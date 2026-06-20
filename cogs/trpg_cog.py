@@ -9,6 +9,7 @@ import os
 import datetime
 import random
 from utils.trpg_engine import TRPGEngine
+from utils.db_manager import DatabaseManager
 
 VERSION = "1.3.0"
 AUTHOR = "波貝小語"
@@ -18,15 +19,14 @@ LBVERSION = "1_3"
 class TRPGCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.users_dir = "data/users"
-        self.leaderboard_path = f"data/leaderboard/v{LBVERSION}.json"
         self.content_dir = "data/content"
+
+        # 💡 初始化 SQLite 管理器
+        self.db = DatabaseManager()
 
         # 💡 實作快取：初始化時載入
         self.load_all_content()
         
-        os.makedirs(self.users_dir, exist_ok=True)
-        os.makedirs("data/logs", exist_ok=True)
 
     def load_all_content(self):
         """讀取所有內容檔案並存入記憶體"""
@@ -49,16 +49,11 @@ class TRPGCog(commands.Cog):
 
 
     def load_player(self, user_id):
-        path = self.get_user_path(user_id)
-        if not os.path.exists(path): return None
-        with open(path, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        return self.db.load_player_db(user_id)
 
 
     def save_player(self, user_id, data):
-        path = self.get_user_path(user_id)
-        with open(path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
+        self.db.save_player_db(user_id, data)
     
     def load_json(self, path, default_type=dict):
         if not os.path.exists(path): return default_type()
@@ -245,14 +240,13 @@ class TRPGCog(commands.Cog):
 
     @app_commands.command(name="排行榜", description="查看英雄榜")
     async def leaderboard(self, interaction: discord.Interaction):
-        records = self.load_json(self.leaderboard_path)
-        if not records:
-            return await interaction.response.send_message("目前英雄榜空空如也。")
-
-        # 排序：關卡由大到小，回合由小到大
-        sorted_records = sorted(records, key=lambda x: (-x['max_stage'], x['total_turns']))[:15]
+        # 💡 改從 SQLite 撈出前 15 名
+        sorted_records = self.db.get_top_records(limit=15)
         
-        embed = discord.Embed(title=f"🏆永恆深淵英雄榜(當前版本{VERSION})", color=discord.Color.gold())
+        if not sorted_records:
+            return await interaction.response.send_message("目前英雄榜空空如也。")
+        
+        embed = discord.Embed(title=f"🏆永恆深淵英雄榜(當前版本 {VERSION})", color=discord.Color.gold())
         for i, r in enumerate(sorted_records, 1):
             embed.add_field(
                 name=f"第 {i} 名: {r['user_name']} (LV{r['level']} {r['job']})",
@@ -286,18 +280,23 @@ class TRPGCog(commands.Cog):
         
         # 1. 儲存詳細日誌
         log_content = "\n".join(user_data["logs"])
-        log_filename = f"data/logs/run_{run_id}.txt"
-        with open(log_filename, "w", encoding="utf-8") as f:
-            f.write(f"角色名稱: {user_name}\n最終關卡: {user_data['stage']}\n死因/結算原因: {cause}\n")
-            f.write("-" * 30 + "\n")
-            f.write(log_content)
+        header_text = f"角色名稱: {user_name}\n最終關卡: {user_data['stage']}\n死因/結算原因: {cause}\n" + ("-" * 30) + "\n"
+        full_log_text = header_text + log_content
+        
+        # 💡 寫入中央日誌表
+        self.db.save_run_log(
+            run_id=run_id,
+            user_id=user_id,
+            user_name=user_name,
+            stage=user_data["stage"],
+            cause=cause,
+            full_log_text=full_log_text
+        )
 
         # 2. 紀錄排行榜
-        leaderboard = self.load_json(self.leaderboard_path, default_type=list)
         record = {
             "run_id": run_id,
             "user_name": user_name,
-            "attr": user_data['attributes'],
             "level": user_data['level'],
             "job": user_data["job"],
             "max_stage": user_data["stage"],
@@ -306,25 +305,20 @@ class TRPGCog(commands.Cog):
             "version": user_data["version"],
             "date": str(datetime.date.today())
         }
-        leaderboard.append(record)
-        self.save_json(self.leaderboard_path, leaderboard)
+        self.db.add_leaderboard_record(record)
 
         # 3. 遺產處理
         inv = user_data.get("inventory", [])
         if inv:
-            legacy_pool = self.load_json("data/trpg_legacy.json", default_type=list)
-            legacy_pool.append({
-                "item_id": random.choice(inv),
-                "hero_name": user_name,
-                "death_stage": user_data["stage"]
-            })
-            if len(legacy_pool) > 10: legacy_pool.pop(0)
-            self.save_json("data/trpg_legacy.json", legacy_pool)
+            # 💡 直接一鍵寫入 SQLite，內部已包含 10 筆數量上限防膨脹機制
+            self.db.add_legacy(
+                item_id=random.choice(inv),
+                hero_name=user_name,
+                stage=user_data["stage"]
+            )
 
         # 4. 刪除存檔 (Permadeath)
-        path = self.get_user_path(user_id)
-        if os.path.exists(path):
-            os.remove(path)
+        self.db.delete_player_db(user_id)
 
         embed = discord.Embed(
             title="🏁 冒險紀錄結算", 
@@ -661,16 +655,17 @@ class TRPGCog(commands.Cog):
             await self.finish_turn(interaction, embed)
 
         async def resolve_legacy(self, interaction):
-            """處理遺產房間"""
-            pool = self.cog.load_json("data/trpg_legacy.json", default_type=list)
-            if pool:
-                legacy = pool.pop(random.randint(0, len(pool)-1))
-                self.cog.save_json("data/trpg_legacy.json", pool)
+            """處理遺產房間 (已重構為 SQLite)"""
+            # 💡 改從 SQLite 資料庫中隨機抽選一筆遺產紀錄
+            legacy = self.cog.db.get_random_legacy()
+            
+            if legacy:
                 self.data.setdefault("inventory", []).append(legacy["item_id"])
                 msg = f"🕯️ 發現英雄 **{legacy['hero_name']}** 的遺物！"
             else:
                 msg = "空蕩蕩的房間，你在角落撿到一點乾糧 (HP+5)"
                 self.data["health"] = min(self.data["max_health"], self.data["health"] + 5)
+                
             log = msg.replace("*","")
             self.cog.add_log(self.data, log)
             embed = discord.Embed(title="🕯️ 英雄遺跡", description=msg, color=discord.Color.gold())
@@ -1040,15 +1035,19 @@ class TRPGCog(commands.Cog):
 
     @app_commands.command(name="冒險回顧", description="使用 Run ID 查看過往的冒險日誌")
     async def review_log(self, interaction: discord.Interaction, run_id: str):
-        file_path = f"data/logs/run_{run_id}.txt"
+        # 💡 改從 SQLite 撈出全文日誌
+        full_log = self.db.get_run_log(run_id)
         
-        if not os.path.exists(file_path):
-            return await interaction.response.send_message("找不到該識別碼的日誌，可能已被系統自動清理或輸入錯誤。", ephemeral=True)
+        if not full_log:
+            return await interaction.response.send_message("❌ 找不到該識別碼的日誌，請確認輸入是否正確。", ephemeral=True)
         
-        # 以「檔案」形式發送，避免 Discord 字數限制 (2000字)
+        # 💡 使用 io.StringIO 將字串包裝成 Discord 的虛擬 File 傳送，完全不需要佔用硬碟空間
+        import io
+        log_file = discord.File(fp=io.StringIO(full_log), filename=f"run_{run_id}.txt")
+        
         await interaction.response.send_message(
             content=f"📜 這是冒險編號 `{run_id}` 的詳細紀錄：",
-            file=discord.File(file_path),
+            file=log_file,
             ephemeral=True
         )
 
