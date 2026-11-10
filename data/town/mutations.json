@@ -1,0 +1,6 @@
+{
+    "normal":  { "rank": 0, "weight": 90,  "price_mult": 1, "yield_mult": 1, "label": "",     "emoji": "" },
+    "giant":   { "rank": 1, "weight": 2.5, "price_mult": 1, "yield_mult": 2, "label": "巨大", "emoji": "🌟" },
+    "gold":    { "rank": 2, "weight": 7,   "price_mult": 3, "yield_mult": 1, "label": "金色", "emoji": "✨" },
+    "rainbow": { "rank": 3, "weight": 0.5, "price_mult": 8, "yield_mult": 1, "label": "彩虹", "emoji": "🌈", "announce": true }
+}

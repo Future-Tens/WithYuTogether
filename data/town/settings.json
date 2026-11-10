@@ -1,0 +1,13 @@
+{
+    "start": { "gold": 100, "plots": 2 },
+    "plots": [ { "level": 3, "price": 300 }, { "level": 4, "price": 1000 }, { "level": 5, "price": 2500 } ],
+    "pickaxe": [
+        { "level": 1, "price": 0,    "rare_mult": 1,   "time_mult": 1 },
+        { "level": 2, "price": 500,  "rare_mult": 1.5, "time_mult": 1 },
+        { "level": 3, "price": 1500, "rare_mult": 2,   "time_mult": 0.9 }
+    ],
+    "checkin": { "daily": 50, "milestones": { "7": 200, "30": 1000, "100": 3000 } },
+    "chest": { "min": 100, "max": 300 },
+    "freshness": { "min_grace_hours": 2, "overripe_pct": 50, "pest_pct": 70 },
+    "social": { "water_reward": 5, "water_speedup": 0.1, "water_daily_cap": 5, "pest_reward": 10 }
+}

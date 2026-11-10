@@ -1,0 +1,16 @@
+{
+    "shallow": {
+        "name": "淺層", "emoji": "🪨", "hours": 1, "rolls": 3, "chest_chance": 0.01,
+        "loot": [ { "item": "stone", "weight": 60 }, { "item": "copper", "weight": 35 }, { "item": "iron", "weight": 5 } ]
+    },
+    "mid": {
+        "name": "中層", "emoji": "⛏️", "hours": 4, "rolls": 6, "chest_chance": 0.01,
+        "loot": [ { "item": "stone", "weight": 35 }, { "item": "copper", "weight": 35 }, { "item": "iron", "weight": 22 },
+                  { "item": "goldore", "weight": 8, "rare": true } ]
+    },
+    "deep": {
+        "name": "深層", "emoji": "💎", "hours": 8, "rolls": 10, "chest_chance": 0.01,
+        "loot": [ { "item": "stone", "weight": 25 }, { "item": "copper", "weight": 30 }, { "item": "iron", "weight": 25 },
+                  { "item": "goldore", "weight": 15, "rare": true }, { "item": "gem", "weight": 5, "rare": true } ]
+    }
+}

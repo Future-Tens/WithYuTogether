@@ -13,6 +13,7 @@ class HelpCog(commands.Cog):
             description="這裡是目前可用的功能清單：",
             color=discord.Color.green()
         )
+        embed.add_field(name="🏡 小鎮", value="`/小鎮` 打開你的農場（之後都用按鈕操作）\n`/小鎮 成員:@朋友` 拜訪朋友的農場\n`/小鎮說明` 玩法指南網頁", inline=False)
         embed.add_field(name="⏰ 提醒功能 (管理員)", value="`/設定提醒`、`/提醒列表`、`/移除提醒`", inline=False)
         embed.add_field(name="🔮 命理功能", value="`/塔羅占卜` (每日一次)\n`/星座運勢` (選單查詢)", inline=False)
         embed.add_field(name="🍱 隨機抽餐", value="`/午餐推薦`、`/晚餐推薦`", inline=False)

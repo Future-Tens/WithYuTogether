@@ -1,0 +1,7 @@
+{
+    "bokchoy": { "name": "小白菜", "emoji": "🥬", "grow_hours": 1, "seed_price": 10, "sell_price": 30,  "yield": 1, "pest_chance": 0.3, "pest_window": 0.8 },
+    "carrot":  { "name": "胡蘿蔔", "emoji": "🥕", "grow_hours": 2, "seed_price": 20, "sell_price": 56,  "yield": 1, "pest_chance": 0.3, "pest_window": 0.8 },
+    "tomato":  { "name": "番茄",   "emoji": "🍅", "grow_hours": 4, "seed_price": 40, "sell_price": 100, "yield": 1, "pest_chance": 0.3, "pest_window": 0.8 },
+    "corn":    { "name": "玉米",   "emoji": "🌽", "grow_hours": 6, "seed_price": 60, "sell_price": 138, "yield": 1, "pest_chance": 0.3, "pest_window": 0.8 },
+    "pumpkin": { "name": "南瓜",   "emoji": "🎃", "grow_hours": 8, "seed_price": 80, "sell_price": 176, "yield": 1, "pest_chance": 0.3, "pest_window": 0.8 }
+}
