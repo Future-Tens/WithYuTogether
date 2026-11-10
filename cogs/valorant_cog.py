@@ -9,8 +9,7 @@ from utils.valorant_api import ValorantAPI
 class ValorantCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        # 💡 共享 WithYouTogether 的中央資料庫大腦
-        self.db = bot.get_cog("TRPGCog").db if bot.get_cog("TRPGCog") else None
+        self.db = None  # 由 __lazy_init_db 建立 DatabaseManager
 
     def __lazy_init_db(self):
         """確保 db 連線安全，並在必要時對現有 SQLite 表進行自動遷移補齊"""
