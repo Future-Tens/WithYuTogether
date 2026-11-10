@@ -1,291 +1,204 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
+<!doctype html>
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>版本更新紀錄 | 永恆深淵的餘燼</title>
-    <!-- 設定 Favicon -->
-    <link rel="icon" type="image/png" href="icon.png">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #0a0a0a;
-            color: #e5e5e5;
-        }
-        .font-serif {
-            font-family: 'Noto Serif TC', serif;
-        }
-        .bg-abyss {
-            background: linear-gradient(180deg, #121212 0%, #0a0a0a 100%);
-        }
-        .update-card:hover {
-            border-color: rgba(220, 38, 38, 0.4);
-            background-color: rgba(24, 24, 27, 0.8);
-        }
-        /* 數值強調色 */
-        .formula-box {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 1rem;
-            border-radius: 0.75rem;
-            font-family: monospace;
-            font-size: 0.875rem;
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>小鎮更新日誌</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: friendly single column guide; hero, quick-start steps, then topic sections and FAQ */
+:root {
+  --bg: #f3f6ec;
+  --surface: #ffffff;
+  --sunken: #e6ecdc;
+  --fg: #1f281c;
+  --muted: #5d6857;
+  --line: #d4dbcb;
+  --accent: #3b7a37;
+  --accent-soft: #dcebd5;
+  --ore: #4f6189;
+  --ore-soft: #dfe4f0;
+  --gold: #a87b0c;
+  --gold-soft: #f5ead0;
+  --warn: #b0502c;
+  --warn-soft: #f6e0d6;
+  --font-display: "LXGW WenKai TC", "Noto Serif TC", serif;
+  --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131911; --surface: #1b2318; --sunken: #232c20; --fg: #e2e9da; --muted: #9ca793;
+    --line: #333f2e; --accent: #84c376; --accent-soft: #263a22; --ore: #a0b3dd; --ore-soft: #232b3d;
+    --gold: #e3bb52; --gold-soft: #3a3019; --warn: #e48a66; --warn-soft: #3d241b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131911; --surface: #1b2318; --sunken: #232c20; --fg: #e2e9da; --muted: #9ca793;
+  --line: #333f2e; --accent: #84c376; --accent-soft: #263a22; --ore: #a0b3dd; --ore-soft: #232b3d;
+  --gold: #e3bb52; --gold-soft: #3a3019; --warn: #e48a66; --warn-soft: #3d241b;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.8;
+}
+img { max-width: 100%; }
+.wrap {
+  max-width: 860px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 72px;
+}
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.3; margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 40em; }
+ul { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; max-width: 40em; }
+code { font-family: var(--font-mono); font-size: .9em; background: var(--accent-soft); color: var(--accent); padding: 1px 7px; border-radius: 5px; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+
+/* hero */
+.hero { padding-block: 64px 36px; display: grid; gap: 18px; }
+.field { font-size: 30px; letter-spacing: .3em; line-height: 1; user-select: none; }
+.hero h1 { font-size: clamp(44px, 9vw, 76px); }
+.hero h1 span { color: var(--accent); }
+.hero .lede { font-size: 19px; color: var(--muted); max-width: 30em; }
+
+/* quick start */
+.start { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.start div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: grid; gap: 4px; align-content: start; }
+.start .n { font-family: var(--font-mono); font-size: 13px; color: var(--accent); }
+.start b { font-size: 16.5px; }
+.start span:last-child { color: var(--muted); font-size: 14.5px; line-height: 1.65; }
+
+nav.toc {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+  margin-top: 40px; padding-block: 10px; overflow-x: auto; white-space: nowrap;
+}
+nav.toc a { color: var(--muted); text-decoration: none; font-size: 14.5px; padding: 4px 10px; border-radius: 6px; }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--fg); background: var(--sunken); outline: none; }
+
+section { margin-top: 52px; display: grid; gap: 14px; scroll-margin-top: 64px; min-width: 0; }
+section > h2 { font-size: clamp(26px, 4.4vw, 34px); display: flex; gap: 12px; align-items: baseline; }
+section h3 { font-size: 19px; margin-top: 6px; }
+
+.day { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); }
+.day div { padding: 14px 16px; display: grid; gap: 2px; border-right: 1px solid var(--line); align-content: start; }
+.day div:last-child { border-right: 0; }
+.day .t { font-size: 13px; color: var(--accent); font-weight: 700; letter-spacing: .06em; }
+.day span:last-child { font-size: 14.5px; color: var(--muted); line-height: 1.6; }
+@media (max-width: 760px) { .day div { border-right: 0; border-bottom: 1px solid var(--line); } .day div:last-child { border-bottom: 0; } }
+
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td.w { white-space: normal; min-width: 13em; }
+tr:last-child td { border-bottom: 0; }
+th { font-weight: 500; color: var(--muted); font-size: 13px; background: var(--sunken); }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr.best td { background: var(--accent-soft); }
+
+.stages { display: grid; grid-template-columns: repeat(4, 1fr); border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
+.stages div { padding: 12px 14px; display: grid; gap: 2px; font-size: 14.5px; }
+.stages b { font-size: 15.5px; }
+.stages .s0 { background: var(--sunken); }
+.stages .s1 { background: var(--accent-soft); }
+.stages .s2 { background: var(--gold-soft); }
+.stages .s3 { background: var(--warn-soft); }
+@media (max-width: 600px) { .stages { grid-template-columns: 1fr 1fr; } }
+
+.rare { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+.rare div { border-radius: 12px; padding: 14px 16px; display: grid; gap: 2px; border: 1px solid var(--line); background: var(--surface); }
+.rare .big { font-size: 26px; line-height: 1.2; }
+.rare b { font-size: 16.5px; }
+.rare .pct { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.rare .gold { background: var(--gold-soft); border-color: transparent; }
+.rare .rainbow { background: linear-gradient(135deg, var(--warn-soft), var(--gold-soft) 35%, var(--accent-soft) 65%, var(--ore-soft)); border-color: transparent; }
+
+.note { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; border-radius: 0 10px 10px 0; max-width: 44em; }
+.note.warn { border-color: var(--warn); background: var(--warn-soft); }
+
+.help { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.help div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: grid; gap: 6px; align-content: start; }
+.help .ic { font-size: 26px; line-height: 1; }
+.help b { font-size: 17px; }
+.help span { font-size: 14.5px; line-height: 1.65; }
+.help .lim { color: var(--muted); font-size: 13.5px; }
+
+.tips { display: grid; gap: 10px; counter-reset: none; }
+.tips div { display: grid; grid-template-columns: 2em 1fr; gap: 10px; align-items: baseline; }
+.tips div > span:first-child { font-size: 20px; }
+
+details { border-bottom: 1px solid var(--line); padding-block: 12px; max-width: 44em; }
+details:first-of-type { border-top: 1px solid var(--line); }
+summary { cursor: pointer; font-weight: 500; font-size: 16px; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; color: var(--accent); font-family: var(--font-mono); }
+details[open] summary::after { content: "−"; }
+summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+details p { margin-top: 8px; color: var(--muted); }
+
+footer a { color: var(--accent); }
+footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13.5px; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+<style>
+.log { display: grid; gap: 18px; margin-top: 8px; }
+.entry { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; display: grid; gap: 12px; }
+.entry header { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; }
+.entry h2 { font-size: 24px; }
+.ver { font-family: var(--font-mono); font-size: 13px; color: var(--accent); background: var(--accent-soft); padding: 2px 9px; border-radius: 999px; }
+.date { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.entry h3 { font-size: 16px; font-family: var(--font-body); font-weight: 700; margin-top: 4px; }
+.back { color: var(--accent); text-decoration: none; font-size: 15px; }
+.back:hover, .back:focus-visible { text-decoration: underline; }
+</style>
 </head>
-<body class="antialiased scroll-smooth">
+<body>
+<div class="wrap">
+  <header class="hero">
+    <a class="back" href="index.html">← 回到玩法指南</a>
+    <h1>更新<span>日誌</span></h1>
+    <p class="lede">小鎮的每一次更新都記在這裡。</p>
+  </header>
 
-    <!-- 導覽列 -->
-    <nav class="fixed w-full z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="index.html" class="flex items-center space-x-2 hover:opacity-80 transition">
-                <img src="icon.png" class="w-8 h-8 rounded-md" alt="永恆深淵的餘燼 Logo">
-                <span class="text-xl font-serif font-bold tracking-wider text-white">永恆深淵的餘燼</span>
-            </a>
-            <div class="hidden md:flex items-center space-x-8 text-sm font-medium tracking-wide">
-                <a href="index.html#about" class="hover:text-red-500 transition">深淵傳說</a>
-                <a href="index.html#jobs" class="hover:text-red-500 transition">職業說明</a>
-                <a href="index.html#rules" class="hover:text-red-500 transition">探索法則</a>
-                <a href="index.html#commands" class="hover:text-red-500 transition">冒險指令</a>
-                <span class="text-red-500 font-bold border-b-2 border-red-500 pb-1">更新日誌</span>
-            </div>
-        </div>
-    </nav>
+  <div class="log">
+    <article class="entry">
+      <header><span class="ver">v1.0.0</span><h2>小鎮開幕</h2><span class="date">2026-11-10</span></header>
+      <p>第一個版本上線！輸入 <code>/小鎮</code> 就能開始經營，之後全部用按鈕操作。</p>
+      <h3>🌱 農田</h3>
+      <ul>
+        <li>5 種作物，生長時間 1 到 8 小時；開局 2 塊田，最多可解鎖到 5 塊。</li>
+        <li>成熟後有新鮮期，放太久會過熟（只能賣一半），再久會枯萎。</li>
+        <li>作物生長途中可能長蟲，沒除就收成會降價。</li>
+        <li>稀有作物：金色（3 倍價）、巨大（2 倍數量）、彩虹（8 倍價，全頻道公告）。</li>
+      </ul>
+      <h3>⛏️ 礦坑</h3>
+      <ul>
+        <li>淺層、中層、深層三條路線，礦石不會壞，可以慢慢存。</li>
+        <li>十字鎬可升級到 Lv3，提高稀有礦機率並縮短挖礦時間。</li>
+      </ul>
+      <h3>🤝 社交</h3>
+      <ul>
+        <li>拜訪朋友的農場，幫忙澆水、除蟲、按讚，雙方都有好處。</li>
+        <li>排行榜：總資產、本週收入、人氣、稀有收藏。</li>
+      </ul>
+      <h3>📅 其他</h3>
+      <ul>
+        <li>每日簽到領 50 風幣，累計 7、30、100 天有額外獎勵，中斷不會歸零。</li>
+        <li>每個伺服器各自一個小鎮，進度與風幣不共用。</li>
+      </ul>
+    </article>
+  </div>
 
-    <!-- Header Section -->
-    <section class="pt-32 pb-16 px-6 bg-abyss border-b border-white/5">
-        <div class="max-w-4xl mx-auto text-center">
-            <h1 class="text-4xl md:text-5xl font-serif font-bold text-white mb-4">更新日誌</h1>
-            <p class="text-gray-500 italic">追蹤餘燼的每一次燃燒與淬煉</p>
-        </div>
-    </section>
-
-    <!-- Update List Section -->
-    <section class="py-16 px-6">
-        <div class="max-w-4xl mx-auto space-y-16">
-
-            <!-- Version 1.3.0 (NEWEST) -->
-            <div class="relative pl-8 border-l-2 border-red-500">
-                <div class="absolute -left-[11px] top-0 w-5 h-5 bg-red-600 rounded-full shadow-[0_0_20px_rgba(220,38,38,1)]"></div>
-                <div class="update-card bg-zinc-900/80 border border-red-600/50 p-8 rounded-2xl transition-all duration-300">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-2">
-                        <div>
-                            <h2 class="text-3xl font-bold text-white flex items-center">
-                                Version 1.3.0
-                                <span class="ml-4 text-xs bg-red-900/30 text-red-400 px-3 py-1 rounded border border-red-600/50 uppercase tracking-widest animate-pulse font-bold">Latest</span>
-                            </h2>
-                            <p class="text-gray-400 text-xs font-mono mt-1 opacity-70 italic">Released: 2026/03/24</p>
-                        </div>
-                        <span class="text-red-400 text-sm font-mono tracking-tighter italic font-bold">來自深淵的惡意，現在開始步步為營...</span>
-                    </div>
-
-                    <div class="space-y-8 text-gray-300">
-                        <!-- 壓力系統 -->
-                        <div>
-                            <h3 class="text-red-500 font-bold mb-4 flex items-center text-lg">
-                                <span class="mr-2">🧠</span> 壓力系統 (Stress System)
-                            </h3>
-                            <div class="bg-red-950/20 p-5 rounded-xl border border-red-900/30 mb-4">
-                                <p class="text-sm leading-relaxed text-zinc-300 mb-4">
-                                    深淵不再只是肉體的磨難，更會摧毀你的意志。每 1 點壓力將使你額外承受 <span class="text-red-400 font-bold">1%</span> 的傷害。
-                                </p>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
-                                    <div class="bg-black/40 p-3 rounded border border-white/5">
-                                        <p class="text-red-300 mb-1">// 壓力產生源</p>
-                                        受傷: +2 (每次受擊)<br>
-                                        關卡推進: +4 (每 20 關成長一倍)
-                                    </div>
-                                    <div class="bg-black/40 p-3 rounded border border-white/5">
-                                        <p class="text-green-300 mb-1">// 壓力上限與緩解</p>
-                                        最高上限: 200 (2倍受傷)<br>
-                                        減壓手段: 利用特定消耗品
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 職業與屬性調整 -->
-                        <div>
-                            <h3 class="text-yellow-600 font-bold mb-4 flex items-center text-lg">
-                                <span class="mr-2">⚖️</span> 生存機制全面改組
-                            </h3>
-                            <div class="space-y-4 ml-2">
-                                <p class="text-sm italic text-zinc-400">「深淵的利爪變得更加鋒利，敏捷不再是萬能的避風港。」</p>
-                                <div class="bg-zinc-900/50 p-4 rounded-xl border border-white/5 mb-4">
-                                    <h4 class="text-zinc-200 font-bold text-sm mb-3">全職業減傷係數下修</h4>
-                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-zinc-400">
-                                        <li>破壁者: <span class="text-red-300">3.5 → 4</span> 點敏捷/-1傷</li>
-                                        <li>幻影行者、波貝: <span class="text-red-300">3 → 4.5</span> 點敏捷/-1傷</li>
-                                        <li>血色祭司: <span class="text-green-300">4</span> (維持不變)</li>
-                                        <li>求道者: <span class="text-green-300">3.5</span> (維持不變)</li>
-                                    </ul>
-                                </div>
-                                <div class="bg-indigo-950/20 p-4 rounded-xl border border-indigo-900/30">
-                                    <h4 class="text-white font-bold text-sm mb-2">針對預言家的「惡意」</h4>
-                                    <p class="text-xs text-zinc-400 leading-relaxed italic mb-3">「既然你能預知未來，那我也更有機會找到你的弱點。」</p>
-                                    <ul class="text-xs text-zinc-300 space-y-1">
-                                        <li><span class="text-white font-bold">幻影行者：</span>最大生命修正 (-15 → -20)，當前基準為 30。</li>
-                                        <li><span class="text-white font-bold">屬性重配：</span>力量 (10→14), 敏捷 (22→18), 幸運 (10→15)。</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 系統優化與公式 -->
-                        <div>
-                            <h3 class="text-blue-400 font-bold mb-4 flex items-center text-lg">
-                                <span class="mr-2">🧩</span> 數據驅動優化
-                            </h3>
-                            <div class="space-y-4 ml-2">
-                                <div class="bg-black/40 p-4 rounded-xl border border-white/5">
-                                    <h4 class="text-white font-bold text-sm mb-2">全新的經驗值成長曲線</h4>
-                                    <div class="formula-box text-blue-300">
-                                        EXP_Req = LVL * 50<sup>(LVL * 0.01)</sup>
-                                    </div>
-                                </div>
-                                <ul class="list-disc list-inside space-y-2 text-sm text-zinc-300">
-                                    <li><span class="text-white font-medium">狀態欄進化：</span>屬性欄位現在標註為 <code class="bg-zinc-800 px-1 rounded text-blue-300">主要屬性 (+ 裝備屬性加總)</code>。</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Version 1.2.1 -->
-            <div class="relative pl-8 border-l-2 border-red-900/80">
-                <div class="absolute -left-[9px] top-0 w-4 h-4 bg-red-900/80 rounded-full"></div>
-                <div class="update-card bg-zinc-900/60 border border-red-900/30 p-8 rounded-2xl opacity-95 transition-all duration-300">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-2">
-                        <div>
-                            <h2 class="text-2xl font-bold text-white flex items-center">Version 1.2.1</h2>
-                            <p class="text-gray-500 text-xs font-mono mt-1 opacity-70 italic">Released: 2026/03/21</p>
-                        </div>
-                        <span class="text-gray-400 text-sm font-mono tracking-tighter italic font-bold">真實之眼與休憩的回響</span>
-                    </div>
-
-                    <div class="space-y-6 text-gray-300">
-                        <div>
-                            <h3 class="text-red-500 font-bold mb-3">👣 角色覺醒：全場唯一真預言家</h3>
-                            <p class="text-sm italic text-zinc-400 mb-2">「他的預知未來，才是真正的預知未來。」</p>
-                            <p class="text-sm leading-relaxed">幻影行者的預知能力現在能透視路徑盡頭的<span class="text-red-400 font-bold">怪物種類</span>以及可能的<span class="text-yellow-500 font-bold">掉落物</span>，真正的先知無所畏懼。</p>
-                        </div>
-                        <div>
-                            <h3 class="text-yellow-600 font-bold mb-3">⚔️ 系統與裝備升級</h3>
-                            <ul class="list-disc list-inside text-sm space-y-2">
-                                <li>新增大量物品與裝備，應對深淵更有利。</li>
-                                <li>清晰決策：獲得裝備時直接標註<span class="text-blue-400 font-bold">詳細屬性資訊</span>，不再盲目抉擇。</li>
-                            </ul>
-                        </div>
-                        <div class="bg-black/40 p-4 rounded-xl border border-white/5">
-                            <h3 class="text-blue-400 font-bold mb-2 text-sm">⚖️ 系統調整</h3>
-                            <p class="text-xs leading-relaxed">「現在只有在休憩處才有辦法分配點數，你無法再隨心所欲地在戰鬥前強化靈魂。」</p>
-                            <p class="text-red-400/80 text-[11px] mt-2 italic font-bold">※ /分配屬性 指令已停用，將於 v1.3.0 正式移除。</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Version 1.2.0 (RESTORED FULL) -->
-            <div class="relative pl-8 border-l-2 border-red-900/60">
-                <div class="absolute -left-[9px] top-0 w-4 h-4 bg-red-900/60 rounded-full"></div>
-                <div class="update-card bg-zinc-900/50 border border-red-900/20 p-8 rounded-2xl opacity-90 transition-all duration-300">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-2">
-                        <div>
-                            <h2 class="text-xl font-bold text-white">Version 1.2.0</h2>
-                            <p class="text-gray-500 text-xs font-mono mt-1 opacity-70 italic">Released: 2026/03/20</p>
-                        </div>
-                        <span class="text-red-900 text-xs font-mono tracking-tighter italic font-bold opacity-60">命運的波貝與深淵貿易</span>
-                    </div>
-
-                    <div class="space-y-6 text-gray-300">
-                        <div>
-                            <h4 class="text-red-500 font-bold text-sm mb-2">🎭 職業與平衡</h4>
-                            <ul class="list-disc list-inside text-xs space-y-1">
-                                <li><span class="text-white">新增職業「波貝」：</span>高幸運、高回復（1.2倍）。副作用：看不懂中文，抉擇困難。</li>
-                                <li><span class="text-white">破壁者削弱：</span>爆擊機率 (25%->15%)、額外爆傷 (50%->35%)。</li>
-                                <li><span class="text-white">修正求道者：</span>修復升等能力異常低落的問題。</li>
-                                <li><span class="text-white">血色祭司調整：</span>移除貧血體質，強化生存能力。</li>
-                            </ul>
-                        </div>
-                        <div class="formula-box text-xs">
-                            <p class="text-blue-300 mb-1 font-bold">📊 數值演算更新</p>
-                            Crit_Chance = (job_crit + (LUK / 250))<br>
-                            Crit_Mult = 1 + job_crit_mult + (LUK / 500)<br>
-                            最終傷害 = 基本傷害(浮動) + 額外傷害(不觸發爆擊)
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 text-xs">
-                            <div class="bg-zinc-800/40 p-2 rounded border border-white/5">
-                                <span class="text-yellow-600 font-bold">商人系統：</span>擊敗怪物獲取金幣，在休息點購買商店神裝。
-                            </div>
-                            <div class="bg-zinc-800/40 p-2 rounded border border-white/5">
-                                <span class="text-blue-400 font-bold">修正項目：</span>解決重設點數異常、修復隨機資料回溯問題。
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Version 1.1.1 (RESTORED FULL) -->
-            <div class="relative pl-8 border-l-2 border-red-900/40">
-                <div class="absolute -left-[7px] top-0 w-3 h-3 bg-red-900/40 rounded-full"></div>
-                <div class="update-card bg-zinc-900/40 border border-white/10 p-8 rounded-2xl opacity-80 transition-all duration-300">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-4">
-                        <h2 class="text-lg font-bold text-white">Version 1.1.1</h2>
-                        <span class="text-gray-400 text-xs font-mono italic">Released: 2026/03/18</span>
-                    </div>
-                    <ul class="list-disc list-inside text-xs text-zinc-400 space-y-2 leading-relaxed">
-                        <li><span class="text-white">官網上線：</span>取代舊有指令，提供詳盡數據展示。</li>
-                        <li><span class="text-white">怪物烘焙：</span>強度縮放從 2% 提升至 <span class="text-red-500 font-bold">2.5%</span>。</li>
-                        <li><span class="text-white">祭司強化：</span>增傷邏輯現在正確計算 INT 係數。</li>
-                        <li><span class="text-white">Bug 修復：</span>解決獲得新物品後開啟背包導致道具連線失效的問題。</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Version 1.1.0 (RESTORED FULL) -->
-            <div class="relative pl-8 border-l-2 border-red-900/20">
-                <div class="absolute -left-[7px] top-0 w-3 h-3 bg-red-900/20 rounded-full"></div>
-                <div class="update-card bg-zinc-900/30 border border-white/5 p-8 rounded-2xl opacity-70 transition-all duration-300">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-4">
-                        <h2 class="text-lg font-bold text-white">Version 1.1.0</h2>
-                        <span class="text-gray-500 text-xs font-mono italic">Released: 2026/03/17</span>
-                    </div>
-                    <p class="text-xs text-zinc-500 mb-2">實裝四職業、雙路線抉擇與放棄冒險功能。</p>
-                    <div class="bg-black/30 p-2 rounded text-[10px] font-mono text-zinc-500">
-                        EXP = 50 * (LVL^LVL) // 重構經驗值公式
-                    </div>
-                </div>
-            </div>
-
-            <!-- Version 1.0.0 (RESTORED FULL) -->
-            <div class="relative pl-8 border-l-2 border-zinc-800">
-                <div class="absolute -left-[7px] top-0 w-3 h-3 bg-zinc-800 rounded-full"></div>
-                <div class="update-card bg-zinc-950/20 border border-white/5 p-8 rounded-2xl opacity-60 transition-all duration-300">
-                    <h2 class="text-sm font-bold text-zinc-600 mb-3">Version 1.0.0 - 深淵啟動</h2>
-                    <div class="grid grid-cols-2 gap-4 text-[9px] text-zinc-600 uppercase tracking-tighter">
-                        <div>/開始冒險 /探索 /狀態</div>
-                        <div>/分配屬性 /背包 /排行榜</div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="py-12 px-6 border-t border-white/5 text-center mt-20">
-        <div class="max-w-7xl mx-auto text-gray-600 text-xs tracking-widest leading-loose">
-            <div class="mb-4 flex justify-center space-x-6 text-sm text-gray-500">
-                <a href="index.html" class="hover:text-white transition">回首頁</a>
-                <a href="https://github.com/Future-Tens/WithYuTogether" class="hover:text-white transition">GitHub Repo</a>
-            </div>
-            &copy; 2026 永恆深淵的餘燼 系統開發組. <br>
-            <span class="italic opacity-80">願你的餘燼，能在這無盡的深淵中燃燒得久一點。</span>
-        </div>
-    </footer>
-
+  <footer>小鎮 · WithYuTogether · <a href="index.html">玩法指南</a></footer>
+</div>
 </body>
 </html>

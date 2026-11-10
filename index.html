@@ -1,383 +1,316 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
+<!doctype html>
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>永恆深淵的餘燼 | 官方網站 - Discord TRPG</title>
-    <!-- 設定 Favicon -->
-    <link rel="icon" type="image/png" href="icon.png">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #0a0a0a;
-            color: #e5e5e5;
-        }
-        .font-serif {
-            font-family: 'Noto Serif TC', serif;
-        }
-        .ember-glow {
-            text-shadow: 0 0 15px rgba(255, 126, 0, 0.6);
-        }
-        .bg-abyss {
-            background: linear-gradient(180deg, #121212 0%, #0a0a0a 100%);
-        }
-        .card-hover:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(220, 38, 38, 0.2);
-            border-color: #dc2626;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        /* Icon 呼吸燈效果 */
-        @keyframes pulse-glow {
-            0%, 100% { filter: drop-shadow(0 0 10px rgba(255, 80, 0, 0.3)); transform: scale(1); }
-            50% { filter: drop-shadow(0 0 30px rgba(255, 80, 0, 0.6)); transform: scale(1.05); }
-        }
-        .animate-icon {
-            animation: pulse-glow 4s ease-in-out infinite;
-        }
-        .math-font {
-            font-family: 'Times New Roman', serif;
-            font-style: italic;
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>小鎮玩法指南</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: friendly single column guide; hero, quick-start steps, then topic sections and FAQ */
+:root {
+  --bg: #f3f6ec;
+  --surface: #ffffff;
+  --sunken: #e6ecdc;
+  --fg: #1f281c;
+  --muted: #5d6857;
+  --line: #d4dbcb;
+  --accent: #3b7a37;
+  --accent-soft: #dcebd5;
+  --ore: #4f6189;
+  --ore-soft: #dfe4f0;
+  --gold: #a87b0c;
+  --gold-soft: #f5ead0;
+  --warn: #b0502c;
+  --warn-soft: #f6e0d6;
+  --font-display: "LXGW WenKai TC", "Noto Serif TC", serif;
+  --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131911; --surface: #1b2318; --sunken: #232c20; --fg: #e2e9da; --muted: #9ca793;
+    --line: #333f2e; --accent: #84c376; --accent-soft: #263a22; --ore: #a0b3dd; --ore-soft: #232b3d;
+    --gold: #e3bb52; --gold-soft: #3a3019; --warn: #e48a66; --warn-soft: #3d241b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131911; --surface: #1b2318; --sunken: #232c20; --fg: #e2e9da; --muted: #9ca793;
+  --line: #333f2e; --accent: #84c376; --accent-soft: #263a22; --ore: #a0b3dd; --ore-soft: #232b3d;
+  --gold: #e3bb52; --gold-soft: #3a3019; --warn: #e48a66; --warn-soft: #3d241b;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.8;
+}
+img { max-width: 100%; }
+.wrap {
+  max-width: 860px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 72px;
+}
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.3; margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 40em; }
+ul { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; max-width: 40em; }
+code { font-family: var(--font-mono); font-size: .9em; background: var(--accent-soft); color: var(--accent); padding: 1px 7px; border-radius: 5px; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+
+/* hero */
+.hero { padding-block: 64px 36px; display: grid; gap: 18px; }
+.field { font-size: 30px; letter-spacing: .3em; line-height: 1; user-select: none; }
+.hero h1 { font-size: clamp(44px, 9vw, 76px); }
+.hero h1 span { color: var(--accent); }
+.hero .lede { font-size: 19px; color: var(--muted); max-width: 30em; }
+
+/* quick start */
+.start { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.start div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: grid; gap: 4px; align-content: start; }
+.start .n { font-family: var(--font-mono); font-size: 13px; color: var(--accent); }
+.start b { font-size: 16.5px; }
+.start span:last-child { color: var(--muted); font-size: 14.5px; line-height: 1.65; }
+
+nav.toc {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+  margin-top: 40px; padding-block: 10px; overflow-x: auto; white-space: nowrap;
+}
+nav.toc a { color: var(--muted); text-decoration: none; font-size: 14.5px; padding: 4px 10px; border-radius: 6px; }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--fg); background: var(--sunken); outline: none; }
+
+section { margin-top: 52px; display: grid; gap: 14px; scroll-margin-top: 64px; min-width: 0; }
+section > h2 { font-size: clamp(26px, 4.4vw, 34px); display: flex; gap: 12px; align-items: baseline; }
+section h3 { font-size: 19px; margin-top: 6px; }
+
+.day { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); }
+.day div { padding: 14px 16px; display: grid; gap: 2px; border-right: 1px solid var(--line); align-content: start; }
+.day div:last-child { border-right: 0; }
+.day .t { font-size: 13px; color: var(--accent); font-weight: 700; letter-spacing: .06em; }
+.day span:last-child { font-size: 14.5px; color: var(--muted); line-height: 1.6; }
+@media (max-width: 760px) { .day div { border-right: 0; border-bottom: 1px solid var(--line); } .day div:last-child { border-bottom: 0; } }
+
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td.w { white-space: normal; min-width: 13em; }
+tr:last-child td { border-bottom: 0; }
+th { font-weight: 500; color: var(--muted); font-size: 13px; background: var(--sunken); }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr.best td { background: var(--accent-soft); }
+
+.stages { display: grid; grid-template-columns: repeat(4, 1fr); border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
+.stages div { padding: 12px 14px; display: grid; gap: 2px; font-size: 14.5px; }
+.stages b { font-size: 15.5px; }
+.stages .s0 { background: var(--sunken); }
+.stages .s1 { background: var(--accent-soft); }
+.stages .s2 { background: var(--gold-soft); }
+.stages .s3 { background: var(--warn-soft); }
+@media (max-width: 600px) { .stages { grid-template-columns: 1fr 1fr; } }
+
+.rare { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+.rare div { border-radius: 12px; padding: 14px 16px; display: grid; gap: 2px; border: 1px solid var(--line); background: var(--surface); }
+.rare .big { font-size: 26px; line-height: 1.2; }
+.rare b { font-size: 16.5px; }
+.rare .pct { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.rare .gold { background: var(--gold-soft); border-color: transparent; }
+.rare .rainbow { background: linear-gradient(135deg, var(--warn-soft), var(--gold-soft) 35%, var(--accent-soft) 65%, var(--ore-soft)); border-color: transparent; }
+
+.note { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; border-radius: 0 10px 10px 0; max-width: 44em; }
+.note.warn { border-color: var(--warn); background: var(--warn-soft); }
+
+.help { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.help div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: grid; gap: 6px; align-content: start; }
+.help .ic { font-size: 26px; line-height: 1; }
+.help b { font-size: 17px; }
+.help span { font-size: 14.5px; line-height: 1.65; }
+.help .lim { color: var(--muted); font-size: 13.5px; }
+
+.tips { display: grid; gap: 10px; counter-reset: none; }
+.tips div { display: grid; grid-template-columns: 2em 1fr; gap: 10px; align-items: baseline; }
+.tips div > span:first-child { font-size: 20px; }
+
+details { border-bottom: 1px solid var(--line); padding-block: 12px; max-width: 44em; }
+details:first-of-type { border-top: 1px solid var(--line); }
+summary { cursor: pointer; font-weight: 500; font-size: 16px; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; color: var(--accent); font-family: var(--font-mono); }
+details[open] summary::after { content: "−"; }
+summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+details p { margin-top: 8px; color: var(--muted); }
+
+footer a { color: var(--accent); }
+footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13.5px; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
 </head>
-<body class="antialiased scroll-smooth">
+<body>
+<div class="wrap">
 
-    <!-- 導覽列 -->
-    <nav class="fixed w-full z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <img src="icon.png" class="w-8 h-8 rounded-md" alt="永恆深淵的餘燼 Logo">
-                <span class="text-xl font-serif font-bold tracking-wider text-white">永恆深淵的餘燼</span>
-            </div>
-            <div class="hidden md:flex items-center space-x-8 text-sm font-medium tracking-wide">
-                <a href="#about" class="hover:text-red-500 transition">深淵傳說</a>
-                <a href="#jobs" class="hover:text-red-500 transition">職業說明</a>
-                <a href="#rules" class="hover:text-red-500 transition">生存法則</a>
-                <a href="#commands" class="hover:text-red-500 transition">冒險指令</a>
-                <a href="updates.html" class="bg-zinc-800 hover:bg-zinc-700 px-5 py-2 rounded-full text-sm font-bold transition duration-300 border border-white/10">
-                    更新日誌
-                </a>
-            </div>
-        </div>
-    </nav>
+  <header class="hero">
+    <div class="field" aria-hidden="true">🌱🥕🍅🌽🎃</div>
+    <h1>歡迎來到<span>小鎮</span></h1>
+    <p class="lede">在 Discord 裡經營一塊屬於你的小天地。每天簽到、種菜、下礦坑，把收成賣掉存錢，再去朋友家幫忙澆水。不用記指令，按按鈕就好。</p>
+  </header>
 
-    <!-- Hero Section -->
-    <section class="relative h-screen flex items-center justify-center overflow-hidden">
-        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1519074063912-ad2fe3f5193b?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-30"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-black/60"></div>
-        
-        <div class="relative z-10 text-center px-6">
-            <div class="mb-8 flex justify-center">
-                <img src="icon.png" class="w-32 h-32 md:w-40 md:h-40 rounded-3xl animate-icon shadow-3xl shadow-red-900/20" alt="深淵圖示">
-            </div>
+  <div class="start">
+    <div><span class="n">1</span><b>輸入 <code>/小鎮</code></b><span>打開你的農場。第一次進來會拿到 2 塊田和 100 風幣。</span></div>
+    <div><span class="n">2</span><b>按「📅 簽到」</b><span>每天領 50 風幣，台灣時間 00:00 換日。</span></div>
+    <div><span class="n">3</span><b>按「🌱 農田」種下種子</b><span>建議先種 1 小時的小白菜，馬上體驗一輪收成。</span></div>
+    <div><span class="n">4</span><b>按「⛏️ 礦坑」出發</b><span>種田的同時也去挖礦，兩邊一起賺。</span></div>
+  </div>
 
-            <p class="text-red-500 font-bold tracking-[0.3em] mb-4 uppercase text-sm md:text-base">Roguelike-Lite Discord TRPG v1.2.0</p>
-            <h1 class="text-5xl md:text-8xl font-serif font-bold text-white mb-6 ember-glow text-center">永恆深淵的餘燼</h1>
-            <p class="max-w-2xl mx-auto text-lg md:text-xl text-gray-400 mb-10 leading-relaxed italic">
-                「深淵不歡迎懦夫，只有具備智慧與勇氣的人，才能將名字刻在英雄榜上。」
-            </p>
-            <div class="flex items-center justify-center">
-                <a href="#about" class="w-full md:w-auto px-12 py-4 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition text-lg">開始探索</a>
-            </div>
-        </div>
+  <nav class="toc" aria-label="章節">
+    <a href="#day">一天怎麼玩</a><a href="#farm">種田</a><a href="#rare">稀有作物</a><a href="#mine">挖礦</a><a href="#friends">拜訪朋友</a><a href="#shop">商店與排行</a><a href="#tips">小撇步</a><a href="#faq">常見問題</a><a href="updates.html">更新日誌</a>
+  </nav>
 
-        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
-            <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
-        </div>
-    </section>
+  <section id="day">
+    <h2>一天怎麼玩</h2>
+    <p>作物和礦坑都需要時間，你不用一直掛著，有空回來看看就好。一天來 3 次左右最順，只來一次也沒關係。</p>
+    <div class="day">
+      <div><span class="t">早上</span><b>簽到、收成</b><span>收昨晚種的作物，換上短作物。</span></div>
+      <div><span class="t">中午</span><b>賣菜、去挖礦</b><span>把收成賣掉，出發一趟 4 小時的礦坑。</span></div>
+      <div><span class="t">傍晚</span><b>逛朋友農場</b><span>澆水、除蟲、按讚，還能賺小費。</span></div>
+      <div><span class="t">睡前</span><b>種長作物</b><span>南瓜、玉米放一整晚剛剛好。</span></div>
+    </div>
+    <h3>📅 簽到</h3>
+    <p>每天簽到領 <b>50 風幣</b>。我們算的是<b>累計天數</b>，忘記簽到不會歸零，下次繼續累積就好。</p>
+    <div class="tbl"><table>
+      <thead><tr><th>累計簽到</th><th class="num">額外獎勵</th></tr></thead>
+      <tbody>
+        <tr><td>7 天</td><td class="num">200 風幣</td></tr>
+        <tr><td>30 天</td><td class="num">1,000 風幣</td></tr>
+        <tr><td>100 天</td><td class="num">3,000 風幣</td></tr>
+      </tbody>
+    </table></div>
+  </section>
 
-    <!-- 遊戲簡介 Section -->
-    <section id="about" class="py-24 px-6 bg-abyss border-t border-white/5">
-        <div class="max-w-6xl mx-auto">
-            <div class="grid md:grid-cols-2 gap-16 items-start">
-                <div>
-                    <h2 class="text-4xl font-serif font-bold text-white mb-6">越深入，越致命</h2>
-                    <p class="text-gray-400 leading-relaxed mb-8 text-lg">
-                        這是一場發生在 Discord 頻道中的硬核探險。深淵的怪物會隨層數進化，強度每關提升 <span class="text-red-500 font-bold">2.5%</span>。在此地，策略與運氣缺一不可。
-                    </p>
-                    <div class="space-y-6 text-zinc-300">
-                        <div class="flex items-start space-x-4">
-                            <div class="bg-red-900/30 p-2 rounded text-xl shrink-0">💀</div>
-                            <div>
-                                <h4 class="text-white font-bold">永久死亡 (Permadeath)</h4>
-                                <p class="text-sm text-gray-500 leading-relaxed">當餘燼熄滅的那一刻，將永遠成為石碑上刻寫的銘字。不，你可能連資格都沒有...</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start space-x-4">
-                            <div class="bg-red-900/30 p-2 rounded text-xl shrink-0">📦</div>
-                            <div>
-                                <h4 class="text-white font-bold">遺產系統</h4>
-                                <p class="text-sm text-gray-500 leading-relaxed">留有餘溫的遺物，在絕望的深淵中傳遞希望的火苗。</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start space-x-4">
-                            <div class="bg-red-900/30 p-2 rounded text-xl shrink-0">🏆</div>
-                            <div>
-                                <h4 class="text-white font-bold">全域排行榜</h4>
-                                <p class="text-sm text-gray-500 leading-relaxed">前往深淵的道路不只一條，燃燒吧，來自各地的火苗。抵達極盡之處，刻下你的 Run ID。</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+  <section id="farm">
+    <h2>種田</h2>
+    <p>選一塊空地種下作物（種子錢在種下時扣），等它長大，收成後拿去商店賣。生長時間越短，每小時賺得越多；越長的作物則一次賺得多，適合你不在的時候種。</p>
+    <div class="tbl"><table>
+      <thead><tr><th>作物</th><th>要多久</th><th class="num">種子</th><th class="num">賣出</th><th class="num">賺</th></tr></thead>
+      <tbody>
+        <tr><td>🥬 小白菜</td><td>1 小時</td><td class="num">10</td><td class="num">30</td><td class="num">+20</td></tr>
+        <tr><td>🥕 胡蘿蔔</td><td>2 小時</td><td class="num">20</td><td class="num">56</td><td class="num">+36</td></tr>
+        <tr><td>🍅 番茄</td><td>4 小時</td><td class="num">40</td><td class="num">100</td><td class="num">+60</td></tr>
+        <tr><td>🌽 玉米</td><td>6 小時</td><td class="num">60</td><td class="num">138</td><td class="num">+78</td></tr>
+        <tr><td>🎃 南瓜</td><td>8 小時</td><td class="num">80</td><td class="num">176</td><td class="num">+96</td></tr>
+      </tbody>
+    </table></div>
 
-                <!-- 數據網格 -->
-                <div class="grid grid-cols-2 gap-4 sticky top-32">
-                    <div class="bg-zinc-900/40 p-8 rounded-2xl border border-white/5 text-center flex flex-col justify-center items-center card-hover transition-all group">
-                        <div class="text-3xl md:text-4xl font-bold text-red-500 mb-2 group-hover:scale-110 transition-transform">20+</div>
-                        <div class="text-[10px] md:text-xs text-gray-500 uppercase tracking-[0.2em] font-bold">怪物原型</div>
-                    </div>
-                    <div class="bg-zinc-900/40 p-8 rounded-2xl border border-white/5 text-center flex flex-col justify-center items-center card-hover transition-all group">
-                        <div class="text-3xl md:text-4xl font-bold text-red-500 mb-2 group-hover:scale-110 transition-transform">∞</div>
-                        <div class="text-[10px] md:text-xs text-gray-500 uppercase tracking-[0.2em] font-bold">無盡層數</div>
-                    </div>
-                    <div class="bg-zinc-900/40 p-8 rounded-2xl border border-white/5 text-center flex flex-col justify-center items-center card-hover transition-all group">
-                        <div class="text-3xl md:text-4xl font-bold text-red-500 mb-2 group-hover:scale-110 transition-transform">15+</div>
-                        <div class="text-[10px] md:text-xs text-gray-500 uppercase tracking-[0.2em] font-bold">消耗品與裝備</div>
-                    </div>
-                    <div class="bg-zinc-900/40 p-8 rounded-2xl border border-white/5 text-center flex flex-col justify-center items-center card-hover transition-all group">
-                        <div class="text-3xl md:text-4xl font-bold text-red-500 mb-2 group-hover:scale-110 transition-transform">5</div>
-                        <div class="text-[10px] md:text-xs text-gray-500 uppercase tracking-[0.2em] font-bold">傳承職業</div>
-                    </div>
-                    <div class="col-span-2 bg-zinc-900/40 p-6 rounded-2xl border border-white/5 text-center flex flex-col justify-center items-center card-hover transition-all group">
-                        <div class="text-3xl md:text-4xl font-bold text-red-500 mb-1 group-hover:scale-110 transition-transform">100%</div>
-                        <div class="text-[10px] md:text-xs text-gray-500 uppercase tracking-[0.2em] font-bold">數據驅動架構</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <h3>成熟後要記得收</h3>
+    <p>作物熟了之後，有一段「新鮮期」，長度跟它的生長時間一樣（最少 2 小時）。例如南瓜長 8 小時，熟了之後 8 小時內收都是新鮮的。</p>
+    <div class="stages">
+      <div class="s0"><b>🌱 生長中</b><span class="muted">耐心等待</span></div>
+      <div class="s1"><b>✅ 新鮮</b><span>全額賣出</span></div>
+      <div class="s2"><b>🟡 過熟</b><span>只能賣一半</span></div>
+      <div class="s3"><b>🥀 枯萎</b><span>只能清掉</span></div>
+    </div>
 
-    <!-- 職業介紹 Section -->
-    <section id="jobs" class="py-24 px-6 bg-black">
-        <div class="max-w-[1400px] mx-auto">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-serif font-bold text-white mb-4">選擇你的宿命</h2>
-                <p class="text-gray-500 italic text-lg">目前的深淵中，有五種截然不同的靈魂可以傳承</p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 items-stretch">
-                <!-- 波貝 -->
-                <div class="flex flex-col h-full bg-red-900/10 border border-red-500/30 p-6 rounded-3xl card-hover transition-all duration-300">
-                    <div class="text-4xl mb-4 text-center">🦫</div>
-                    <h3 class="text-xl font-bold text-white mb-1 text-center">波貝 <span class="text-xs text-red-500 ml-1 font-bold">NEW</span></h3>
-                    <div class="text-center mb-4">
-                        <span class="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-[10px] rounded uppercase tracking-wider border border-white/10 font-bold">混傷職業</span>
-                    </div>
-                    <p class="text-sm text-gray-400 mb-8 flex-grow leading-relaxed">神祕的生物，具備天生極高的幸運 (LUK)。雖然看不懂中文使探索上有一定的困難，但其與生俱來的自然體質能大幅提升回復效率。</p>
-                    <div class="border-t border-white/10 pt-6 mt-auto">
-                        <span class="text-xs font-bold text-red-500 uppercase tracking-widest block mb-2">專屬能力</span>
-                        <p class="text-sm font-bold text-zinc-300 leading-snug italic">自然之力：消耗品回血 1.2 倍，以及極高的天賦。</p>
-                    </div>
-                </div>
-                <!-- 破壁者 -->
-                <div class="flex flex-col h-full bg-zinc-900/40 border border-white/10 p-6 rounded-3xl card-hover transition-all duration-300">
-                    <div class="text-4xl mb-4 text-center">🛡️</div>
-                    <h3 class="text-xl font-bold text-white mb-1 text-center">破壁者</h3>
-                    <div class="text-center mb-4">
-                        <span class="px-2 py-0.5 bg-red-900/30 text-red-400 text-[10px] rounded uppercase tracking-wider border border-red-500/20 font-bold">物理職業</span>
-                    </div>
-                    <p class="text-sm text-gray-400 mb-8 flex-grow leading-relaxed">鋼鐵般的肉體擁有更高的力量 (STR)。天生帶有額外的爆擊率及爆擊傷害，能透過重擊粉碎任何怪物，如果不夠那就再一下！</p>
-                    <div class="border-t border-white/10 pt-6 mt-auto">
-                        <span class="text-xs font-bold text-red-500 uppercase tracking-widest block mb-2">專屬能力</span>
-                        <p class="text-sm font-bold text-zinc-300 leading-snug italic">碎骨：攻擊時有機率造成 1.35 倍物理重擊。</p>
-                    </div>
-                </div>
-                <!-- 幻影行者 -->
-                <div class="flex flex-col h-full bg-zinc-900/40 border border-white/10 p-6 rounded-3xl card-hover transition-all duration-300">
-                    <div class="text-4xl mb-4 text-center">👣</div>
-                    <h3 class="text-xl font-bold text-white mb-1 text-center">幻影行者</h3>
-                    <div class="text-center mb-4">
-                        <span class="px-2 py-0.5 bg-red-900/30 text-red-400 text-[10px] rounded uppercase tracking-wider border border-red-500/20 font-bold">物理職業</span>
-                    </div>
-                    <p class="text-sm text-gray-400 mb-8 flex-grow leading-relaxed">靈巧的避難者，具有矯健的身手，高敏捷 (DEX)，雖然生命脆弱，但能在混沌中預先洞察路線後的危險類型，從而避開危險。</p>
-                    <div class="border-t border-white/10 pt-6 mt-auto">
-                        <span class="text-xs font-bold text-red-500 uppercase tracking-widest block mb-2">專屬能力</span>
-                        <p class="text-sm font-bold text-zinc-300 leading-snug italic">預知未來：必定能洞悉所有路線的狀態。</p>
-                    </div>
-                </div>
-                <!-- 求道者 -->
-                <div class="flex flex-col h-full bg-zinc-900/40 border border-white/10 p-6 rounded-3xl card-hover transition-all duration-300">
-                    <div class="text-4xl mb-4 text-center">📕</div>
-                    <h3 class="text-xl font-bold text-white mb-1 text-center">求道者</h3>
-                    <div class="text-center mb-4">
-                        <span class="px-2 py-0.5 bg-blue-900/30 text-blue-400 text-[10px] rounded uppercase tracking-wider border border-blue-500/20 font-bold">魔法職業</span>
-                    </div>
-                    <p class="text-sm text-gray-400 mb-8 flex-grow leading-relaxed">追求真理的學者具有極高的感知力 (PER)。擁有較多的起始點數與升級成長點數，具備深淵中最強的屬性適應力。</p>
-                    <div class="border-t border-white/10 pt-6 mt-auto">
-                        <span class="text-xs font-bold text-red-500 uppercase tracking-widest block mb-2">專屬能力</span>
-                        <p class="text-sm font-bold text-zinc-300 leading-snug italic">一心求道：最大化初始屬性加成，極高的成長上限。</p>
-                    </div>
-                </div>
-                <!-- 血色祭司 -->
-                <div class="flex flex-col h-full bg-zinc-900/40 border border-white/10 p-6 rounded-3xl card-hover transition-all duration-300">
-                    <div class="text-4xl mb-4 text-center">🩸</div>
-                    <h3 class="text-xl font-bold text-white mb-1 text-center">血色祭司</h3>
-                    <div class="text-center mb-4">
-                        <span class="px-2 py-0.5 bg-blue-900/30 text-blue-400 text-[10px] rounded uppercase tracking-wider border border-blue-500/20 font-bold">魔法職業</span>
-                    </div>
-                    <p class="text-sm text-gray-400 mb-8 flex-grow leading-relaxed">崇拜神靈帶來的更高的智慧 (INT)。禁忌的血咒使用者，能利用鮮血祭儀換取高額增傷。在痛苦中磨練靈魂，破壞力足以撼動深淵。</p>
-                    <div class="border-t border-white/10 pt-6 mt-auto">
-                        <span class="text-xs font-bold text-red-500 uppercase tracking-widest block mb-2">專屬能力</span>
-                        <p class="text-sm font-bold text-zinc-300 leading-snug italic">禁忌轉化：每回合扣血並換取基於 INT 的固定增傷。</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <h3>🐛 小心蟲子</h3>
+    <div class="note warn"><p>作物長大的途中有機會長蟲，最晚在生長進度 80% 時就會出現，收成前一定有時間處理。看到 🐛 記得按「除蟲」，朋友路過也能幫你除。蟲沒除就收成的話，<b>賣價少 30%，稀有變異也會消失</b>。</p></div>
+  </section>
 
-    <!-- 規則與生存機制 -->
-    <section id="rules" class="py-24 px-6 bg-zinc-900/30 border-y border-white/5">
-        <div class="max-w-6xl mx-auto">
-            <h2 class="text-3xl font-serif font-bold text-center text-white mb-16">核心機制與生存法則</h2>
-            
-            <!-- 深淵威脅 -->
-            <div class="w-full bg-zinc-900/60 border border-purple-500/40 p-8 rounded-2xl mb-12 shadow-[0_0_20px_rgba(168,85,247,0.15)] transition-all hover:border-purple-500/60">
-                <h4 class="text-xl font-bold text-purple-400 mb-6 flex items-center">
-                    <span class="mr-3 text-2xl">👾</span> 深淵威脅 (Abyss Threats)
-                </h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="flex flex-col">
-                        <span class="text-white font-bold text-lg mb-2">1. 普通怪</span>
-                        <p class="text-sm text-gray-400 leading-relaxed">如地牢史萊姆、狂暴野狼。是探索途中的基礎阻礙，適合穩定累積資源。</p>
-                    </div>
-                    <div class="flex flex-col border-l border-white/5 md:pl-8">
-                        <span class="text-white font-bold text-lg mb-2">2. 隨機事件</span>
-                        <p class="text-sm text-gray-400 leading-relaxed">如「巨石門戶」、「靈魂天秤」，需進行屬性判定 (D20) 以決定冒險者的命運。</p>
-                    </div>
-                    <div class="flex flex-col border-l border-white/5 md:pl-8">
-                        <span class="text-white font-bold text-lg mb-2">3. 精英/魔王</span>
-                        <p class="text-sm text-gray-400 leading-relaxed">具備動態數值烘焙 (Scaling)，屬性隨層數不斷成長。擊敗後提供極高 EXP 與 更高的稀有掉落。</p>
-                    </div>
-                </div>
-            </div>
+  <section id="rare">
+    <h2>稀有作物</h2>
+    <p>每一株作物熟的時候都有機會變成稀有品種，熟了才會知道是什麼。你的農場畫面是公開的，長出彩虹作物時大家都看得到。</p>
+    <div class="rare">
+      <div><span class="big">🍅</span><b>普通</b><span class="pct">大部分</span><span class="small">原價</span></div>
+      <div class="gold"><span class="big">✨</span><b>金色</b><span class="pct">7%</span><span class="small">賣 3 倍價</span></div>
+      <div><span class="big">🌟</span><b>巨大</b><span class="pct">2.5%</span><span class="small">收成數量 2 倍</span></div>
+      <div class="rainbow"><span class="big">🌈</span><b>彩虹</b><span class="pct">0.5%</span><span class="small">賣 8 倍價，全伺服器公告</span></div>
+    </div>
+    <ul>
+      <li><b>朋友幫你澆水</b>，長出稀有作物的機會會變高。</li>
+      <li><b>過熟才收</b>的稀有作物還是有倍率，只是先打 5 折。</li>
+      <li><b>有蟲沒除</b>，稀有變異就沒了。</li>
+    </ul>
+  </section>
 
-            <!-- 公式與背包 -->
-            <div class="grid md:grid-cols-2 gap-12">
-                <div class="bg-black/50 p-8 rounded-2xl border border-white/5 shadow-xl flex flex-col h-full">
-                    <h4 class="text-xl font-bold text-red-500 mb-4 flex items-center">
-                        <span class="mr-3">⚔️</span> 戰鬥力公式與爆擊法則
-                    </h4>
-                    <p class="text-sm text-gray-400 mb-6 leading-relaxed">
-                        戰鬥不再僅看基礎屬性。你的最終戰力受裝備加成，基本傷害受不同職業傷害類型（物理、魔法、混傷）不同主要屬性影響。
-                    </p>
-                    <div class="bg-zinc-800/50 p-6 rounded-xl font-mono text-blue-300 text-sm mb-6 border border-white/5 text-center shadow-inner">
-                        <span class="math-font text-lg">Total<sub>Stat</sub> = Base<sub>Stat</sub> + Σ Equips<sub>Stat</sub></span>
-                        <div class="mt-4 pt-4 border-t border-white/10 text-red-400 font-bold">
-                            ⚠️ 爆擊觸發條件：攻擊力 (ATK) > 敵方防禦 (DEF)
-                        </div>
-                    </div>
-                    <p class="text-xs text-zinc-500 italic mt-auto leading-relaxed">
-                        ※ 最終傷害 = 基本傷害(稍有浮動) + 額外傷害。額外傷害不會觸發爆擊。
-                    </p>
-                </div>
+  <section id="mine">
+    <h2>挖礦</h2>
+    <p>一次可以出發一趟，時間到了回來按「收取」。礦石<b>不會壞</b>，忘了收也沒關係，可以慢慢存起來再賣。</p>
+    <div class="tbl"><table>
+      <thead><tr><th>行程</th><th>時間</th><th class="w">可能挖到</th></tr></thead>
+      <tbody>
+        <tr><td>淺層</td><td>1 小時</td><td class="w">多半是石頭和銅礦</td></tr>
+        <tr><td>中層</td><td>4 小時</td><td class="w">鐵礦、金礦比較常見</td></tr>
+        <tr><td>深層</td><td>8 小時</td><td class="w">挖得最多，💎 寶石只在這裡出現</td></tr>
+      </tbody>
+    </table></div>
+    <div class="tbl"><table>
+      <thead><tr><th>礦物</th><th class="num">賣出</th></tr></thead>
+      <tbody>
+        <tr><td>🪨 石頭</td><td class="num">2</td></tr>
+        <tr><td>🟠 銅礦</td><td class="num">8</td></tr>
+        <tr><td>⚙️ 鐵礦</td><td class="num">15</td></tr>
+        <tr><td>🟡 金礦</td><td class="num">40</td></tr>
+        <tr><td>💎 寶石</td><td class="num">120</td></tr>
+        <tr><td>🎁 寶箱（偶爾挖到）</td><td class="num">100–300 風幣</td></tr>
+      </tbody>
+    </table></div>
+  </section>
 
-                <div class="bg-black/50 p-8 rounded-2xl border border-blue-500/30 shadow-xl flex flex-col h-full">
-                    <h4 class="text-xl font-bold text-blue-400 mb-4 flex items-center">
-                        <span class="mr-3">🎒</span> 硬核策略背包
-                    </h4>
-                    <p class="text-sm text-gray-400 mb-6 leading-relaxed">採用極端的「首位制」物流系統，這不是普通的道具欄，而是一場關於資源管理的生存博弈。</p>
-                    <div class="space-y-4">
-                        <div class="bg-blue-900/10 p-4 rounded-xl border border-blue-800/20">
-                            <h5 class="text-white font-bold text-sm mb-1">物流排序與裝備封鎖</h5>
-                            <p class="text-xs text-zinc-400 leading-relaxed">你只能使用或裝備背包中「第一格」的道具。新獲取的裝備會自動排在末端，這意謂著如果前方塞滿了藥水，你將無法立即穿上剛撿到的神裝。</p>
-                        </div>
-                        <div class="bg-red-900/10 p-4 rounded-xl border border-red-800/20">
-                            <h5 class="text-white font-bold text-sm mb-1">負面效果的斷捨離</h5>
-                            <p class="text-xs text-zinc-400 leading-relaxed">深淵中的消耗品與陷阱道具「無法丟棄」。為了騰出位格，你必須冒險主動「使用」掉負面物品。在犧牲體力清出空間與保留現狀之間，你必須做出抉擇。</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-blue-500 font-bold mt-6 italic">「有時候，喝下一瓶毒藥是為了能拿起下一把神兵。」</p>
-                </div>
-            </div>
-        </div>
-    </section>
+  <section id="friends">
+    <h2>拜訪朋友</h2>
+    <p>看到朋友的農場訊息，直接按上面的按鈕就能幫忙；也可以輸入 <code>/小鎮</code> 並在「成員」選項選朋友，去他家逛逛。互相幫忙兩邊都有好處。</p>
+    <div class="help">
+      <div><span class="ic">💧</span><b>澆水</b><span>讓朋友的作物長快一點，稀有機會也變高。你們兩個各得 5 風幣。</span><span class="lim">每天最多幫 5 次，同一位朋友每天 1 次</span></div>
+      <div><span class="ic">🐛</span><b>除蟲</b><span>幫朋友把蟲趕走，保住他的收成。你拿 10 風幣謝禮。</span><span class="lim">作物有蟲的時候才能按</span></div>
+      <div><span class="ic">❤️</span><b>按讚</b><span>給朋友的農場一顆愛心，人氣會顯示在他的農場上，也有排行榜。</span><span class="lim">同一位朋友每天 1 次</span></div>
+    </div>
+    <p class="muted small">別人只能幫忙，不能收你的菜，也不能動你的東西。</p>
+  </section>
 
-    <!-- 冒險指令 Section (選取區域更新) -->
-    <section id="commands" class="py-24 px-6 bg-abyss">
-        <div class="max-w-5xl mx-auto text-center">
-            <h2 class="text-3xl font-serif font-bold text-white mb-4">冒險指令表</h2>
-            <p class="text-gray-500 mb-12">在 Discord 頻道輸入以下指令開啟你的傳奇</p>
-            
-            <div class="bg-zinc-950 rounded-xl border border-white/10 overflow-hidden shadow-2xl text-left">
-                <div class="bg-zinc-900 px-4 py-2 border-b border-white/10 flex items-center space-x-2">
-                    <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                    <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span class="ml-4 text-xs text-gray-500 font-mono italic underline">Terminal - Embers of the Eternal Abyss v1.2.1</span>
-                </div>
-                <div class="p-6 font-mono text-xs md:text-sm space-y-6">
-                    <!-- /開始冒險 -->
-                    <div class="flex flex-col md:flex-row md:items-start gap-2 md:gap-6">
-                        <span class="text-green-500 w-32 shrink-0 font-bold uppercase tracking-wider">/開始冒險</span>
-                        <p class="text-gray-300 leading-relaxed">開啟旅程的第一步。玩家可以從「波貝」、「求道者」、「破壁者」等職業中選擇，並進行初始屬性點分配。</p>
-                    </div>
-                    <!-- /探索 -->
-                    <div class="flex flex-col md:flex-row md:items-start gap-2 md:gap-6">
-                        <span class="text-green-500 w-32 shrink-0 font-bold uppercase tracking-wider">/探索</span>
-                        <p class="text-gray-300 leading-relaxed">前進深淵的核心指令。每一步都可能遭遇普通怪、精英怪、魔王、隨機事件或前人的遺產房間。</p>
-                    </div>
-                    <!-- /狀態 -->
-                    <div class="flex flex-col md:flex-row md:items-start gap-2 md:gap-6">
-                        <span class="text-green-500 w-32 shrink-0 font-bold uppercase tracking-wider">/狀態</span>
-                        <p class="text-gray-300 leading-relaxed">查看當前角色的詳細數據，包含 HP 條、經驗值進度、基礎屬性、當前穿戴的四件裝備以及持有的金幣。</p>
-                    </div>
-                    <!-- /背包 -->
-                    <div class="flex flex-col md:flex-row md:items-start gap-2 md:gap-6">
-                        <span class="text-green-500 w-32 shrink-0 font-bold uppercase tracking-wider">/背包</span>
-                        <p class="text-gray-300 leading-relaxed">開啟背包管理介面。遵循「首位使用制」策略，玩家在此裝備武器、飲用藥水或丟棄不需要的裝備。</p>
-                    </div>
-                    <!-- /分配屬性 -->
-                    <div class="flex flex-col md:flex-row md:items-start gap-2 md:gap-6">
-                        <span class="text-green-500 w-32 shrink-0 font-bold uppercase tracking-wider">/分配屬性</span>
-                        <p class="text-gray-300 leading-relaxed">當玩家升級獲得「技能點數（SP）」後，使用此指令進入強化介面，永久提升五大核心屬性。</p>
-                    </div>
-                    <!-- /排行榜 -->
-                    <div class="flex flex-col md:flex-row md:items-start gap-2 md:gap-6">
-                        <span class="text-green-500 w-32 shrink-0 font-bold uppercase tracking-wider">/排行榜</span>
-                        <p class="text-gray-300 leading-relaxed">查看全球英雄榜。系統會根據關卡層數（max_stage）與總回合數進行排序，展示最強冒險者的名次與死因。</p>
-                    </div>
-                    <!-- /冒險回顧 -->
-                    <div class="flex flex-col md:flex-row md:items-start gap-2 md:gap-6">
-                        <span class="text-green-500 w-32 shrink-0 font-bold uppercase tracking-wider">/冒險回顧</span>
-                        <p class="text-gray-300 leading-relaxed italic"><span class="text-zinc-500 mr-2">[Run ID]</span>輸入特定的 Run ID，系統會發送該次冒險的完整 .txt 日誌檔案，供玩家分析戰鬥過程。</p>
-                    </div>
-                    <!-- Cursor -->
-                    <div class="mt-4 pt-4 border-t border-white/5 animate-pulse">
-                        <span class="text-red-500 font-bold">_</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+  <section id="shop">
+    <h2>商店與排行</h2>
+    <p>存下來的錢可以拿來擴大農場、升級工具。</p>
+    <div class="tbl"><table>
+      <thead><tr><th>項目</th><th class="num">價格</th><th class="w">效果</th></tr></thead>
+      <tbody>
+        <tr><td>第 3 塊田</td><td class="num">300</td><td class="w">同時種 3 株作物</td></tr>
+        <tr><td>第 4 塊田</td><td class="num">1,000</td><td class="w">同時種 4 株作物</td></tr>
+        <tr><td>第 5 塊田</td><td class="num">2,500</td><td class="w">同時種 5 株作物（上限）</td></tr>
+        <tr><td>十字鎬 Lv2</td><td class="num">500</td><td class="w">更容易挖到稀有礦</td></tr>
+        <tr><td>十字鎬 Lv3</td><td class="num">1,500</td><td class="w">稀有礦更多，挖礦時間縮短 10%</td></tr>
+      </tbody>
+    </table></div>
+    <h3>🏆 排行榜</h3>
+    <p>每個伺服器有自己的排行榜，分成四種：<b>總資產</b>、<b>本週收入</b>（每週一重新計算，新手也有機會上榜）、<b>人氣</b>、<b>稀有收藏</b>。</p>
+  </section>
 
-    <!-- Footer -->
-    <footer class="py-12 px-6 border-t border-white/5 text-center bg-black">
-        <div class="max-w-7xl mx-auto text-gray-600 text-xs tracking-widest leading-loose">
-            <div class="mb-6 flex justify-center space-x-6 text-sm text-gray-500">
-                <a href="updates.html" class="hover:text-white transition">更新日誌</a>
-                <a href="https://github.com/Future-Tens/WithYuTogether" class="hover:text-white transition">GitHub Repo</a>
-            </div>
-            &copy; 2026 永恆深淵的餘燼 系統開發組. <br>
-            <span class="italic opacity-80 underline decoration-red-900/50 underline-offset-4 text-gray-500">願你的餘燼，能在這無盡的深淵中燃燒得久一點。</span>
-        </div>
-    </footer>
+  <section id="tips">
+    <h2>小撇步</h2>
+    <div class="tips">
+      <div><span>🎯</span><p>第一個目標：存到 300 風幣解鎖第 3 塊田，能同時種的作物多一株。</p></div>
+      <div><span>⏱️</span><p>有空常回來就種小白菜和胡蘿蔔，每小時賺最多；要出門或睡覺就種南瓜。</p></div>
+      <div><span>💧</span><p>種下之後跟朋友說一聲，請他幫忙澆水，稀有作物的機會會變高。</p></div>
+      <div><span>🐛</span><p>看到蟲先除。稀有作物最怕蟲，沒除就白長了。</p></div>
+      <div><span>⛏️</span><p>種田和挖礦是分開的，兩個可以同時進行，別讓礦坑閒著。</p></div>
+      <div><span>🤝</span><p>每天幫 5 位不同的朋友澆水，簡單就多賺 25 風幣，還能交朋友。</p></div>
+    </div>
+  </section>
 
-    <script>
-        window.addEventListener('scroll', function() {
-            const nav = document.querySelector('nav');
-            if (nav) {
-                if (window.scrollY > 50) {
-                    nav.classList.add('bg-black/95');
-                } else {
-                    nav.classList.remove('bg-black/95');
-                }
-            }
-        });
-    </script>
+  <section id="faq">
+    <h2>常見問題</h2>
+    <div>
+      <details><summary>可以把錢轉給朋友嗎？</summary><p>不行。風幣只能自己賺、自己花。想幫朋友的話，去他的農場澆水和除蟲吧。</p></details>
+      <details><summary>換到別的伺服器，進度會跟著我嗎？</summary><p>不會。每個伺服器都有一個獨立的小鎮，風幣、田地和排行榜都分開計算。</p></details>
+      <details><summary>忘記簽到會怎樣？</summary><p>不會怎樣。簽到算的是累計天數，不會因為中斷而歸零。</p></details>
+      <details><summary>別人可以收走我的菜嗎？</summary><p>不行。訪客只能澆水、除蟲和按讚。</p></details>
+      <details><summary>按鈕按了沒反應怎麼辦？</summary><p>可能是訊息太舊了。重新輸入 <code>/小鎮</code> 打開一則新的農場畫面就好。</p></details>
+      <details><summary>按到別人農場的「農田」按鈕會怎樣？</summary><p>什麼都不會發生，只有你看得到一則提醒。每個人只能操作自己的農場。</p></details>
+    </div>
+  </section>
+
+  <footer>小鎮 · WithYuTogether。數值可能會隨更新調整，以遊戲內顯示為準。 · <a href="updates.html">更新日誌</a></footer>
+</div>
 </body>
 </html>
