@@ -79,8 +79,33 @@ class DatabaseManager:
                 )
             """)
 
+            # 舊資料庫補欄位：公告頻道
+            cols = {r[1] for r in cursor.execute("PRAGMA table_info(guild_settings)")}
+            if "announce_channel" not in cols:
+                cursor.execute("ALTER TABLE guild_settings ADD COLUMN announce_channel TEXT")
+
             conn.commit()
         print("💾 [WithYouTogether] SQLite 所有中央模組資料表初始化成功！")
+
+    # ==========================================
+    # 📢 公告頻道
+    # ==========================================
+
+    def get_announce_channel(self, guild_id):
+        """回傳公告頻道 ID（int），沒設定回傳 None。"""
+        with self.get_connection() as conn:
+            row = conn.execute("SELECT announce_channel FROM guild_settings WHERE guild_id = ?",
+                               (str(guild_id),)).fetchone()
+        return int(row[0]) if row and row[0] else None
+
+    def set_announce_channel(self, guild_id, channel_id):
+        """設定公告頻道；channel_id=None 代表取消。"""
+        with self.get_connection() as conn:
+            conn.execute("""
+                INSERT INTO guild_settings (guild_id, announce_channel) VALUES (?, ?)
+                ON CONFLICT(guild_id) DO UPDATE SET announce_channel = excluded.announce_channel
+            """, (str(guild_id), str(channel_id) if channel_id else None))
+            conn.commit()
 
     # ==========================================
     # 🎯 Valorant 帳號綁定與快取管理操作

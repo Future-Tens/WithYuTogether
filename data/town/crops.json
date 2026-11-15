@@ -3,5 +3,7 @@
     "carrot":  { "name": "胡蘿蔔", "emoji": "🥕", "grow_hours": 2, "seed_price": 20, "sell_price": 56,  "yield": 1, "pest_chance": 0.3, "pest_window": 0.8 },
     "tomato":  { "name": "番茄",   "emoji": "🍅", "grow_hours": 4, "seed_price": 40, "sell_price": 100, "yield": 1, "pest_chance": 0.3, "pest_window": 0.8 },
     "corn":    { "name": "玉米",   "emoji": "🌽", "grow_hours": 6, "seed_price": 60, "sell_price": 138, "yield": 1, "pest_chance": 0.3, "pest_window": 0.8 },
-    "pumpkin": { "name": "南瓜",   "emoji": "🎃", "grow_hours": 8, "seed_price": 80, "sell_price": 176, "yield": 1, "pest_chance": 0.3, "pest_window": 0.8 }
+    "pumpkin": { "name": "南瓜",   "emoji": "🎃", "grow_hours": 8, "seed_price": 80, "sell_price": 176, "yield": 1, "pest_chance": 0.3, "pest_window": 0.8 },
+    "watermelon": { "name": "西瓜", "emoji": "🍉", "grow_hours": 12, "seed_price": 120, "sell_price": 250, "yield": 1, "pest_chance": 0.3, "pest_window": 0.8 },
+    "pineapple":  { "name": "鳳梨", "emoji": "🍍", "grow_hours": 24, "seed_price": 200, "sell_price": 440, "yield": 1, "pest_chance": 0.3, "pest_window": 0.8 }
 }

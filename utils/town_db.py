@@ -1,4 +1,5 @@
 """小鎮的資料表與所有 SQL。每個動作都在一個 BEGIN IMMEDIATE 交易裡完成，避免連點重複領取。"""
+import json
 import random
 import sqlite3
 from contextlib import contextmanager
@@ -34,6 +35,20 @@ SCHEMA = [
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         guild_id TEXT, user_id TEXT, delta INTEGER, reason TEXT, created_at INTEGER)""",
     "CREATE INDEX IF NOT EXISTS idx_town_ledger_week ON town_ledger (guild_id, created_at)",
+    # 任務牆：每格保留歷史，最新一筆就是目前的任務。status: open / done / expired
+    """CREATE TABLE IF NOT EXISTS town_quests (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        guild_id TEXT, slot INTEGER, rarity TEXT, requirements TEXT, reward INTEGER,
+        created_at INTEGER, expires_at INTEGER, status TEXT NOT NULL DEFAULT 'open',
+        completed_by TEXT, completed_at INTEGER)""",
+    "CREATE INDEX IF NOT EXISTS idx_town_quests_slot ON town_quests (guild_id, slot, id)",
+    # 成就用的累計數字（無法從其他表推算的才記在這裡，例如挖礦趟數、彩虹作物數）
+    """CREATE TABLE IF NOT EXISTS town_stats (
+        guild_id TEXT, user_id TEXT, key TEXT, value INTEGER NOT NULL,
+        PRIMARY KEY (guild_id, user_id, key))""",
+    """CREATE TABLE IF NOT EXISTS town_achievements (
+        guild_id TEXT, user_id TEXT, achievement_id TEXT, earned_at INTEGER,
+        PRIMARY KEY (guild_id, user_id, achievement_id))""",
 ]
 
 EMPTY_PLOT = dict(crop_id=None, planted_at=None, ready_at=None, mutation=None, mutation_alt=None,
@@ -50,6 +65,10 @@ class TownDB:
         with self.tx() as conn:
             for stmt in SCHEMA:
                 conn.execute(stmt)
+            # 舊資料表補欄位（CREATE TABLE IF NOT EXISTS 不會改既有的表）
+            cols = {r["name"] for r in conn.execute("PRAGMA table_info(town_players)")}
+            if "title" not in cols:
+                conn.execute("ALTER TABLE town_players ADD COLUMN title TEXT")
             # 起始田數調高後，把舊存檔補到新的起始值（解鎖價格表是從起始田數 +1 開始）
             conn.execute("UPDATE town_players SET plot_count = ? WHERE plot_count < ?",
                          (content.settings["start"]["plots"], content.settings["start"]["plots"]))
@@ -117,6 +136,13 @@ class TownDB:
                      (g, u, item_id, qty))
 
     @staticmethod
+    def _bump(conn, g, u, key, n=1):
+        if n:
+            conn.execute("""INSERT INTO town_stats (guild_id, user_id, key, value) VALUES (?,?,?,?)
+                            ON CONFLICT (guild_id, user_id, key) DO UPDATE SET value = value + excluded.value""",
+                         (g, u, key, n))
+
+    @staticmethod
     def _plots(conn, g, u):
         rows = conn.execute("SELECT * FROM town_plots WHERE guild_id=? AND user_id=? AND crop_id IS NOT NULL",
                             (g, u)).fetchall()
@@ -164,7 +190,8 @@ class TownDB:
         items = []
         for r in rows:
             info = svc.item_info(self.content, r["item_id"])
-            items.append({"item_id": r["item_id"], "qty": r["qty"], **info, "total": info["price"] * r["qty"]})
+            items.append({"item_id": r["item_id"], "qty": r["qty"], **info, "total": info["price"] * r["qty"],
+                          "rare": svc.is_rare_item(self.content, r["item_id"])})
         items.sort(key=lambda i: -i["total"])
         return items
 
@@ -178,6 +205,10 @@ class TownDB:
                           JOIN town_players p ON p.guild_id = l.guild_id AND p.user_id = l.user_id
                           WHERE l.guild_id=? AND l.delta > 0 AND l.created_at >= ?
                           GROUP BY l.user_id ORDER BY v DESC LIMIT ?""", (g, svc.week_start(now), limit)),
+            "quests": ("""SELECT q.completed_by AS user_id, p.name, COUNT(*) AS v FROM town_quests q
+                          JOIN town_players p ON p.guild_id = q.guild_id AND p.user_id = q.completed_by
+                          WHERE q.guild_id=? AND q.status='done'
+                          GROUP BY q.completed_by ORDER BY v DESC LIMIT ?""", (g, limit)),
         }
         sql, args = queries[kind]
         with self.read() as conn:
@@ -237,6 +268,8 @@ class TownDB:
                 conn.execute("""UPDATE town_players SET total_harvest = total_harvest + ?,
                                 rare_found = rare_found + ? WHERE guild_id=? AND user_id=?""",
                              (qty, 1 if mut != "normal" else 0, g, u))
+                if mut != "normal":
+                    self._bump(conn, g, u, f"crop_{mut}")
                 results.append({"slot": s, "item_id": item_id, "qty": qty, "mutation": mut, "crop_id": plot["crop_id"]})
         if not results:
             raise TownError("目前沒有可以收成的作物。")
@@ -326,6 +359,9 @@ class TownDB:
             raise TownError("沒有這條礦坑路線。")
         with self.tx() as conn:
             p = self._player(conn, g, u)
+            need = svc.trip_min_pickaxe(self.content, trip_id)
+            if p["pickaxe_lv"] < need:
+                raise TownError(f"{self.content.mines[trip_id]['name']}礦坑需要 Lv{need} 十字鎬，先到商店升級吧！")
             if conn.execute("SELECT 1 FROM town_mining WHERE guild_id=? AND user_id=?", (g, u)).fetchone():
                 raise TownError("你已經有一趟挖礦行程了，先把它收取吧。")
             ready = now + svc.mine_duration(self.content, trip_id, p["pickaxe_lv"])
@@ -346,13 +382,17 @@ class TownDB:
             loot, chest_gold = svc.roll_mine_loot(self.content, row["trip_id"], p["pickaxe_lv"], rng)
             for item_id, qty in loot.items():
                 self._add_item(conn, g, u, item_id, qty)
+                self._bump(conn, g, u, item_id.replace(":", "_"), qty)  # ore_mithril 等
             self._add_gold(conn, g, u, chest_gold, "chest", now)
+            self._bump(conn, g, u, "mine_trips")
+            self._bump(conn, g, u, "chests", 1 if chest_gold else 0)
         return {"trip_id": row["trip_id"], "loot": loot, "chest": chest_gold}
 
     # ---------- 商店 ----------
 
-    def sell(self, guild_id, user_id, now, item_id=None):
-        """賣出指定物品的全部數量；item_id=None 時全部賣出。"""
+    def sell(self, guild_id, user_id, now, item_id=None, common_only=False):
+        """賣出指定物品的全部數量；item_id=None 時全部賣出；common_only 時只賣非稀有的作物與礦物。
+        回傳 {gold, count, kept}，kept 是保留下來的稀有物品件數。"""
         g, u = self._ids(guild_id, user_id)
         with self.tx() as conn:
             self._player(conn, g, u)
@@ -362,6 +402,12 @@ class TownDB:
                 sql += " AND item_id=?"
                 args += (item_id,)
             rows = conn.execute(sql, args).fetchall()
+            kept = 0
+            if common_only:
+                kept = sum(r["qty"] for r in rows if svc.is_rare_item(self.content, r["item_id"]))
+                rows = [r for r in rows if not svc.is_rare_item(self.content, r["item_id"])]
+                if not rows:
+                    raise TownError("沒有普通物品可以賣，背包裡只剩稀有物品了。")
             if not rows:
                 raise TownError("背包裡沒有可以賣的東西。")
             total = count = 0
@@ -370,7 +416,7 @@ class TownDB:
                 count += r["qty"]
                 conn.execute("DELETE FROM town_inventory WHERE guild_id=? AND user_id=? AND item_id=?", (g, u, r["item_id"]))
             self._add_gold(conn, g, u, total, "sell", now)
-        return {"gold": total, "count": count}
+        return {"gold": total, "count": count, "kept": kept}
 
     def unlock_plot(self, guild_id, user_id, now):
         g, u = self._ids(guild_id, user_id)
@@ -393,3 +439,149 @@ class TownDB:
             self._spend(conn, g, u, nxt["price"], "pickaxe", now)
             conn.execute("UPDATE town_players SET pickaxe_lv=? WHERE guild_id=? AND user_id=?", (nxt["level"], g, u))
         return nxt
+
+    # ---------- 任務牆 ----------
+
+    @staticmethod
+    def _quest_row(row):
+        q = dict(row)
+        q["requirements"] = json.loads(q["requirements"])
+        return q
+
+    def _latest_quests(self, conn, g):
+        rows = conn.execute("""SELECT * FROM town_quests WHERE id IN
+                               (SELECT MAX(id) FROM town_quests WHERE guild_id=? GROUP BY slot)""", (g,)).fetchall()
+        return {r["slot"]: self._quest_row(r) for r in rows}
+
+    def quest_guilds(self):
+        """有小鎮玩家的伺服器，背景排程用來補任務。"""
+        with self.read() as conn:
+            return [r[0] for r in conn.execute("SELECT DISTINCT guild_id FROM town_players")]
+
+    def refresh_quests(self, guild_id, now, rng=random):
+        """補滿任務牆：空格、過期的任務、完成且冷卻結束的格子換上新任務。回傳新出現的任務。"""
+        g = str(guild_id)
+        cooldown = svc.quest_cooldown(self.content)
+        new = []
+        with self.tx() as conn:
+            board = self._latest_quests(conn, g)
+            for slot in range(1, self.content.quests["slots"] + 1):
+                q = board.get(slot)
+                if q and q["status"] == "open" and now >= q["expires_at"]:
+                    conn.execute("UPDATE town_quests SET status='expired' WHERE id=?", (q["id"],))
+                elif q and q["status"] == "open":
+                    continue
+                elif q and q["status"] == "done" and now < q["completed_at"] + cooldown:
+                    continue
+                nq = svc.roll_quest(self.content, now, rng)
+                cur = conn.execute("""INSERT INTO town_quests (guild_id, slot, rarity, requirements, reward, created_at, expires_at)
+                                      VALUES (?,?,?,?,?,?,?)""",
+                                   (g, slot, nq["rarity"], json.dumps(nq["requirements"]), nq["reward"],
+                                    nq["created_at"], nq["expires_at"]))
+                new.append({**nq, "id": cur.lastrowid, "slot": slot, "status": "open"})
+        return new
+
+    def quest_board(self, guild_id):
+        with self.read() as conn:
+            return self._latest_quests(conn, str(guild_id))
+
+    @staticmethod
+    def _inventory_map(conn, g, u):
+        return {r["item_id"]: r["qty"] for r in conn.execute(
+            "SELECT item_id, qty FROM town_inventory WHERE guild_id=? AND user_id=? AND qty > 0", (g, u))}
+
+    def inventory_map(self, guild_id, user_id):
+        g, u = self._ids(guild_id, user_id)
+        with self.read() as conn:
+            return self._inventory_map(conn, g, u)
+
+    def deliver_quest(self, guild_id, user_id, quest_id, now):
+        """交付任務：先到先得。回傳 {quest, taken, reward}；reward 依實際交出的物品計價。"""
+        g, u = self._ids(guild_id, user_id)
+        with self.tx() as conn:
+            self._player(conn, g, u)
+            row = conn.execute("SELECT * FROM town_quests WHERE id=? AND guild_id=?", (quest_id, g)).fetchone()
+            if not row:
+                raise TownError("找不到這個任務，請重新整理任務牆。")
+            q = self._quest_row(row)
+            if q["status"] == "done":
+                raise TownError(f"手慢了！這個任務已經被 <@{q['completed_by']}> 完成了。")
+            if q["status"] == "expired" or now >= q["expires_at"]:
+                raise TownError("這個任務已經過期了，請重新整理任務牆。")
+            ok, have, take = svc.allocate(self.content, q["requirements"], self._inventory_map(conn, g, u))
+            if not ok:
+                missing = [f"{svc.requirement_info(self.content, r['match'])['name']} ×{r['qty'] - h}"
+                           for r, h in zip(q["requirements"], have) if h < r["qty"]]
+                raise TownError("背包裡的東西不夠，還缺：" + "、".join(missing) + "（作物要 100% 新鮮的才算）")
+            for item_id, n in take.items():
+                conn.execute("UPDATE town_inventory SET qty = qty - ? WHERE guild_id=? AND user_id=? AND item_id=?",
+                             (n, g, u, item_id))
+            conn.execute("DELETE FROM town_inventory WHERE guild_id=? AND user_id=? AND qty <= 0", (g, u))
+            reward = svc.quest_reward(self.content, q, take)
+            conn.execute("UPDATE town_quests SET status='done', completed_by=?, completed_at=?, reward=? WHERE id=?",
+                         (u, now, reward, quest_id))
+            self._add_gold(conn, g, u, reward, "quest", now)
+        return {"quest": q, "taken": take, "reward": reward}
+
+    # ---------- 成就與稱號 ----------
+
+    PLAYER_STATS = ("checkin_total", "likes", "total_harvest", "rare_found", "plot_count", "pickaxe_lv")
+
+    def _stats(self, conn, g, u):
+        """成就判斷用的所有統計數字。能從既有資料算出來的就直接算，舊存檔也會算到。"""
+        p = self._player(conn, g, u)
+        stats = {k: p[k] for k in self.PLAYER_STATS}
+        stats.update({r["key"]: r["value"] for r in conn.execute(
+            "SELECT key, value FROM town_stats WHERE guild_id=? AND user_id=?", (g, u))})
+        rows = conn.execute("""SELECT rarity, COUNT(*) AS n FROM town_quests
+                               WHERE guild_id=? AND completed_by=? AND status='done' GROUP BY rarity""", (g, u))
+        for r in rows:
+            stats[f"quest_{r['rarity']}"] = r["n"]
+        stats["quest_total"] = sum(v for k, v in stats.items() if k.startswith("quest_"))
+        for key, action in (("water_given", "water"), ("likes_given", "like")):
+            stats[key] = conn.execute("SELECT COUNT(*) FROM town_social WHERE guild_id=? AND actor_id=? AND action=?",
+                                      (g, u, action)).fetchone()[0]
+        stats["pest_helped"] = conn.execute(
+            "SELECT COUNT(*) FROM town_ledger WHERE guild_id=? AND user_id=? AND reason='pest_reward'", (g, u)).fetchone()[0]
+        stats["sell_total"] = conn.execute(
+            "SELECT COALESCE(SUM(delta), 0) FROM town_ledger WHERE guild_id=? AND user_id=? AND reason='sell'", (g, u)).fetchone()[0]
+        return stats
+
+    def player_stats(self, guild_id, user_id):
+        g, u = self._ids(guild_id, user_id)
+        with self.read() as conn:
+            return self._stats(conn, g, u)
+
+    def check_achievements(self, guild_id, user_id, now):
+        """發放新達成的成就，回傳新成就 id 清單。玩家不存在時回傳空清單。"""
+        g, u = self._ids(guild_id, user_id)
+        with self.tx() as conn:
+            if not conn.execute("SELECT 1 FROM town_players WHERE guild_id=? AND user_id=?", (g, u)).fetchone():
+                return []
+            return self._grant_achievements(conn, g, u, now)
+
+    def _grant_achievements(self, conn, g, u, now):
+        new = []
+        for aid in svc.earned_achievements(self.content, self._stats(conn, g, u)):
+            cur = conn.execute("""INSERT OR IGNORE INTO town_achievements (guild_id, user_id, achievement_id, earned_at)
+                                  VALUES (?,?,?,?)""", (g, u, aid, now))
+            if cur.rowcount == 1:
+                new.append(aid)
+        return new
+
+    def achievements(self, guild_id, user_id):
+        g, u = self._ids(guild_id, user_id)
+        with self.read() as conn:
+            return {r[0] for r in conn.execute(
+                "SELECT achievement_id FROM town_achievements WHERE guild_id=? AND user_id=?", (g, u))}
+
+    def set_title(self, guild_id, user_id, achievement_id):
+        """裝備稱號；achievement_id=None 代表不顯示。"""
+        g, u = self._ids(guild_id, user_id)
+        with self.tx() as conn:
+            self._player(conn, g, u)
+            if achievement_id is not None and not conn.execute(
+                    "SELECT 1 FROM town_achievements WHERE guild_id=? AND user_id=? AND achievement_id=?",
+                    (g, u, achievement_id)).fetchone():
+                raise TownError("你還沒有解鎖這個稱號。")
+            conn.execute("UPDATE town_players SET title=? WHERE guild_id=? AND user_id=?", (achievement_id, g, u))

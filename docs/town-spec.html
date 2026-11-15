@@ -170,7 +170,7 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
   </header>
 
   <nav class="toc" aria-label="章節">
-    <a href="#play">玩法</a><a href="#crops">農田</a><a href="#rare">稀有作物</a><a href="#mine">礦坑</a><a href="#social">社交</a><a href="#shop">商店</a>
+    <a href="#play">玩法</a><a href="#crops">農田</a><a href="#rare">稀有作物</a><a href="#mine">礦坑</a><a href="#social">社交</a><a href="#quest">任務牆</a><a href="#shop">商店</a>
     <span class="sep">|</span>
     <a href="#decisions">決策</a><a href="#ui">畫面</a><a href="#rules">規則實作</a><a href="#schema">資料表</a><a href="#content">JSON</a><a href="#files">檔案</a><a href="#roadmap">路線</a>
   </nav>
@@ -217,6 +217,8 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
         <tr><td>🍅 番茄</td><td>4 小時</td><td class="num">40</td><td class="num">100</td><td class="num">60</td><td class="num">15.0</td></tr>
         <tr><td>🌽 玉米</td><td>6 小時</td><td class="num">60</td><td class="num">138</td><td class="num">78</td><td class="num">13.0</td></tr>
         <tr><td>🎃 南瓜</td><td>8 小時</td><td class="num">80</td><td class="num">176</td><td class="num">96</td><td class="num">12.0</td></tr>
+        <tr><td>🍉 西瓜</td><td>12 小時</td><td class="num">120</td><td class="num">250</td><td class="num">130</td><td class="num">10.8</td></tr>
+        <tr><td>🍍 鳳梨</td><td>24 小時</td><td class="num">200</td><td class="num">440</td><td class="num">240</td><td class="num">10.0</td></tr>
       </tbody>
     </table></div>
     <h4>成熟後別放太久</h4>
@@ -253,9 +255,10 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
     <div class="tbl"><table>
       <thead><tr><th>行程</th><th class="num">挖掘次數</th><th>特色</th></tr></thead>
       <tbody>
-        <tr><td>淺層 · 1 小時</td><td class="num">2</td><td>以石頭、銅礦為主</td></tr>
-        <tr><td>中層 · 4 小時</td><td class="num">6</td><td>鐵礦、金礦機率提高</td></tr>
-        <tr><td>深層 · 8 小時</td><td class="num">10</td><td>寶石只在這裡出現</td></tr>
+        <tr><td>淺層 · 1 小時</td><td class="num">3</td><td>以石頭、銅礦為主</td></tr>
+        <tr><td>中層 · 4 小時</td><td class="num">6</td><td>鐵礦、金礦機率提高；Lv2 起偶爾有秘銀</td></tr>
+        <tr><td>深層 · 8 小時</td><td class="num">10</td><td>寶石從這裡開始出現；Lv2 起有秘銀</td></tr>
+        <tr><td>地心 · 12 小時（需要 Lv3 十字鎬）</td><td class="num">12</td><td>稀有礦最多，星辰石只在這裡出現</td></tr>
       </tbody>
     </table></div>
     <div class="tbl"><table>
@@ -266,6 +269,8 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
         <tr><td>⚙️ 鐵礦</td><td class="num">15</td></tr>
         <tr><td>🟡 金礦</td><td class="num">40</td></tr>
         <tr><td>💎 寶石</td><td class="num">120</td></tr>
+        <tr><td>🔷 秘銀（Lv2 十字鎬以上）</td><td class="num">200</td></tr>
+        <tr><td>🌠 星辰石（Lv3 十字鎬，只在地心）</td><td class="num">500</td></tr>
         <tr><td>🎁 寶箱（每次挖掘 1%）</td><td class="num">100–300 風幣</td></tr>
       </tbody>
     </table></div>
@@ -285,6 +290,27 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
     <p>錢不能直接轉給別人。</p>
   </section>
 
+  <section id="quest">
+    <h3>📜 任務牆與成就</h3>
+    <p>每個伺服器一面任務牆，固定 6 格，所有人看到的都一樣。任務要求交付背包裡的作物或礦石，<b>誰先交付誰拿獎勵</b>，沒有每日次數上限。</p>
+    <div class="tbl"><table>
+      <thead><tr><th>稀有度</th><th class="num">機率</th><th class="num">獎勵</th><th>期限</th><th>內容</th></tr></thead>
+      <tbody>
+        <tr><td>⚪ 普通</td><td class="num">70%</td><td class="num">市價 ×1.5</td><td>24h</td><td class="wrap-ok">一般作物或礦石</td></tr>
+        <tr><td>🔵 稀有</td><td class="num">20%</td><td class="num">市價 ×2</td><td>24h</td><td class="wrap-ok">數量較多、長作物、組合，或任意金色作物 ×1</td></tr>
+        <tr><td>🟣 罕見</td><td class="num">8.9%</td><td class="num">市價 ×3</td><td>48h</td><td class="wrap-ok">寶石、秘銀、多種組合、指定金色作物</td></tr>
+        <tr><td>🟡 傳說</td><td class="num">1%</td><td class="num">市價 ×5</td><td>72h</td><td class="wrap-ok">彩虹作物、星辰石；出現與完成時發公告</td></tr>
+        <tr><td>🌈 神話</td><td class="num">0.1%</td><td class="num">市價 ×10</td><td>72h</td><td class="wrap-ok">大型組合；出現與完成時發公告</td></tr>
+      </tbody>
+    </table></div>
+    <ul>
+      <li>任務被完成後那一格冷卻 <b>30 分鐘</b>才補新任務；過期的任務直接換掉。</li>
+      <li>作物只收 100% 新鮮的；「任意金色作物」這類萬用需求從最便宜的開始扣，獎勵依實際交出的作物計價（任務牆顯示「起」價，物品夠時顯示你現在交付可得多少）。</li>
+      <li>成就共 36 個，分成簽到、農田、礦坑、社交、財富、任務六類（例如累計簽到 365 天、收成 10 株彩虹作物、挖到星辰石、幫朋友澆水 100 次、累計賣出 10 萬風幣、完成神話任務）。解鎖後可裝備成稱號顯示在小鎮標題；標記 announce 的成就會發公告。</li>
+      <li>管理員用 <code>/設定公告 頻道:#頻道</code> 指定公告頻道。傳說以上任務的出現與完成、彩虹作物都發到那裡；沒設定時，任務出現不通知，完成和彩虹作物則發在當下的頻道。</li>
+    </ul>
+  </section>
+
   <section id="shop">
     <h3>🏪 商店、升級與排行榜</h3>
     <div class="tbl"><table>
@@ -293,11 +319,12 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
         <tr><td>解鎖第 3 塊田</td><td class="num">300</td><td>可同時種 3 株</td></tr>
         <tr><td>解鎖第 4 塊田</td><td class="num">1,000</td><td>可同時種 4 株</td></tr>
         <tr><td>解鎖第 5 塊田</td><td class="num">2,500</td><td>可同時種 5 株（上限）</td></tr>
-        <tr><td>十字鎬 Lv2</td><td class="num">500</td><td>稀有礦權重 ×1.5</td></tr>
-        <tr><td>十字鎬 Lv3</td><td class="num">1,500</td><td>稀有礦權重 ×2，行程時間 −10%</td></tr>
+        <tr><td>十字鎬 Lv2</td><td class="num">500</td><td>稀有礦權重 ×1.5，可挖到秘銀</td></tr>
+        <tr><td>十字鎬 Lv3</td><td class="num">1,500</td><td>稀有礦權重 ×2，行程時間 −10%，解鎖地心礦坑與星辰石</td></tr>
       </tbody>
     </table></div>
-    <p><b>排行榜</b>（伺服器內）：總資產、本週收入（每週一台灣時間 00:00 重算）、人氣、稀有收藏數。</p>
+    <p><b>排行榜</b>（伺服器內）：總資產、本週收入（每週一台灣時間 00:00 重算）、人氣、稀有收藏數、任務完成數。</p>
+    <p><b>賣出</b>：Select 賣單一物品、「📦 賣出普通物品」一鍵賣掉非稀有的作物與礦石、「全部賣出」連稀有一起賣。稀有物品＝有變異的作物（金色、巨大、彩虹）＋任何礦坑中標記 <code>rare</code> 的礦物（金礦、寶石、秘銀、星辰石），由 <code>svc.is_rare_item</code> 判斷。</p>
     <p class="muted small">本頁所有數值都是初始值，會放在 JSON 裡，上線後依實際經濟狀況調整。</p>
   </section>
 
@@ -310,14 +337,17 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
   <section id="decisions">
     <h3>已定案的決策</h3>
     <div class="decisions">
-      <div><span class="k">指令</span><span class="v"><code>/小鎮 [@成員]</code>、<code>/小鎮說明</code>（連到玩法指南網站），其餘全用按鈕</span></div>
+      <div><span class="k">指令</span><span class="v"><code>/小鎮 [@成員]</code>、<code>/小鎮說明</code>（連到玩法指南網站）、<code>/設定公告</code>（管理員），其餘全用按鈕</span></div>
       <div><span class="k">錢包範圍</span><span class="v">每個伺服器各自獨立</span></div>
       <div><span class="k">畫面</span><span class="v">公開，訪客可直接按按鈕互動</span></div>
       <div><span class="k">開局</span><span class="v">2 塊田、100 風幣，另 3 塊田付費解鎖（最多 5 塊）</span></div>
-      <div><span class="k">作物時間</span><span class="v">1 / 2 / 4 / 6 / 8 小時</span></div>
+      <div><span class="k">作物時間</span><span class="v">1 / 2 / 4 / 6 / 8 / 12 / 24 小時</span></div>
       <div><span class="k">懲罰</span><span class="v">作物有過熟、枯萎、蟲害；簽到無懲罰</span></div>
       <div><span class="k">MVP 社交</span><span class="v">排行榜、澆水、除蟲、按讚</span></div>
       <div><span class="k">轉帳</span><span class="v">不開放</span></div>
+      <div><span class="k">任務牆</span><span class="v">伺服器共用 6 格、交付型、先到先得、無每日上限、完成後冷卻 30 分鐘</span></div>
+      <div><span class="k">稀有度</span><span class="v">普通 70%、稀有 20%、罕見 8.9%、傳說 1%、神話 0.1%</span></div>
+      <div><span class="k">公告</span><span class="v">管理員用 <code>/設定公告</code> 指定頻道；傳說以上任務的出現與完成、彩虹作物都發到那裡</span></div>
     </div>
   </section>
 
@@ -358,8 +388,10 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
  │   ├─ 🌱 農田 → 選格子 → 種植（Select 選種子）/ 收成 / 除蟲 / 清除枯萎
  │   ├─ ⛏️ 礦坑 → 選行程出發 / 收取
  │   ├─ 🎒 背包             （ephemeral）
- │   ├─ 🏪 商店 → 賣出 / 買種子 / 解鎖田地 / 升級十字鎬
- │   └─ 🏆 排行榜 → 總資產 / 本週收入 / 人氣 / 稀有收藏
+ │   ├─ 🏪 商店 → 賣出（Select 單項 / 📦 賣出普通物品 / 全部賣出）/ 解鎖田地 / 升級十字鎬
+ │   ├─ 📜 任務牆 → 交付 1～6（物品不夠時停用）
+ │   ├─ 🏅 成就 → Select 裝備稱號
+ │   └─ 🏆 排行榜 → 總資產 / 本週收入 / 人氣 / 稀有收藏 / 任務
  └─ 別人的農場（訪客按鈕）
      └─ 💧 澆水（選格子）/ 🐛 除蟲 / ❤️ 按讚</pre>
     <h4>互動原則</h4>
@@ -406,6 +438,19 @@ UPDATE farm_plots SET watered_by = :helper, ready_at = ready_at - (ready_at - :n
 <span class="c">-- 每日次數：INSERT 撞到 UNIQUE 就代表今天做過了</span>
 INSERT INTO social_actions (guild_id, actor_id, target_id, action, day) VALUES (...);</pre>
     <p>同一動作牽涉的多個寫入（扣錢、加物品、寫 ledger）放在同一個 transaction。所有金錢變動都寫一筆 <code>ledger</code>。</p>
+    <h4>任務牆</h4>
+<pre><span class="c">-- 每分鐘的背景排程（也會在打開任務牆時執行）補滿每個有玩家的伺服器</span>
+for slot in 1..6:
+    最新一筆 open 且已過期   → 標成 expired，立刻抽新任務
+    最新一筆 open            → 不動
+    最新一筆 done 且冷卻未滿 → 不動（completed_at + 30 分鐘）
+    其他（沒有任務、冷卻結束）→ 抽新任務
+抽任務：稀有度依權重 → 從該稀有度的模板池隨機選一個 → 每項需求擲數量
+標示獎勵 = 進位到 10( Σ 需求市價 × 數量 × reward_mult )，萬用需求以最便宜的作物計價（＝最低值）
+實際獎勵 = max(標示獎勵, 進位到 10( Σ 實際交出物品市價 × reward_mult ))，完成時寫回 reward 欄位
+
+<span class="c">-- 交付：BEGIN IMMEDIATE 內檢查 status='open' 且未過期 → 扣物品 → 標 done → 發風幣 → 檢查成就</span>
+<span class="c">-- 兩人同時按只有一個交易成功，另一個看到「手慢了」，物品不會被扣</span></pre>
     <h4>時間</h4>
     <p>DB 存 UTC Unix 秒數。「哪一天」和「哪一週」用 <code>Asia/Taipei</code> 計算，<code>day</code> 欄位存 <code>YYYY-MM-DD</code>。</p>
   </section>
@@ -434,7 +479,23 @@ social_actions  id, guild_id, actor_id, target_id, action, day, created_at
 
 ledger          id, guild_id, user_id, delta, reason, created_at
                 INDEX(guild_id, created_at)
-                <span class="c">-- 本週收入榜 = SUM(delta) WHERE delta &gt; 0 AND created_at &gt;= 本週一</span></pre>
+                <span class="c">-- 本週收入榜 = SUM(delta) WHERE delta &gt; 0 AND created_at &gt;= 本週一</span>
+
+town_quests     id, guild_id, slot, rarity, requirements(JSON), reward,
+                created_at, expires_at, status(open/done/expired),
+                completed_by, completed_at          INDEX(guild_id, slot, id)
+                <span class="c">-- 每格保留歷史，MAX(id) 是目前的任務；任務榜 = COUNT(*) WHERE status='done'</span>
+
+town_achievements  guild_id, user_id, achievement_id, earned_at
+                                                        PK(guild_id, user_id, achievement_id)
+                <span class="c">-- town_players.title 存裝備中的 achievement_id（舊表以 ALTER TABLE 補欄位）</span>
+
+town_stats      guild_id, user_id, key, value          PK(guild_id, user_id, key)
+                <span class="c">-- 無法從其他表推算的累計數字：mine_trips、chests、crop_gold、crop_rainbow、ore_&lt;id&gt;</span>
+                <span class="c">-- 其餘成就統計直接算：簽到/收成/讚數取 town_players，澆水/按讚次數取 town_social，</span>
+                <span class="c">-- 除蟲次數與賣出總額取 town_ledger，任務數取 town_quests（舊存檔也算得到）</span>
+
+guild_settings.announce_channel   <span class="c">-- /設定公告；由 DatabaseManager 管理，全機器人共用</span></pre>
   </section>
 
   <section id="content">
@@ -451,18 +512,33 @@ ledger          id, guild_id, user_id, delta, reason, created_at
   "rainbow": { "weight": 0.5, "price_mult": 8, "yield_mult": 1, "label": "🌈彩虹", "announce": true } }
 
 <span class="c">// mines.json</span>
-{ "deep": { "name": "深層", "hours": 8, "rolls": 10, "chest_chance": 0.01,
-            "loot": [ { "item": "stone", "weight": 30 }, { "item": "gem", "weight": 3, "rare": true } ] } }
+{ "core": { "name": "地心", "hours": 12, "rolls": 12, "chest_chance": 0.02, "min_pickaxe": 3,
+            "loot": [ { "item": "stone", "weight": 20 },
+                      { "item": "mithril", "weight": 5, "rare": true, "min_pickaxe": 2 },
+                      { "item": "starstone", "weight": 2, "rare": true, "min_pickaxe": 3 } ] } }
+<span class="c">// min_pickaxe：路線或單一礦物需要的十字鎬等級，等級不夠時路線鎖住、礦物不會掉落</span>
 
 <span class="c">// ores.json</span>
-{ "gem": { "name": "寶石", "emoji": "💎", "sell_price": 120 } }
+{ "starstone": { "name": "星辰石", "emoji": "🌠", "sell_price": 500 } }
 
 <span class="c">// upgrades.json</span>
 { "plots":   [ { "level": 3, "price": 300 }, { "level": 4, "price": 1000 }, { "level": 5, "price": 2500 } ],
   "pickaxe": [ { "level": 2, "price": 500,  "rare_mult": 1.5 },
                { "level": 3, "price": 1500, "rare_mult": 2, "time_mult": 0.9 } ],
   "checkin": { "daily": 50, "milestones": { "7": 200, "30": 1000, "100": 3000 } },
-  "social":  { "water_reward": 5, "pest_reward": 10, "water_daily_cap": 5 } }</pre>
+  "social":  { "water_reward": 5, "pest_reward": 10, "water_daily_cap": 5 } }
+
+<span class="c">// quests.json  （match：ore:&lt;id&gt; / crop:&lt;作物&gt;:&lt;變異&gt; / crop:*:&lt;變異&gt;；match 給陣列時隨機選一個）</span>
+{ "slots": 6, "cooldown_minutes": 30,
+  "rarities": { "legendary": { "name": "傳說", "emoji": "🟡", "weight": 1, "expire_hours": 72,
+                               "reward_mult": 5, "announce": true } },
+  "pools": { "legendary": [ [ { "match": "crop:*:rainbow", "qty": [1, 1] } ],
+                            [ { "match": "ore:starstone", "qty": [1, 1] },
+                              { "match": "ore:mithril",   "qty": [2, 3] } ] ] } }
+
+<span class="c">// achievements.json  （stat 達到 count 就解鎖；每次非翻頁的操作後檢查一次）</span>
+{ "rainbow_10": { "category": "farm", "name": "追虹者", "emoji": "🌈",
+                  "desc": "收成 10 株彩虹作物", "stat": "crop_rainbow", "count": 10, "announce": true } }</pre>
   </section>
 
   <section id="files">
@@ -473,7 +549,9 @@ ledger          id, guild_id, user_id, delta, reason, created_at
         <tr><td><code>cogs/town_cog.py</code></td><td class="wrap-ok"><code>/小鎮</code> 指令、所有 View 與 DynamicItem、embed 繪製</td></tr>
         <tr><td><code>utils/town_service.py</code></td><td class="wrap-ok">遊戲規則：擲骰、狀態判斷、計價。不碰 Discord、不碰 DB，可直接寫單元測試</td></tr>
         <tr><td><code>utils/town_db.py</code></td><td class="wrap-ok">建表與所有 SQL，沿用 <code>DatabaseManager.get_connection()</code></td></tr>
-        <tr><td><code>data/town/*.json</code></td><td class="wrap-ok">作物、變異、礦坑、礦物、升級與獎勵數值</td></tr>
+        <tr><td><code>data/town/*.json</code></td><td class="wrap-ok">作物、變異、礦坑、礦物、升級與獎勵數值，任務池（quests）與成就（achievements）</td></tr>
+        <tr><td><code>cogs/settings_cog.py</code></td><td class="wrap-ok"><code>/設定公告</code> 指令</td></tr>
+        <tr><td><code>utils/announce.py</code></td><td class="wrap-ok"><code>send_announcement()</code>：發到公告頻道，沒設定時改發 fallback 頻道或不發</td></tr>
       </tbody>
     </table></div>
     <p class="muted small">目前 sqlite3 是同步呼叫，玩家量小沒問題；之後若有延遲再換 aiosqlite。</p>
@@ -483,12 +561,12 @@ ledger          id, guild_id, user_id, delta, reason, created_at
     <h3>開發路線</h3>
     <div class="phases">
       <div><span class="p">MVP</span><span>簽到、農田（蟲害、變異、過熟枯萎）、礦坑、背包、商店與升級、排行榜、澆水／除蟲／按讚</span></div>
-      <div><span class="p">第二階段</span><span>送禮（待領取禮物盒）、好感度、農場留言板、每週社區目標</span></div>
-      <div><span class="p">之後</span><span>成熟私訊通知、季節與天氣事件、稱號、更多作物與礦層</span></div>
+      <div><span class="p">第二階段</span><span>✅ 任務牆、36 個成就與稱號、公告頻道。接下來：送禮（待領取禮物盒）、好感度、農場留言板、每週社區目標</span></div>
+      <div><span class="p">之後</span><span>成熟私訊通知、季節與天氣事件、更多作物與礦層</span></div>
     </div>
   </section>
 
-  <footer>小鎮 · WithYuTogether · 規格版本 v1（2026-11-10）。所有數值為初始值。</footer>
+  <footer>小鎮 · WithYuTogether · 規格版本 v1.2（2026-11-15）。所有數值為初始值。</footer>
 </div>
 
 </body>

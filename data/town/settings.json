@@ -3,8 +3,8 @@
     "plots": [ { "level": 3, "price": 300 }, { "level": 4, "price": 1000 }, { "level": 5, "price": 2500 } ],
     "pickaxe": [
         { "level": 1, "price": 0,    "rare_mult": 1,   "time_mult": 1 },
-        { "level": 2, "price": 500,  "rare_mult": 1.5, "time_mult": 1 },
-        { "level": 3, "price": 1500, "rare_mult": 2,   "time_mult": 0.9 }
+        { "level": 2, "price": 500,  "rare_mult": 1.5, "time_mult": 1,   "unlocks": "可挖到秘銀" },
+        { "level": 3, "price": 1500, "rare_mult": 2,   "time_mult": 0.9, "unlocks": "解鎖地心礦坑、可挖到星辰石" }
     ],
     "checkin": { "daily": 50, "milestones": { "7": 200, "30": 1000, "100": 3000 } },
     "chest": { "min": 100, "max": 300 },

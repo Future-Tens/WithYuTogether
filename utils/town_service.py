@@ -29,6 +29,8 @@ class Content:
         self.ores = load("ores.json")
         self.mines = load("mines.json")
         self.settings = load("settings.json")
+        self.quests = load("quests.json")
+        self.achievements = load("achievements.json")
 
 
 # ==========================================
@@ -162,6 +164,19 @@ def item_info(content, item_id):
     raise KeyError(item_id)
 
 
+def rare_ores(content):
+    """在任何礦坑被標成 rare 的礦物（金礦、寶石、秘銀、星辰石）。"""
+    return {e["item"] for trip in content.mines.values() for e in trip["loot"] if e.get("rare")}
+
+
+def is_rare_item(content, item_id):
+    """稀有物品：有變異的作物（金色、巨大、彩虹），或稀有礦物。一鍵賣出時會保留。"""
+    parts = item_id.split(":")
+    if parts[0] == "crop":
+        return parts[2] != "normal"
+    return parts[1] in rare_ores(content)
+
+
 # ==========================================
 # ⛏️ 礦坑
 # ==========================================
@@ -178,11 +193,27 @@ def mine_duration(content, trip_id, pickaxe_lv):
     return int(content.mines[trip_id]["hours"] * HOUR * pickaxe(content, pickaxe_lv)["time_mult"])
 
 
+def trip_min_pickaxe(content, trip_id):
+    """這條路線需要的十字鎬等級。"""
+    return content.mines[trip_id].get("min_pickaxe", 1)
+
+
+def ore_min_pickaxe(content):
+    """有等級限制的礦物：{ore_id: 最低十字鎬等級}（取所有路線中最低的要求）。"""
+    need = {}
+    for trip in content.mines.values():
+        for e in trip["loot"]:
+            lv = max(e.get("min_pickaxe", 1), trip.get("min_pickaxe", 1))
+            need[e["item"]] = min(need.get(e["item"], lv), lv)
+    return {k: v for k, v in need.items() if v > 1}
+
+
 def roll_mine_loot(content, trip_id, pickaxe_lv, rng=random):
-    """回傳 ({item_id: 數量}, 寶箱風幣)。"""
+    """回傳 ({item_id: 數量}, 寶箱風幣)。十字鎬等級不夠的礦物不會出現。"""
     trip = content.mines[trip_id]
     rare_mult = pickaxe(content, pickaxe_lv)["rare_mult"]
-    pairs = [(e["item"], e["weight"] * (rare_mult if e.get("rare") else 1)) for e in trip["loot"]]
+    pairs = [(e["item"], e["weight"] * (rare_mult if e.get("rare") else 1))
+             for e in trip["loot"] if e.get("min_pickaxe", 1) <= pickaxe_lv]
     loot, chest_gold = {}, 0
     chest = content.settings["chest"]
     for _ in range(trip["rolls"]):
@@ -207,3 +238,93 @@ def checkin_reward(content, new_total):
 def next_plot_price(content, plot_count):
     """下一塊田的價格；已滿回傳 None。"""
     return next((p["price"] for p in content.settings["plots"] if p["level"] == plot_count + 1), None)
+
+
+# ==========================================
+# 📜 任務牆
+# ==========================================
+# 需求的 match 格式：ore:<id>、crop:<crop>:<mutation>、crop:*:<mutation>（任意作物）。
+# 作物只收 100% 新鮮的（過熟、有蟲的不算）。
+
+def requirement_info(content, match):
+    """回傳 {name, emoji, price}；萬用作物的 price 取最便宜的那種。"""
+    parts = match.split(":")
+    if parts[0] == "ore":
+        return item_info(content, match)
+    _, crop_id, mut = parts
+    if crop_id != "*":
+        return item_info(content, f"crop:{crop_id}:{mut}:100")
+    m = content.mutations[mut]
+    price = min(item_info(content, f"crop:{c}:{mut}:100")["price"] for c in content.crops)
+    return {"name": f"任意{m['emoji']}{m['label']}作物", "emoji": "🌾", "price": price}
+
+
+def requirement_matches(match, item_id):
+    if match.startswith("ore:"):
+        return item_id == match
+    m, i = match.split(":"), item_id.split(":")
+    return (i[0] == "crop" and len(i) == 4 and m[1] in ("*", i[1])
+            and m[2] == i[2] and i[3] == "100")
+
+
+def allocate(content, requirements, inventory):
+    """inventory: {item_id: qty}。回傳 (是否足夠, 每項需求擁有的數量, 要扣的 {item_id: qty})。
+    指定作物先扣，萬用需求最後扣，且從最便宜的開始。"""
+    left = dict(inventory)
+    have, take = [0] * len(requirements), {}
+    order = sorted(range(len(requirements)), key=lambda k: "*" in requirements[k]["match"])
+    for k in order:
+        req = requirements[k]
+        items = sorted((i for i in left if left[i] > 0 and requirement_matches(req["match"], i)),
+                       key=lambda i: item_info(content, i)["price"])
+        need = req["qty"]
+        for i in items:
+            n = min(need, left[i])
+            left[i] -= n
+            take[i] = take.get(i, 0) + n
+            have[k] += n
+            need -= n
+            if need == 0:
+                break
+    ok = all(h >= r["qty"] for h, r in zip(have, requirements))
+    return ok, have, take
+
+
+def roll_quest(content, now, rng=random):
+    """抽稀有度、需求與獎勵。回傳 {rarity, requirements, reward, created_at, expires_at}。"""
+    q = content.quests
+    rarity = _weighted(rng, [(k, r["weight"]) for k, r in q["rarities"].items()])
+    template = rng.choice(q["pools"][rarity])
+    merged = {}
+    for spec in template:
+        match = spec["match"] if isinstance(spec["match"], str) else rng.choice(spec["match"])
+        merged[match] = merged.get(match, 0) + rng.randint(*spec["qty"])
+    requirements = [{"match": m, "qty": n} for m, n in merged.items()]
+    value = sum(requirement_info(content, r["match"])["price"] * r["qty"] for r in requirements)
+    reward = _round_reward(value, q["rarities"][rarity]["reward_mult"])
+    return {"rarity": rarity, "requirements": requirements, "reward": reward, "created_at": now,
+            "expires_at": now + int(q["rarities"][rarity]["expire_hours"] * HOUR)}
+
+
+def _round_reward(value, mult):
+    return -(-int(value * mult) // 10) * 10  # 無條件進位到 10
+
+
+def has_wildcard(requirements):
+    return any("*" in r["match"] for r in requirements)
+
+
+def quest_reward(content, quest, take):
+    """實際獎勵：依交出物品的市價計算。任務上標示的 reward 是用最便宜作物算的最低值。"""
+    value = sum(item_info(content, i)["price"] * n for i, n in take.items())
+    mult = content.quests["rarities"][quest["rarity"]]["reward_mult"]
+    return max(quest["reward"], _round_reward(value, mult))
+
+
+def quest_cooldown(content):
+    return int(content.quests["cooldown_minutes"] * 60)
+
+
+def earned_achievements(content, stats):
+    """stats: {統計名稱: 數值}。回傳已達成的成就 id。"""
+    return [aid for aid, a in content.achievements.items() if stats.get(a["stat"], 0) >= a["count"]]

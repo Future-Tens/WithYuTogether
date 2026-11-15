@@ -3,9 +3,10 @@ import traceback
 
 import discord
 from discord import app_commands
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from utils import town_service as svc
+from utils.announce import send_announcement
 from utils.town_db import TownDB
 from utils.town_service import Content, TownError
 
@@ -18,8 +19,13 @@ RANK_KINDS = {
     "weekly": ("📈", "本週收入", "風幣"),
     "likes": ("❤️", "人氣", "讚"),
     "rare": ("🌈", "稀有收藏", "株"),
+    "quests": ("📜", "任務", "個"),
 }
 MEDALS = ["🥇", "🥈", "🥉"]
+ACH_CATEGORIES = {"checkin": "📅 簽到", "farm": "🌱 農田", "mine": "⛏️ 礦坑",
+                  "social": "🤝 社交", "wealth": "💰 財富", "quest": "📜 任務"}
+# 只是切換頁面的動作，不需要檢查成就（"ach" 不在這裡：打開成就頁時順便補發舊存檔的成就）
+NAV_ACTIONS = {"home", "refresh", "farm", "mine", "shop", "rank", "plantpick", "quest"}
 GREEN = discord.Color.from_rgb(87, 168, 75)
 NO_PINGS = discord.AllowedMentions.none()
 GUIDE_URL = "https://future-tens.github.io/WithYuTogether/"
@@ -88,9 +94,66 @@ class TownCog(commands.Cog):
 
     async def cog_load(self):
         self.bot.add_dynamic_items(TownButton, TownSelect)
+        self.quest_loop.start()
 
     async def cog_unload(self):
+        self.quest_loop.cancel()
         self.bot.remove_dynamic_items(TownButton, TownSelect)
+
+    # ---------- 任務牆排程與公告 ----------
+
+    @tasks.loop(minutes=1)
+    async def quest_loop(self):
+        """每分鐘補一次各伺服器的任務牆，傳說以上的新任務發公告。"""
+        now = int(time.time())
+        for gid in self.db.quest_guilds():
+            await self._refresh_quests(self.bot.get_guild(int(gid)), int(gid), now)
+
+    @quest_loop.before_loop
+    async def _before_quest_loop(self):
+        await self.bot.wait_until_ready()
+
+    @quest_loop.error
+    async def _quest_loop_error(self, error):
+        traceback.print_exception(error)
+
+    async def _refresh_quests(self, guild, guild_id, now):
+        for q in self.db.refresh_quests(guild_id, now):
+            rar = self.content.quests["rarities"][q["rarity"]]
+            if rar.get("announce") and guild is not None:
+                # 新任務出現只發到公告頻道；沒設定就不發
+                await send_announcement(
+                    guild, f"📜 任務牆出現了{rar['emoji']} **{rar['name']}任務**！"
+                           f"需要 {self._req_text(q['requirements'])}，獎勵 **{self._reward_text(q)}**，"
+                           f"<t:{q['expires_at']}:R> 過期。輸入 `/小鎮` 搶先完成吧！",
+                    allowed_mentions=NO_PINGS)
+
+    def _achievement_notes(self, g, user, now):
+        """發放新成就，回傳 (通知文字行, 公告)。"""
+        new = self.db.check_achievements(g, user, now)
+        if not new:
+            return [], []
+        name = self.db.snapshot(g, user)["player"]["name"]
+        lines, announces = [], []
+        for aid in new:
+            a = self.content.achievements[aid]
+            lines.append(f"🏅 解鎖成就「{a['emoji']} {a['name']}」！可以到「🏅 成就」裝備稱號。")
+            if a.get("announce"):
+                announces.append(f"🏅 **{name}** 解鎖了稀有成就「{a['emoji']} {a['name']}」：{a['desc']}！")
+        return lines, announces
+
+    @staticmethod
+    def _reward_text(q):
+        """任意作物的任務依實際交出的作物計價，完成前只能顯示最低值。"""
+        wild = q["status"] != "done" and svc.has_wildcard(q["requirements"])
+        return f"{q['reward']:,} 風幣" + ("起" if wild else "")
+
+    def _req_text(self, requirements):
+        parts = []
+        for r in requirements:
+            info = svc.requirement_info(self.content, r["match"])
+            parts.append(f"{info['emoji']}{info['name']} ×{r['qty']}")
+        return "、".join(parts)
 
     # ---------- 指令 ----------
 
@@ -140,11 +203,18 @@ class TownCog(commands.Cog):
             if action == "bag":
                 await interaction.response.send_message(embed=self.render_bag(g, owner), ephemeral=True)
                 return
+            if action in ("quest", "questgo"):
+                await self._refresh_quests(interaction.guild, g, now)
             page, page_arg, notice, announces = self._owner_action(action, g, owner, arg, value, now)
+            if action not in NAV_ACTIONS:
+                lines, ach_announces = self._achievement_notes(g, owner, now)
+                notice = "\n".join(filter(None, [notice, *lines])) or None
+                announces += ach_announces
             embed, view = self.render(page, g, owner, now, arg=page_arg, notice=notice)
             await interaction.response.edit_message(embed=embed, view=view, allowed_mentions=NO_PINGS)
             for text in announces:
-                await interaction.channel.send(text, allowed_mentions=NO_PINGS)
+                await send_announcement(interaction.guild, text, fallback=interaction.channel,
+                                        allowed_mentions=NO_PINGS)
         except TownError as e:
             await self._reply_error(interaction, str(e))
         except Exception:
@@ -179,6 +249,10 @@ class TownCog(commands.Cog):
             text = (f"🐛 除掉了 {n} 隻蟲！" if is_owner
                     else f"🐛 你幫 <@{owner}> 除掉了 {n} 隻蟲，得到 {r['reward']} 風幣！")
 
+        lines, ach_announces = self._achievement_notes(g, user, now)
+        text = "\n".join([text, *lines])
+        for a in ach_announces:
+            await send_announcement(interaction.guild, a, fallback=interaction.channel, allowed_mentions=NO_PINGS)
         page = arg if arg in ("home", "farm") else "home"
         embed, view = self.render(page, g, owner, now, notice=text if is_owner else None)
         if is_owner:
@@ -192,7 +266,7 @@ class TownCog(commands.Cog):
         db, content = self.db, self.content
         if action in ("home", "refresh"):
             return "home", None, None, []
-        if action in ("farm", "mine", "shop"):
+        if action in ("farm", "mine", "shop", "quest", "ach"):
             return action, None, None, []
         if action == "rank":
             return "rank", arg or "assets", None, []
@@ -241,12 +315,43 @@ class TownCog(commands.Cog):
         if action in ("sell", "sellall"):
             r = db.sell(g, owner, now, value if action == "sell" else None)
             return "shop", None, f"💰 賣出 {r['count']} 件物品，獲得 {r['gold']:,} 風幣！", []
+        if action == "sellcommon":
+            r = db.sell(g, owner, now, common_only=True)
+            text = f"💰 賣出 {r['count']} 件普通物品，獲得 {r['gold']:,} 風幣！"
+            if r["kept"]:
+                text += f"\n⭐ 保留了 {r['kept']} 件稀有物品，可以留著交任務。"
+            return "shop", None, text, []
         if action == "unlock":
             r = db.unlock_plot(g, owner, now)
             return "shop", None, f"🟫 花了 {r['price']:,} 風幣，解鎖第 {r['plot_count']} 塊田！", []
         if action == "pickaxe":
             r = db.upgrade_pickaxe(g, owner, now)
-            return "shop", None, f"⛏️ 花了 {r['price']:,} 風幣，十字鎬升級到 Lv{r['level']}！", []
+            text = f"⛏️ 花了 {r['price']:,} 風幣，十字鎬升級到 Lv{r['level']}！"
+            if r.get("unlocks"):
+                text += f"\n🔓 {r['unlocks']}"
+            return "shop", None, text, []
+
+        if action == "questgo":
+            r = db.deliver_quest(g, owner, int(arg), now)
+            q = r["quest"]
+            rar = content.quests["rarities"][q["rarity"]]
+            gave = "、".join(f"{svc.item_info(content, i)['emoji']}{svc.item_info(content, i)['name']} ×{n}"
+                             for i, n in r["taken"].items())
+            text = f"📜 完成了{rar['emoji']}{rar['name']}任務！交出 {gave}，獲得 **{r['reward']:,} 風幣**！"
+            announces = []
+            if rar.get("announce"):
+                name = db.snapshot(g, owner)["player"]["name"]
+                announces.append(f"🎉 **{name}** 完成了{rar['emoji']} **{rar['name']}任務**，獲得 {r['reward']:,} 風幣！")
+            return "quest", None, text, announces
+        if action == "title":
+            aid = None if value == "none" else value
+            if aid is not None and aid not in content.achievements:
+                raise TownError("沒有這個稱號。")
+            db.set_title(g, owner, aid)
+            if aid is None:
+                return "ach", None, "🏅 已取下稱號。", []
+            a = content.achievements[aid]
+            return "ach", None, f"🏅 裝備了稱號「{a['emoji']} {a['name']}」！", []
 
         raise TownError("這個按鈕已經失效了，請重新輸入 `/小鎮`。")
 
@@ -259,6 +364,7 @@ class TownCog(commands.Cog):
         renderer = {
             "home": self._render_home, "farm": self._render_farm, "plant": self._render_plant,
             "mine": self._render_mine, "shop": self._render_shop, "rank": self._render_rank,
+            "quest": self._render_quest, "ach": self._render_ach,
         }[page]
         embed, items = renderer(snap, g, owner, now, arg)
         if notice:
@@ -311,7 +417,9 @@ class TownCog(commands.Cog):
     def _render_home(self, snap, g, owner, now, arg):
         p = snap["player"]
         checked = p["last_checkin"] == svc.day_key(now)
-        e = discord.Embed(title=f"🏡 {p['name']} 的小鎮", color=GREEN)
+        title = self.content.achievements.get(p.get("title") or "")
+        e = discord.Embed(title=f"🏡 {p['name']} 的小鎮" + (f" 〔{title['emoji']}{title['name']}〕" if title else ""),
+                          color=GREEN)
         e.add_field(name="💰 風幣", value=f"{p['gold']:,}")
         e.add_field(name="📅 簽到", value=f"累計 {p['checkin_total']} 天" + (" · 今天已簽" if checked else ""))
         e.add_field(name="❤️ 人氣", value=str(p["likes"]))
@@ -325,7 +433,9 @@ class TownCog(commands.Cog):
             self._btn("mine", owner, label="礦坑", emoji="⛏️", row=0),
             self._btn("bag", owner, label="背包", emoji="🎒", row=0),
             self._btn("shop", owner, label="商店", emoji="🏪", row=0),
+            self._btn("quest", owner, label="任務牆", emoji="📜", style=discord.ButtonStyle.primary, row=1),
             self._btn("rank", owner, "assets", label="排行榜", emoji="🏆", row=1),
+            self._btn("ach", owner, label="成就", emoji="🏅", row=1),
             self._btn("refresh", owner, label="重新整理", emoji="🔄", row=1),
             self._btn("water", owner, label="幫忙澆水", emoji="💧", style=discord.ButtonStyle.primary, row=2),
             self._btn("pest", owner, "home", label="除蟲", emoji="🐛", style=discord.ButtonStyle.primary, row=2),
@@ -386,52 +496,76 @@ class TownCog(commands.Cog):
         lv = p["pickaxe_lv"]
         e = discord.Embed(title=f"⛏️ {p['name']} 的礦坑", color=discord.Color.from_rgb(88, 101, 140))
         e.add_field(name="目前行程", value=self._mine_line(snap, now), inline=False)
-        lines = [f"{t['emoji']} **{t['name']}** — {fmt_duration(svc.mine_duration(self.content, tid, lv))} · 挖 {t['rolls']} 次"
-                 for tid, t in self.content.mines.items()]
+        lines = []
+        for tid, t in self.content.mines.items():
+            need = svc.trip_min_pickaxe(self.content, tid)
+            line = f"{t['emoji']} **{t['name']}** — {fmt_duration(svc.mine_duration(self.content, tid, lv))} · 挖 {t['rolls']} 次"
+            lines.append(line + (f" · 🔒 需要 Lv{need} 十字鎬" if lv < need else ""))
         e.add_field(name="路線", value="\n".join(lines), inline=False)
-        e.set_footer(text=f"十字鎬 Lv{lv} · 礦石不會壞，可以慢慢存 · 深層才挖得到寶石")
+        ores = [f"{'✅' if lv >= need else '🔒'} {self.content.ores[o]['emoji']} {self.content.ores[o]['name']}：Lv{need} 十字鎬以上才挖得到"
+                for o, need in sorted(svc.ore_min_pickaxe(self.content).items(), key=lambda kv: kv[1])]
+        if ores:
+            e.add_field(name="稀有礦物", value="\n".join(ores), inline=False)
+        e.set_footer(text=f"十字鎬 Lv{lv} · 礦石不會壞，可以慢慢存 · 到商店升級十字鎬")
         if snap["mining"]:
             items = [self._btn("minecollect", owner, label="收取", emoji="📦", style=discord.ButtonStyle.success, row=0)]
         else:
-            items = [self._btn("minego", owner, tid, label=f"{t['name']} {t['hours']}h", emoji=t["emoji"],
-                               style=discord.ButtonStyle.primary, row=0)
-                     for tid, t in self.content.mines.items()]
+            items = []
+            for tid, t in self.content.mines.items():
+                need = svc.trip_min_pickaxe(self.content, tid)
+                locked = lv < need
+                items.append(self._btn("minego", owner, tid,
+                                       label=f"{t['name']} {t['hours']}h" + (f"（Lv{need}）" if locked else ""),
+                                       emoji="🔒" if locked else t["emoji"], disabled=locked,
+                                       style=discord.ButtonStyle.primary, row=0))
         items.append(self._back(owner, row=1))
         return e, items
 
     def _render_shop(self, snap, g, owner, now, arg):
         p = snap["player"]
         inv = self.db.inventory(g, owner)
-        total = sum(i["total"] for i in inv)
+        common = [i for i in inv if not i["rare"]]
+        rare = [i for i in inv if i["rare"]]
+        common_total = sum(i["total"] for i in common)
         e = discord.Embed(title="🏪 商店", color=discord.Color.gold())
-        if inv:
-            lines = [f"{i['emoji']} {i['name']} ×{i['qty']} — {i['total']:,} 風幣" for i in inv[:15]]
-            if len(inv) > 15:
-                lines.append(f"…還有 {len(inv) - 15} 種物品")
-            e.add_field(name=f"🎒 可賣出（共 {total:,} 風幣）", value="\n".join(lines), inline=False)
-        else:
+
+        def listing(items, limit=10):
+            lines = [f"{i['emoji']} {i['name']} ×{i['qty']} — {i['total']:,} 風幣" for i in items[:limit]]
+            if len(items) > limit:
+                lines.append(f"…還有 {len(items) - limit} 種物品")
+            return "\n".join(lines)
+
+        if not inv:
             e.add_field(name="🎒 可賣出", value="背包是空的，去收成或挖礦吧！", inline=False)
+        if common:
+            e.add_field(name=f"📦 普通物品（共 {common_total:,} 風幣）", value=listing(common), inline=False)
+        if rare:
+            e.add_field(name=f"⭐ 稀有物品（共 {sum(i['total'] for i in rare):,} 風幣）", value=listing(rare), inline=False)
         plot_price = svc.next_plot_price(self.content, p["plot_count"])
         nxt_pick = svc.next_pickaxe(self.content, p["pickaxe_lv"])
         e.add_field(name="🟫 田地", value=f"{p['plot_count']} / {self.max_plots} 塊"
                     + (f"，下一塊 {plot_price:,} 風幣" if plot_price
                        else "（已全部解鎖）" if p["plot_count"] >= self.max_plots else "（目前無法解鎖）"))
         e.add_field(name="⛏️ 十字鎬", value=f"Lv{p['pickaxe_lv']}"
-                    + (f"，升級 {nxt_pick['price']:,} 風幣" if nxt_pick else "（最高等級）"))
-        e.set_footer(text=f"💰 你有 {p['gold']:,} 風幣")
+                    + (f"，升級 {nxt_pick['price']:,} 風幣" + (f"\n下一級：{nxt_pick['unlocks']}" if nxt_pick.get("unlocks") else "")
+                       if nxt_pick else "（最高等級）"))
+        e.set_footer(text=f"💰 你有 {p['gold']:,} 風幣 · 稀有物品：金色／巨大／彩虹作物、金礦、寶石、秘銀、星辰石")
         items = []
         if inv:
-            options = [discord.SelectOption(label=f"{i['name']} ×{i['qty']}"[:100], value=i["item_id"], emoji=i["emoji"],
+            options = [discord.SelectOption(label=f"{'⭐' if i['rare'] else ''}{i['name']} ×{i['qty']}"[:100],
+                                            value=i["item_id"], emoji=i["emoji"],
                                             description=f"賣出全部，共 {i['total']:,} 風幣")
                        for i in inv[:25]]
             items.append(TownSelect("sell", owner, options=options, placeholder="選擇要賣出的物品", row=0))
         items += [
-            self._btn("sellall", owner, label="全部賣出", emoji="💰", style=discord.ButtonStyle.success,
-                      disabled=not inv, row=1),
+            self._btn("sellcommon", owner,
+                      label=f"賣出普通物品（{common_total:,} 風幣）" if common else "沒有普通物品",
+                      emoji="📦", style=discord.ButtonStyle.success, disabled=not common, row=1),
+            self._btn("sellall", owner, label="全部賣出（含稀有）", emoji="💰", disabled=not inv, row=1),
             self._btn("unlock", owner, label=f"解鎖田地（{plot_price:,} 風幣）" if plot_price else "田地已滿",
-                      emoji="🟫", disabled=plot_price is None, row=1),
+                      emoji="🟫", disabled=plot_price is None, row=2),
             self._btn("pickaxe", owner, label=f"十字鎬 Lv{nxt_pick['level']}（{nxt_pick['price']:,} 風幣）" if nxt_pick else "十字鎬已滿級",
-                      emoji="⛏️", disabled=nxt_pick is None, row=1),
+                      emoji="⛏️", disabled=nxt_pick is None, row=2),
             self._back(owner, row=2),
         ]
         return e, items
@@ -452,13 +586,95 @@ class TownCog(commands.Cog):
         items.append(self._back(owner, row=1))
         return e, items
 
+    def _render_quest(self, snap, g, owner, now, arg):
+        quests = self.content.quests
+        rars = quests["rarities"]
+        board = self.db.quest_board(g)
+        inv = self.db.inventory_map(g, owner)
+        odds = " · ".join(f"{r['emoji']}{r['name']} {r['weight']:g}%" for r in rars.values())
+        e = discord.Embed(title="📜 任務牆", color=discord.Color.from_rgb(166, 124, 82),
+                          description=f"全伺服器共用，**誰先交付誰拿獎勵**！\n{odds}")
+        buttons = []
+        for slot in range(1, quests["slots"] + 1):
+            q = board.get(slot)
+            row = 0 if slot <= 3 else 1
+            can = False
+            if not q or q["status"] == "expired":
+                e.add_field(name=f"{slot}. ⏳ 準備中", value="新任務馬上出現", inline=False)
+            else:
+                rar = rars[q["rarity"]]
+                head = f"{slot}. {rar['emoji']} {rar['name']}任務 · 🪙 {self._reward_text(q)}"
+                if q["status"] == "done":
+                    nxt = q["completed_at"] + svc.quest_cooldown(self.content)
+                    value = f"✅ 已被 <@{q['completed_by']}> 完成 · 新任務 <t:{nxt}:R> 出現"
+                elif now >= q["expires_at"]:
+                    value = "⌛ 已過期，新任務馬上出現"
+                else:
+                    ok, have, take = svc.allocate(self.content, q["requirements"], inv)
+                    can = ok
+                    lines = []
+                    for r, h in zip(q["requirements"], have):
+                        info = svc.requirement_info(self.content, r["match"])
+                        mark = "✅" if h >= r["qty"] else "▫️"
+                        lines.append(f"{mark} {info['emoji']} {info['name']} ×{r['qty']}（你有 {min(h, r['qty'])}）")
+                    if ok and svc.has_wildcard(q["requirements"]):
+                        lines.append(f"💰 你現在交付可得 **{svc.quest_reward(self.content, q, take):,} 風幣**")
+                    value = "\n".join(lines) + f"\n⌛ <t:{q['expires_at']}:R> 過期"
+                e.add_field(name=head, value=value, inline=False)
+            buttons.append(self._btn("questgo", owner, str(q["id"]) if q else None, label=f"交付 {slot}", emoji="📦",
+                                     style=discord.ButtonStyle.success if can else discord.ButtonStyle.secondary,
+                                     disabled=not can, row=row) if q else
+                           self._btn("quest", owner, f"wait{slot}", label=f"交付 {slot}", emoji="📦",
+                                     disabled=True, row=row))
+        e.set_footer(text=f"被完成的格子 {quests['cooldown_minutes']} 分鐘後補上新任務 · 作物只收 100% 新鮮的 · "
+                          f"「任意」需求依實際交出的作物計價，先用最便宜的")
+        return e, buttons + [
+            self._btn("quest", owner, label="重新整理", emoji="🔄", row=2),
+            self._back(owner, row=2),
+        ]
+
+    def _render_ach(self, snap, g, owner, now, arg):
+        p = snap["player"]
+        earned = self.db.achievements(g, owner)
+        stats = self.db.player_stats(g, owner)
+        achs = self.content.achievements
+        cur = achs.get(p.get("title") or "")
+        e = discord.Embed(title=f"🏅 {p['name']} 的成就", color=discord.Color.gold(),
+                          description="目前稱號：" + (f"{cur['emoji']} **{cur['name']}**" if cur else "（未裝備）"))
+        for cat, label in ACH_CATEGORIES.items():
+            lines = []
+            for aid, a in achs.items():
+                if a["category"] != cat:
+                    continue
+                if aid in earned:
+                    lines.append(f"✅ {a['emoji']} **{a['name']}** — {a['desc']}")
+                else:
+                    lines.append(f"🔒 {a['emoji']} {a['name']} — {a['desc']}"
+                                 f"（{min(stats.get(a['stat'], 0), a['count']):,}/{a['count']:,}）")
+            if lines:
+                done = sum(1 for aid, a in achs.items() if a["category"] == cat and aid in earned)
+                total = sum(1 for a in achs.values() if a["category"] == cat)
+                e.add_field(name=f"{label}（{done}/{total}）", value="\n".join(lines)[:1024], inline=False)
+        e.set_footer(text=f"已解鎖 {len(earned)} / {len(achs)} · 裝備的稱號會顯示在你的小鎮標題")
+        items = []
+        if earned:
+            # Select 最多 25 個選項：「不顯示」+ 清單中排在最後（通常最難）的 24 個
+            mine = [aid for aid in achs if aid in earned][-24:]
+            options = [discord.SelectOption(label="不顯示稱號", value="none", emoji="➖")]
+            options += [discord.SelectOption(label=achs[aid]["name"], value=aid, emoji=achs[aid]["emoji"],
+                                             description=achs[aid]["desc"], default=aid == p.get("title"))
+                        for aid in mine]
+            items.append(TownSelect("title", owner, options=options, placeholder="選擇要裝備的稱號", row=0))
+        items.append(self._back(owner, row=1))
+        return e, items
+
     def render_bag(self, g, owner):
         inv = self.db.inventory(g, owner)
         e = discord.Embed(title="🎒 你的背包", color=GREEN)
         if not inv:
             e.description = "背包是空的。收成和挖礦得到的東西都會放在這裡。"
             return e
-        lines = [f"{i['emoji']} {i['name']} ×{i['qty']} — 單價 {i['price']:,} 風幣" for i in inv]
+        lines = [f"{i['emoji']} {'⭐' if i['rare'] else ''}{i['name']} ×{i['qty']} — 單價 {i['price']:,} 風幣" for i in inv]
         e.description = "\n".join(lines)[:4000]
         e.set_footer(text=f"全部賣出可得 {sum(i['total'] for i in inv):,} 風幣 · 到「🏪 商店」賣出")
         return e

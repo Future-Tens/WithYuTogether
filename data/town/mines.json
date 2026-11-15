@@ -6,11 +6,20 @@
     "mid": {
         "name": "中層", "emoji": "⛏️", "hours": 4, "rolls": 6, "chest_chance": 0.01,
         "loot": [ { "item": "stone", "weight": 35 }, { "item": "copper", "weight": 35 }, { "item": "iron", "weight": 22 },
-                  { "item": "goldore", "weight": 8, "rare": true } ]
+                  { "item": "goldore", "weight": 8, "rare": true },
+                  { "item": "mithril", "weight": 2, "rare": true, "min_pickaxe": 2 } ]
     },
     "deep": {
         "name": "深層", "emoji": "💎", "hours": 8, "rolls": 10, "chest_chance": 0.01,
         "loot": [ { "item": "stone", "weight": 25 }, { "item": "copper", "weight": 30 }, { "item": "iron", "weight": 25 },
-                  { "item": "goldore", "weight": 15, "rare": true }, { "item": "gem", "weight": 5, "rare": true } ]
+                  { "item": "goldore", "weight": 15, "rare": true }, { "item": "gem", "weight": 5, "rare": true },
+                  { "item": "mithril", "weight": 3, "rare": true, "min_pickaxe": 2 } ]
+    },
+    "core": {
+        "name": "地心", "emoji": "🌋", "hours": 12, "rolls": 12, "chest_chance": 0.02, "min_pickaxe": 3,
+        "loot": [ { "item": "stone", "weight": 20 }, { "item": "copper", "weight": 20 }, { "item": "iron", "weight": 25 },
+                  { "item": "goldore", "weight": 18, "rare": true }, { "item": "gem", "weight": 8, "rare": true },
+                  { "item": "mithril", "weight": 5, "rare": true, "min_pickaxe": 2 },
+                  { "item": "starstone", "weight": 2, "rare": true, "min_pickaxe": 3 } ]
     }
 }

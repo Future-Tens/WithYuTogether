@@ -1,0 +1,43 @@
+{
+    "checkin_7":    { "category": "checkin", "name": "新來的鄰居", "emoji": "📅", "desc": "累計簽到 7 天",   "stat": "checkin_total", "count": 7 },
+    "checkin_30":   { "category": "checkin", "name": "小鎮常客",   "emoji": "🗓️", "desc": "累計簽到 30 天",  "stat": "checkin_total", "count": 30 },
+    "checkin_100":  { "category": "checkin", "name": "老街坊",     "emoji": "🏘️", "desc": "累計簽到 100 天", "stat": "checkin_total", "count": 100 },
+    "checkin_365":  { "category": "checkin", "name": "小鎮元老",   "emoji": "🏛️", "desc": "累計簽到 365 天", "stat": "checkin_total", "count": 365, "announce": true },
+
+    "harvest_1":    { "category": "farm", "name": "第一份收成", "emoji": "🌱", "desc": "收成 1 株作物",    "stat": "total_harvest", "count": 1 },
+    "harvest_100":  { "category": "farm", "name": "勤勞農夫",   "emoji": "🧺", "desc": "收成 100 株作物",  "stat": "total_harvest", "count": 100 },
+    "harvest_500":  { "category": "farm", "name": "豐收達人",   "emoji": "🌾", "desc": "收成 500 株作物",  "stat": "total_harvest", "count": 500 },
+    "harvest_2000": { "category": "farm", "name": "農業大亨",   "emoji": "🚜", "desc": "收成 2000 株作物", "stat": "total_harvest", "count": 2000 },
+    "rare_1":       { "category": "farm", "name": "幸運兒",     "emoji": "🍀", "desc": "收成 1 株稀有作物（金色、巨大或彩虹）", "stat": "rare_found", "count": 1 },
+    "gold_10":      { "category": "farm", "name": "點石成金",   "emoji": "✨", "desc": "收成 10 株金色作物", "stat": "crop_gold", "count": 10 },
+    "rainbow_1":    { "category": "farm", "name": "彩虹之子",   "emoji": "🌈", "desc": "收成 1 株彩虹作物",  "stat": "crop_rainbow", "count": 1 },
+    "rainbow_10":   { "category": "farm", "name": "追虹者",     "emoji": "🌈", "desc": "收成 10 株彩虹作物", "stat": "crop_rainbow", "count": 10, "announce": true },
+    "plots_5":      { "category": "farm", "name": "大地主",     "emoji": "🟫", "desc": "解鎖全部 5 塊田",    "stat": "plot_count", "count": 5 },
+
+    "mine_1":       { "category": "mine", "name": "初次下礦",   "emoji": "⛏️", "desc": "完成 1 趟挖礦",   "stat": "mine_trips", "count": 1 },
+    "mine_50":      { "category": "mine", "name": "礦坑老手",   "emoji": "🪨", "desc": "完成 50 趟挖礦",  "stat": "mine_trips", "count": 50 },
+    "mine_200":     { "category": "mine", "name": "地底居民",   "emoji": "🕳️", "desc": "完成 200 趟挖礦", "stat": "mine_trips", "count": 200 },
+    "chest_5":      { "category": "mine", "name": "寶箱獵人",   "emoji": "🎁", "desc": "挖到 5 個寶箱",   "stat": "chests", "count": 5 },
+    "mithril_10":   { "category": "mine", "name": "秘銀礦工",   "emoji": "🔷", "desc": "挖到 10 塊秘銀",  "stat": "ore_mithril", "count": 10 },
+    "starstone_1":  { "category": "mine", "name": "摘星者",     "emoji": "🌠", "desc": "挖到 1 顆星辰石", "stat": "ore_starstone", "count": 1 },
+    "pickaxe_3":    { "category": "mine", "name": "頂級裝備",   "emoji": "🛠️", "desc": "十字鎬升到 Lv3",  "stat": "pickaxe_lv", "count": 3 },
+
+    "water_10":     { "category": "social", "name": "好幫手",     "emoji": "💧", "desc": "幫朋友澆水 10 次",   "stat": "water_given", "count": 10 },
+    "water_100":    { "category": "social", "name": "園藝志工",   "emoji": "💦", "desc": "幫朋友澆水 100 次",  "stat": "water_given", "count": 100 },
+    "pest_20":      { "category": "social", "name": "除蟲專家",   "emoji": "🐛", "desc": "幫朋友除蟲 20 次",   "stat": "pest_helped", "count": 20 },
+    "likegive_30":  { "category": "social", "name": "熱情鄰居",   "emoji": "👍", "desc": "幫別人按讚 30 次",   "stat": "likes_given", "count": 30 },
+    "likes_10":     { "category": "social", "name": "人氣農場",   "emoji": "❤️", "desc": "農場收到 10 個讚",   "stat": "likes", "count": 10 },
+    "likes_100":    { "category": "social", "name": "小鎮明星",   "emoji": "🌟", "desc": "農場收到 100 個讚",  "stat": "likes", "count": 100, "announce": true },
+
+    "sell_10k":     { "category": "wealth", "name": "小有積蓄",   "emoji": "💰", "desc": "累計賣出 10,000 風幣",  "stat": "sell_total", "count": 10000 },
+    "sell_100k":    { "category": "wealth", "name": "富甲一方",   "emoji": "💎", "desc": "累計賣出 100,000 風幣", "stat": "sell_total", "count": 100000, "announce": true },
+
+    "quest_1":      { "category": "quest", "name": "小鎮跑腿",   "emoji": "📜", "desc": "完成第 1 個任務",   "stat": "quest_total", "count": 1 },
+    "quest_10":     { "category": "quest", "name": "任務好手",   "emoji": "📜", "desc": "完成 10 個任務",    "stat": "quest_total", "count": 10 },
+    "quest_50":     { "category": "quest", "name": "任務達人",   "emoji": "🎖️", "desc": "完成 50 個任務",    "stat": "quest_total", "count": 50 },
+    "quest_200":    { "category": "quest", "name": "任務大師",   "emoji": "👑", "desc": "完成 200 個任務",   "stat": "quest_total", "count": 200, "announce": true },
+    "rare_5":       { "category": "quest", "name": "眼明手快",   "emoji": "🔵", "desc": "完成 5 個稀有任務", "stat": "quest_rare", "count": 5 },
+    "epic_1":       { "category": "quest", "name": "尋寶人",     "emoji": "🟣", "desc": "完成 1 個罕見任務", "stat": "quest_epic", "count": 1 },
+    "legendary_1":  { "category": "quest", "name": "傳說冒險家", "emoji": "🟡", "desc": "完成 1 個傳說任務", "stat": "quest_legendary", "count": 1 },
+    "mythic_1":     { "category": "quest", "name": "神話獵人",   "emoji": "🌈", "desc": "完成 1 個神話任務", "stat": "quest_mythic", "count": 1, "announce": true }
+}

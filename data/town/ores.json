@@ -3,5 +3,7 @@
     "copper":  { "name": "銅礦", "emoji": "🟠", "sell_price": 8 },
     "iron":    { "name": "鐵礦", "emoji": "⚙️", "sell_price": 15 },
     "goldore": { "name": "金礦", "emoji": "🟡", "sell_price": 40 },
-    "gem":     { "name": "寶石", "emoji": "💎", "sell_price": 120 }
+    "gem":     { "name": "寶石", "emoji": "💎", "sell_price": 120 },
+    "mithril":   { "name": "秘銀",   "emoji": "🔷", "sell_price": 200 },
+    "starstone": { "name": "星辰石", "emoji": "🌠", "sell_price": 500 }
 }
