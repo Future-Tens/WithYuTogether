@@ -315,11 +315,13 @@ class TownCog(commands.Cog):
         if action in ("sell", "sellall"):
             r = db.sell(g, owner, now, value if action == "sell" else None)
             return "shop", None, f"💰 賣出 {r['count']} 件物品，獲得 {r['gold']:,} 風幣！", []
-        if action == "sellcommon":
-            r = db.sell(g, owner, now, common_only=True)
-            text = f"💰 賣出 {r['count']} 件普通物品，獲得 {r['gold']:,} 風幣！"
+        if action in ("sellcrops", "sellores", "sellcommon"):  # sellcommon：舊訊息上的按鈕
+            kind = {"sellcrops": "crop", "sellores": "ore"}.get(action)
+            label = {"crop": "作物", "ore": "礦物"}.get(kind, "物品")
+            r = db.sell(g, owner, now, common_only=True, kind=kind)
+            text = f"💰 賣出 {r['count']} 件普通{label}，獲得 {r['gold']:,} 風幣！"
             if r["kept"]:
-                text += f"\n⭐ 保留了 {r['kept']} 件稀有物品，可以留著交任務。"
+                text += f"\n⭐ 保留了 {r['kept']} 件稀有{label}，可以留著交任務。"
             return "shop", None, text, []
         if action == "unlock":
             r = db.unlock_plot(g, owner, now)
@@ -527,6 +529,8 @@ class TownCog(commands.Cog):
         common = [i for i in inv if not i["rare"]]
         rare = [i for i in inv if i["rare"]]
         common_total = sum(i["total"] for i in common)
+        crop_total = sum(i["total"] for i in common if i["item_id"].startswith("crop:"))
+        ore_total = common_total - crop_total
         e = discord.Embed(title="🏪 商店", color=discord.Color.gold())
 
         def listing(items, limit=10):
@@ -537,8 +541,12 @@ class TownCog(commands.Cog):
 
         if not inv:
             e.add_field(name="🎒 可賣出", value="背包是空的，去收成或挖礦吧！", inline=False)
-        if common:
-            e.add_field(name=f"📦 普通物品（共 {common_total:,} 風幣）", value=listing(common), inline=False)
+        if crop_total:
+            e.add_field(name=f"🧺 普通作物（共 {crop_total:,} 風幣）",
+                        value=listing([i for i in common if i["item_id"].startswith("crop:")]), inline=False)
+        if ore_total:
+            e.add_field(name=f"⛏️ 普通礦物（共 {ore_total:,} 風幣）",
+                        value=listing([i for i in common if i["item_id"].startswith("ore:")]), inline=False)
         if rare:
             e.add_field(name=f"⭐ 稀有物品（共 {sum(i['total'] for i in rare):,} 風幣）", value=listing(rare), inline=False)
         plot_price = svc.next_plot_price(self.content, p["plot_count"])
@@ -558,9 +566,12 @@ class TownCog(commands.Cog):
                        for i in inv[:25]]
             items.append(TownSelect("sell", owner, options=options, placeholder="選擇要賣出的物品", row=0))
         items += [
-            self._btn("sellcommon", owner,
-                      label=f"賣出普通物品（{common_total:,} 風幣）" if common else "沒有普通物品",
-                      emoji="📦", style=discord.ButtonStyle.success, disabled=not common, row=1),
+            self._btn("sellcrops", owner,
+                      label=f"賣出普通作物（{crop_total:,} 風幣）" if crop_total else "沒有普通作物",
+                      emoji="🧺", style=discord.ButtonStyle.success, disabled=not crop_total, row=1),
+            self._btn("sellores", owner,
+                      label=f"賣出普通礦物（{ore_total:,} 風幣）" if ore_total else "沒有普通礦物",
+                      emoji="⛏️", style=discord.ButtonStyle.success, disabled=not ore_total, row=1),
             self._btn("sellall", owner, label="全部賣出（含稀有）", emoji="💰", disabled=not inv, row=1),
             self._btn("unlock", owner, label=f"解鎖田地（{plot_price:,} 風幣）" if plot_price else "田地已滿",
                       emoji="🟫", disabled=plot_price is None, row=2),

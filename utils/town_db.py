@@ -390,9 +390,11 @@ class TownDB:
 
     # ---------- 商店 ----------
 
-    def sell(self, guild_id, user_id, now, item_id=None, common_only=False):
-        """賣出指定物品的全部數量；item_id=None 時全部賣出；common_only 時只賣非稀有的作物與礦物。
-        回傳 {gold, count, kept}，kept 是保留下來的稀有物品件數。"""
+    def sell(self, guild_id, user_id, now, item_id=None, common_only=False, kind=None):
+        """賣出指定物品的全部數量；item_id=None 時全部賣出。
+        common_only：只賣非稀有物品；kind："crop" 或 "ore"，只賣這一類。
+        回傳 {gold, count, kept}，kept 是（同一類中）保留下來的稀有物品件數。"""
+        names = {"crop": "作物", "ore": "礦物", None: "物品"}
         g, u = self._ids(guild_id, user_id)
         with self.tx() as conn:
             self._player(conn, g, u)
@@ -402,12 +404,14 @@ class TownDB:
                 sql += " AND item_id=?"
                 args += (item_id,)
             rows = conn.execute(sql, args).fetchall()
+            if kind:
+                rows = [r for r in rows if r["item_id"].startswith(kind + ":")]
             kept = 0
             if common_only:
                 kept = sum(r["qty"] for r in rows if svc.is_rare_item(self.content, r["item_id"]))
                 rows = [r for r in rows if not svc.is_rare_item(self.content, r["item_id"])]
                 if not rows:
-                    raise TownError("沒有普通物品可以賣，背包裡只剩稀有物品了。")
+                    raise TownError(f"沒有普通{names[kind]}可以賣" + ("，只剩稀有的了。" if kept else "。"))
             if not rows:
                 raise TownError("背包裡沒有可以賣的東西。")
             total = count = 0
