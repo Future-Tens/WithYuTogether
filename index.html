@@ -167,7 +167,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
   </div>
 
   <nav class="toc" aria-label="章節">
-    <a href="#day">一天怎麼玩</a><a href="#farm">種田</a><a href="#rare">稀有作物</a><a href="#mine">挖礦</a><a href="#friends">拜訪朋友</a><a href="#shop">商店與排行</a><a href="#tips">小撇步</a><a href="#faq">常見問題</a><a href="updates.html">更新日誌</a>
+    <a href="#day">一天怎麼玩</a><a href="#farm">種田</a><a href="#rare">稀有作物</a><a href="#mine">挖礦</a><a href="#friends">拜訪朋友</a><a href="#quest">任務牆</a><a href="#shop">商店與排行</a><a href="#tips">小撇步</a><a href="#faq">常見問題</a><a href="updates.html">更新日誌</a>
   </nav>
 
   <section id="day">
@@ -202,6 +202,8 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
         <tr><td>🍅 番茄</td><td>4 小時</td><td class="num">40</td><td class="num">100</td><td class="num">+60</td></tr>
         <tr><td>🌽 玉米</td><td>6 小時</td><td class="num">60</td><td class="num">138</td><td class="num">+78</td></tr>
         <tr><td>🎃 南瓜</td><td>8 小時</td><td class="num">80</td><td class="num">176</td><td class="num">+96</td></tr>
+        <tr><td>🍉 西瓜</td><td>12 小時</td><td class="num">120</td><td class="num">250</td><td class="num">+130</td></tr>
+        <tr><td>🍍 鳳梨</td><td>24 小時</td><td class="num">200</td><td class="num">440</td><td class="num">+240</td></tr>
       </tbody>
     </table></div>
 
@@ -242,7 +244,8 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
       <tbody>
         <tr><td>淺層</td><td>1 小時</td><td class="w">多半是石頭和銅礦</td></tr>
         <tr><td>中層</td><td>4 小時</td><td class="w">鐵礦、金礦比較常見</td></tr>
-        <tr><td>深層</td><td>8 小時</td><td class="w">挖得最多，💎 寶石只在這裡出現</td></tr>
+        <tr><td>深層</td><td>8 小時</td><td class="w">挖得多，💎 寶石從這裡開始出現</td></tr>
+        <tr><td>🌋 地心（需要 Lv3 十字鎬）</td><td>12 小時</td><td class="w">稀有礦最多，🌠 星辰石只在這裡出現</td></tr>
       </tbody>
     </table></div>
     <div class="tbl"><table>
@@ -253,6 +256,8 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
         <tr><td>⚙️ 鐵礦</td><td class="num">15</td></tr>
         <tr><td>🟡 金礦</td><td class="num">40</td></tr>
         <tr><td>💎 寶石</td><td class="num">120</td></tr>
+        <tr><td>🔷 秘銀（Lv2 十字鎬以上）</td><td class="num">200</td></tr>
+        <tr><td>🌠 星辰石（Lv3 十字鎬，只在地心）</td><td class="num">500</td></tr>
         <tr><td>🎁 寶箱（偶爾挖到）</td><td class="num">100–300 風幣</td></tr>
       </tbody>
     </table></div>
@@ -269,8 +274,74 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
     <p class="muted small">別人只能幫忙，不能收你的菜，也不能動你的東西。</p>
   </section>
 
+  <section id="quest">
+    <h2>任務牆</h2>
+    <p>在小鎮首頁按「📜 任務牆」。牆上隨時有 6 個任務，<b>整個伺服器共用</b>：大家看到的都一樣，<b>誰先交付誰拿獎勵</b>。任務要的是背包裡的作物或礦石，交付時會扣掉，換到比直接賣掉更多的風幣。</p>
+    <div class="tbl"><table>
+      <thead><tr><th>稀有度</th><th class="num">出現機率</th><th class="num">獎勵</th><th class="w">期限與內容</th></tr></thead>
+      <tbody>
+        <tr><td>⚪ 普通</td><td class="num">70%</td><td class="num">市價 ×1.5</td><td class="w">24 小時 · 一般作物或礦石</td></tr>
+        <tr><td>🔵 稀有</td><td class="num">20%</td><td class="num">市價 ×2</td><td class="w">24 小時 · 數量較多、長作物，或 1 株金色作物</td></tr>
+        <tr><td>🟣 罕見</td><td class="num">8.9%</td><td class="num">市價 ×3</td><td class="w">48 小時 · 多種物品組合，可能要寶石、秘銀或金色作物</td></tr>
+        <tr><td>🟡 傳說</td><td class="num">1%</td><td class="num">市價 ×5</td><td class="w">72 小時 · 彩虹作物、星辰石等</td></tr>
+        <tr><td>🌈 神話</td><td class="num">0.1%</td><td class="num">市價 ×10</td><td class="w">72 小時 · 大型組合，伺服器傳說級的挑戰</td></tr>
+      </tbody>
+    </table></div>
+    <ul>
+      <li>任務被完成後，那一格會在 <b>30 分鐘</b>後換上新任務；過期沒人完成的任務會直接換掉。</li>
+      <li>作物只收 <b>100% 新鮮</b>的，過熟或被蟲咬過的不算。</li>
+      <li>「任意金色作物」這類需求，任何一種符合的作物都能交，會先用你背包裡最便宜的那種。獎勵依你<b>實際交出的作物</b>計價，交越貴的拿越多；任務牆上會顯示「xxx 風幣起」，物品夠的時候也會顯示你現在交付能拿多少。</li>
+      <li>沒有每日次數上限，搶得到就是你的。</li>
+      <li>🟡 傳說和 🌈 神話任務出現、被完成時，會在伺服器的公告頻道通知大家。</li>
+    </ul>
+    <h3>🏅 成就與稱號</h3>
+    <p>種田、挖礦、幫朋友、存錢、做任務都能解鎖成就，共 36 個。在首頁按「🏅 成就」可以看到每個成就的進度，並選一個裝備成稱號，顯示在你的小鎮標題旁邊。以前玩的紀錄也會算進去。標 📢 的成就解鎖時會在公告頻道通知大家。</p>
+    <div class="tbl"><table>
+      <thead><tr><th>分類</th><th>稱號</th><th class="w">條件</th></tr></thead>
+      <tbody>
+        <tr><td>📅 簽到</td><td>📅 新來的鄰居</td><td class="w">累計簽到 7 天</td></tr>
+        <tr><td>📅 簽到</td><td>🗓️ 小鎮常客</td><td class="w">累計簽到 30 天</td></tr>
+        <tr><td>📅 簽到</td><td>🏘️ 老街坊</td><td class="w">累計簽到 100 天</td></tr>
+        <tr><td>📅 簽到</td><td>🏛️ 小鎮元老 📢</td><td class="w">累計簽到 365 天</td></tr>
+        <tr><td>🌱 農田</td><td>🌱 第一份收成</td><td class="w">收成 1 株作物</td></tr>
+        <tr><td>🌱 農田</td><td>🧺 勤勞農夫</td><td class="w">收成 100 株作物</td></tr>
+        <tr><td>🌱 農田</td><td>🌾 豐收達人</td><td class="w">收成 500 株作物</td></tr>
+        <tr><td>🌱 農田</td><td>🚜 農業大亨</td><td class="w">收成 2000 株作物</td></tr>
+        <tr><td>🌱 農田</td><td>🍀 幸運兒</td><td class="w">收成 1 株稀有作物（金色、巨大或彩虹）</td></tr>
+        <tr><td>🌱 農田</td><td>✨ 點石成金</td><td class="w">收成 10 株金色作物</td></tr>
+        <tr><td>🌱 農田</td><td>🌈 彩虹之子</td><td class="w">收成 1 株彩虹作物</td></tr>
+        <tr><td>🌱 農田</td><td>🌈 追虹者 📢</td><td class="w">收成 10 株彩虹作物</td></tr>
+        <tr><td>🌱 農田</td><td>🟫 大地主</td><td class="w">解鎖全部 5 塊田</td></tr>
+        <tr><td>⛏️ 礦坑</td><td>⛏️ 初次下礦</td><td class="w">完成 1 趟挖礦</td></tr>
+        <tr><td>⛏️ 礦坑</td><td>🪨 礦坑老手</td><td class="w">完成 50 趟挖礦</td></tr>
+        <tr><td>⛏️ 礦坑</td><td>🕳️ 地底居民</td><td class="w">完成 200 趟挖礦</td></tr>
+        <tr><td>⛏️ 礦坑</td><td>🎁 寶箱獵人</td><td class="w">挖到 5 個寶箱</td></tr>
+        <tr><td>⛏️ 礦坑</td><td>🔷 秘銀礦工</td><td class="w">挖到 10 塊秘銀</td></tr>
+        <tr><td>⛏️ 礦坑</td><td>🌠 摘星者</td><td class="w">挖到 1 顆星辰石</td></tr>
+        <tr><td>⛏️ 礦坑</td><td>🛠️ 頂級裝備</td><td class="w">十字鎬升到 Lv3</td></tr>
+        <tr><td>🤝 社交</td><td>💧 好幫手</td><td class="w">幫朋友澆水 10 次</td></tr>
+        <tr><td>🤝 社交</td><td>💦 園藝志工</td><td class="w">幫朋友澆水 100 次</td></tr>
+        <tr><td>🤝 社交</td><td>🐛 除蟲專家</td><td class="w">幫朋友除蟲 20 次</td></tr>
+        <tr><td>🤝 社交</td><td>👍 熱情鄰居</td><td class="w">幫別人按讚 30 次</td></tr>
+        <tr><td>🤝 社交</td><td>❤️ 人氣農場</td><td class="w">農場收到 10 個讚</td></tr>
+        <tr><td>🤝 社交</td><td>🌟 小鎮明星 📢</td><td class="w">農場收到 100 個讚</td></tr>
+        <tr><td>💰 財富</td><td>💰 小有積蓄</td><td class="w">累計賣出 10,000 風幣</td></tr>
+        <tr><td>💰 財富</td><td>💎 富甲一方 📢</td><td class="w">累計賣出 100,000 風幣</td></tr>
+        <tr><td>📜 任務</td><td>📜 小鎮跑腿</td><td class="w">完成第 1 個任務</td></tr>
+        <tr><td>📜 任務</td><td>📜 任務好手</td><td class="w">完成 10 個任務</td></tr>
+        <tr><td>📜 任務</td><td>🎖️ 任務達人</td><td class="w">完成 50 個任務</td></tr>
+        <tr><td>📜 任務</td><td>👑 任務大師 📢</td><td class="w">完成 200 個任務</td></tr>
+        <tr><td>📜 任務</td><td>🔵 眼明手快</td><td class="w">完成 5 個稀有任務</td></tr>
+        <tr><td>📜 任務</td><td>🟣 尋寶人</td><td class="w">完成 1 個罕見任務</td></tr>
+        <tr><td>📜 任務</td><td>🟡 傳說冒險家</td><td class="w">完成 1 個傳說任務</td></tr>
+        <tr><td>📜 任務</td><td>🌈 神話獵人 📢</td><td class="w">完成 1 個神話任務</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
   <section id="shop">
     <h2>商店與排行</h2>
+    <p>收成和挖到的東西拿到商店賣。按「📦 賣出普通物品」可以一次賣掉普通作物和普通礦石，<b>⭐ 稀有物品會留著</b>（金色、巨大、彩虹作物，以及金礦、寶石、秘銀、星辰石），方便之後交任務；想全部清掉就按「全部賣出」，或從選單挑一樣賣。</p>
     <p>存下來的錢可以拿來擴大農場、升級工具。</p>
     <div class="tbl"><table>
       <thead><tr><th>項目</th><th class="num">價格</th><th class="w">效果</th></tr></thead>
@@ -278,23 +349,24 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
         <tr><td>第 3 塊田</td><td class="num">300</td><td class="w">同時種 3 株作物</td></tr>
         <tr><td>第 4 塊田</td><td class="num">1,000</td><td class="w">同時種 4 株作物</td></tr>
         <tr><td>第 5 塊田</td><td class="num">2,500</td><td class="w">同時種 5 株作物（上限）</td></tr>
-        <tr><td>十字鎬 Lv2</td><td class="num">500</td><td class="w">更容易挖到稀有礦</td></tr>
-        <tr><td>十字鎬 Lv3</td><td class="num">1,500</td><td class="w">稀有礦更多，挖礦時間縮短 10%</td></tr>
+        <tr><td>十字鎬 Lv2</td><td class="num">500</td><td class="w">更容易挖到稀有礦，可挖到 🔷 秘銀</td></tr>
+        <tr><td>十字鎬 Lv3</td><td class="num">1,500</td><td class="w">稀有礦更多，挖礦時間縮短 10%，解鎖 🌋 地心礦坑和 🌠 星辰石</td></tr>
       </tbody>
     </table></div>
     <h3>🏆 排行榜</h3>
-    <p>每個伺服器有自己的排行榜，分成四種：<b>總資產</b>、<b>本週收入</b>（每週一重新計算，新手也有機會上榜）、<b>人氣</b>、<b>稀有收藏</b>。</p>
+    <p>每個伺服器有自己的排行榜，分成五種：<b>總資產</b>、<b>本週收入</b>（每週一重新計算，新手也有機會上榜）、<b>人氣</b>、<b>稀有收藏</b>、<b>任務</b>（完成任務的次數）。</p>
   </section>
 
   <section id="tips">
     <h2>小撇步</h2>
     <div class="tips">
       <div><span>🎯</span><p>第一個目標：存到 300 風幣解鎖第 3 塊田，能同時種的作物多一株。</p></div>
-      <div><span>⏱️</span><p>有空常回來就種小白菜和胡蘿蔔，每小時賺最多；要出門或睡覺就種南瓜。</p></div>
+      <div><span>⏱️</span><p>有空常回來就種小白菜和胡蘿蔔，每小時賺最多；要出門或睡覺就種南瓜；一整天都沒空的話，種西瓜或鳳梨。</p></div>
       <div><span>💧</span><p>種下之後跟朋友說一聲，請他幫忙澆水，稀有作物的機會會變高。</p></div>
       <div><span>🐛</span><p>看到蟲先除。稀有作物最怕蟲，沒除就白長了。</p></div>
       <div><span>⛏️</span><p>種田和挖礦是分開的，兩個可以同時進行，別讓礦坑閒著。</p></div>
       <div><span>🤝</span><p>每天幫 5 位不同的朋友澆水，簡單就多賺 25 風幣，還能交朋友。</p></div>
+      <div><span>📜</span><p>賣東西前先看一下任務牆，同樣的作物交給任務能換到 1.5 倍以上的風幣。金色、彩虹作物可以先留著，等高稀有度的任務出現。</p></div>
     </div>
   </section>
 
@@ -305,6 +377,8 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
       <details><summary>換到別的伺服器，進度會跟著我嗎？</summary><p>不會。每個伺服器都有一個獨立的小鎮，風幣、田地和排行榜都分開計算。</p></details>
       <details><summary>忘記簽到會怎樣？</summary><p>不會怎樣。簽到算的是累計天數，不會因為中斷而歸零。</p></details>
       <details><summary>別人可以收走我的菜嗎？</summary><p>不行。訪客只能澆水、除蟲和按讚。</p></details>
+      <details><summary>任務牆的公告會發在哪裡？</summary><p>伺服器管理員可以用 <code>/設定公告 頻道:#頻道</code> 指定公告頻道。沒設定的話，傳說和神話任務出現時不會另外通知。</p></details>
+      <details><summary>我跟別人同時按交付，誰拿到？</summary><p>先送到機器人的那一個。另一個人會看到「手慢了」，他的物品不會被扣掉。</p></details>
       <details><summary>按鈕按了沒反應怎麼辦？</summary><p>可能是訊息太舊了。重新輸入 <code>/小鎮</code> 打開一則新的農場畫面就好。</p></details>
       <details><summary>按到別人農場的「農田」按鈕會怎樣？</summary><p>什麼都不會發生，只有你看得到一則提醒。每個人只能操作自己的農場。</p></details>
     </div>
