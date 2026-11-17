@@ -216,6 +216,19 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
       <div class="s3"><b>🥀 枯萎</b><span>只能清掉</span></div>
     </div>
 
+    <h3>🔔 私訊通知</h3>
+    <p>不想一直回來看的話，在小鎮首頁按「🔕 通知」打開私訊通知（預設是關閉的）。每按一次會依序切換：</p>
+    <div class="tbl"><table>
+      <thead><tr><th>模式</th><th>什麼時候私訊你</th></tr></thead>
+      <tbody>
+        <tr><td>🔕 關</td><td>不私訊</td></tr>
+        <tr><td>🔔 每塊</td><td>每塊田一成熟就私訊（同一分鐘成熟的會合在一則）</td></tr>
+        <tr><td>🔔 全部</td><td>所有種了作物的田都成熟才私訊一次</td></tr>
+      </tbody>
+    </table></div>
+    <p>兩種模式都會在<b>作物過熟前 1 小時</b>和<b>礦坑挖完</b>時私訊你。私訊會寫出是哪個伺服器的小鎮，每個伺服器分開設定。</p>
+    <div class="note"><p>記得開啟這個伺服器的私訊。如果私訊送不出去，通知會自動關閉，下次打開 <code>/小鎮</code> 時會提醒你。</p></div>
+
     <h3>🐛 小心蟲子</h3>
     <div class="note warn"><p>作物長大的途中有機會長蟲，最晚在生長進度 80% 時就會出現，收成前一定有時間處理。看到 🐛 記得按「除蟲」，朋友路過也能幫你除。蟲沒除就收成的話，<b>賣價少 30%，稀有變異也會消失</b>。</p></div>
   </section>
@@ -295,7 +308,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
       <li>🟡 傳說和 🌈 神話任務出現、被完成時，會在伺服器的公告頻道通知大家。</li>
     </ul>
     <h3>🏅 成就與稱號</h3>
-    <p>種田、挖礦、幫朋友、存錢、做任務都能解鎖成就，共 36 個。在首頁按「🏅 成就」可以看到每個成就的進度，並選一個裝備成稱號，顯示在你的小鎮標題旁邊。以前玩的紀錄也會算進去。標 📢 的成就解鎖時會在公告頻道通知大家。</p>
+    <p>種田、挖礦、幫朋友、存錢、做任務都能解鎖成就，共 38 個。在首頁按「🏅 成就」可以看到每個成就的進度，並選一個裝備成稱號，顯示在你的小鎮標題旁邊。以前玩的紀錄也會算進去。標 📢 的成就解鎖時會在公告頻道通知大家。</p>
     <div class="tbl"><table>
       <thead><tr><th>分類</th><th>稱號</th><th class="w">條件</th></tr></thead>
       <tbody>
@@ -312,6 +325,8 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
         <tr><td>🌱 農田</td><td>🌈 彩虹之子</td><td class="w">收成 1 株彩虹作物</td></tr>
         <tr><td>🌱 農田</td><td>🌈 追虹者 📢</td><td class="w">收成 10 株彩虹作物</td></tr>
         <tr><td>🌱 農田</td><td>🟫 大地主</td><td class="w">解鎖全部 5 塊田</td></tr>
+        <tr><td>🌱 農田</td><td>⬆️ 農地改良</td><td class="w">第一次升級農田</td></tr>
+        <tr><td>🌱 農田</td><td>🏰 農場帝國 📢</td><td class="w">5 塊田全部升到大型</td></tr>
         <tr><td>⛏️ 礦坑</td><td>⛏️ 初次下礦</td><td class="w">完成 1 趟挖礦</td></tr>
         <tr><td>⛏️ 礦坑</td><td>🪨 礦坑老手</td><td class="w">完成 50 趟挖礦</td></tr>
         <tr><td>⛏️ 礦坑</td><td>🕳️ 地底居民</td><td class="w">完成 200 趟挖礦</td></tr>
@@ -351,8 +366,12 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
         <tr><td>第 5 塊田</td><td class="num">2,500</td><td class="w">同時種 5 株作物（上限）</td></tr>
         <tr><td>十字鎬 Lv2</td><td class="num">500</td><td class="w">更容易挖到稀有礦，可挖到 🔷 秘銀</td></tr>
         <tr><td>十字鎬 Lv3</td><td class="num">1,500</td><td class="w">稀有礦更多，挖礦時間縮短 10%，解鎖 🌋 地心礦坑和 🌠 星辰石</td></tr>
+        <tr><td>⬆️ 中型農田（每塊）</td><td class="num">4,000</td><td class="w">這塊田收成 ×2。要先解鎖全部 5 塊田</td></tr>
+        <tr><td>⏫ 大型農田（每塊）</td><td class="num">10,000</td><td class="w">這塊田收成 ×3（要先升到中型）</td></tr>
       </tbody>
     </table></div>
+    <h3>🌾 農田升級</h3>
+    <p>5 塊田都解鎖之後，商店會出現「🌾 農田升級」。每塊田可以分開升級：一般 → ⬆️ 中型（收成 ×2）→ ⏫ 大型（收成 ×3），升級是永久的。倍數以<b>收成當下</b>的等級為準，作物長到一半才升級也算數。收到稀有作物時，稀有作物的數量跟一般田一樣，多出來的份量是普通作物，例如大型田收到彩虹玉米，會得到 1 株彩虹玉米加 2 株普通玉米。升級過的田會在農場上顯示等級。</p>
     <h3>🏆 排行榜</h3>
     <p>每個伺服器有自己的排行榜，分成五種：<b>總資產</b>、<b>本週收入</b>（每週一重新計算，新手也有機會上榜）、<b>人氣</b>、<b>稀有收藏</b>、<b>任務</b>（完成任務的次數）。</p>
   </section>
@@ -366,6 +385,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
       <div><span>🐛</span><p>看到蟲先除。稀有作物最怕蟲，沒除就白長了。</p></div>
       <div><span>⛏️</span><p>種田和挖礦是分開的，兩個可以同時進行，別讓礦坑閒著。</p></div>
       <div><span>🤝</span><p>每天幫 5 位不同的朋友澆水，簡單就多賺 25 風幣，還能交朋友。</p></div>
+      <div><span>🌾</span><p>5 塊田都解鎖後，把最常種的那塊先升級成中型。升級後同一份種子收兩倍，大約一週多就能回本。</p></div>
       <div><span>📜</span><p>賣東西前先看一下任務牆，同樣的作物交給任務能換到 1.5 倍以上的風幣。金色、彩虹作物可以先留著，等高稀有度的任務出現。</p></div>
     </div>
   </section>
@@ -379,6 +399,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
       <details><summary>別人可以收走我的菜嗎？</summary><p>不行。訪客只能澆水、除蟲和按讚。</p></details>
       <details><summary>任務牆的公告會發在哪裡？</summary><p>伺服器管理員可以用 <code>/設定公告 頻道:#頻道</code> 指定公告頻道。沒設定的話，傳說和神話任務出現時不會另外通知。</p></details>
       <details><summary>我跟別人同時按交付，誰拿到？</summary><p>先送到機器人的那一個。另一個人會看到「手慢了」，他的物品不會被扣掉。</p></details>
+      <details><summary>為什麼收不到通知私訊？</summary><p>先確認首頁的通知按鈕是「🔔」。再到伺服器的「隱私設定」打開「允許來自伺服器成員的私訊」。私訊送不出去時通知會自動關閉，打開私訊後要再按一次通知按鈕。</p></details>
       <details><summary>按鈕按了沒反應怎麼辦？</summary><p>可能是訊息太舊了。重新輸入 <code>/小鎮</code> 打開一則新的農場畫面就好。</p></details>
       <details><summary>按到別人農場的「農田」按鈕會怎樣？</summary><p>什麼都不會發生，只有你看得到一則提醒。每個人只能操作自己的農場。</p></details>
     </div>
