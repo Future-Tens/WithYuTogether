@@ -52,7 +52,7 @@ SCHEMA = [
 ]
 
 EMPTY_PLOT = dict(crop_id=None, planted_at=None, ready_at=None, mutation=None, mutation_alt=None,
-                  pest_at=None, pest_cleared=0, watered_by=None)
+                  pest_at=None, pest_cleared=0, watered_by=None, notified=0)
 
 
 class TownDB:
@@ -69,6 +69,21 @@ class TownDB:
             cols = {r["name"] for r in conn.execute("PRAGMA table_info(town_players)")}
             if "title" not in cols:
                 conn.execute("ALTER TABLE town_players ADD COLUMN title TEXT")
+            plot_cols = {r["name"] for r in conn.execute("PRAGMA table_info(town_plots)")}
+            if "tier" not in plot_cols:
+                # 田地等級；收成清空田地（EMPTY_PLOT）時不會動到，所以升級是永久的
+                conn.execute("ALTER TABLE town_plots ADD COLUMN tier INTEGER NOT NULL DEFAULT 1")
+            # 私訊通知：notify = off / each / all（預設關閉）；notify_failed = 私訊失敗被自動關閉，下次開小鎮時提醒
+            if "notify" not in cols:
+                conn.execute("ALTER TABLE town_players ADD COLUMN notify TEXT NOT NULL DEFAULT 'off'")
+            if "notify_failed" not in cols:
+                conn.execute("ALTER TABLE town_players ADD COLUMN notify_failed INTEGER NOT NULL DEFAULT 0")
+            if "notified" not in plot_cols:
+                # 已通知的位元（1 = 成熟、2 = 快過熟），種下新作物時歸零
+                conn.execute("ALTER TABLE town_plots ADD COLUMN notified INTEGER NOT NULL DEFAULT 0")
+            mine_cols = {r["name"] for r in conn.execute("PRAGMA table_info(town_mining)")}
+            if "notified" not in mine_cols:
+                conn.execute("ALTER TABLE town_mining ADD COLUMN notified INTEGER NOT NULL DEFAULT 0")
             # 起始田數調高後，把舊存檔補到新的起始值（解鎖價格表是從起始田數 +1 開始）
             conn.execute("UPDATE town_players SET plot_count = ? WHERE plot_count < ?",
                          (content.settings["start"]["plots"], content.settings["start"]["plots"]))
@@ -149,6 +164,12 @@ class TownDB:
         return {r["slot"]: dict(r) for r in rows}
 
     @staticmethod
+    def _tiers(conn, g, u):
+        """{slot: tier}，只列出升級過的田。"""
+        return {r["slot"]: r["tier"] for r in conn.execute(
+            "SELECT slot, tier FROM town_plots WHERE guild_id=? AND user_id=? AND tier > 1", (g, u))}
+
+    @staticmethod
     def _set_plot(conn, g, u, slot, fields):
         cols = list(fields)
         conn.execute(
@@ -180,7 +201,8 @@ class TownDB:
         with self.read() as conn:
             player = self._player(conn, g, u)
             mining = conn.execute("SELECT * FROM town_mining WHERE guild_id=? AND user_id=?", (g, u)).fetchone()
-            return {"player": player, "plots": self._plots(conn, g, u), "mining": dict(mining) if mining else None}
+            return {"player": player, "plots": self._plots(conn, g, u), "tiers": self._tiers(conn, g, u),
+                    "mining": dict(mining) if mining else None}
 
     def inventory(self, guild_id, user_id):
         g, u = self._ids(guild_id, user_id)
@@ -245,7 +267,7 @@ class TownDB:
             if slot in self._plots(conn, g, u):
                 raise TownError("這塊田已經種了東西。")
             self._spend(conn, g, u, crop["seed_price"], "seed", now)
-            self._set_plot(conn, g, u, slot, svc.roll_planting(self.content, crop_id, now, rng))
+            self._set_plot(conn, g, u, slot, {**svc.roll_planting(self.content, crop_id, now, rng), "notified": 0})
         return crop
 
     def harvest(self, guild_id, user_id, now, slot=None):
@@ -262,15 +284,18 @@ class TownDB:
                 state, _ = svc.plot_state(self.content, plot, now)
                 if state not in (svc.FRESH, svc.OVERRIPE):
                     continue
-                item_id, qty, mut = svc.harvest_result(self.content, plot, now)
+                items, mut = svc.harvest_result(self.content, plot, now)
                 self._set_plot(conn, g, u, s, EMPTY_PLOT)
-                self._add_item(conn, g, u, item_id, qty)
+                for item_id, n in items:
+                    self._add_item(conn, g, u, item_id, n)
+                qty = sum(n for _, n in items)
                 conn.execute("""UPDATE town_players SET total_harvest = total_harvest + ?,
                                 rare_found = rare_found + ? WHERE guild_id=? AND user_id=?""",
                              (qty, 1 if mut != "normal" else 0, g, u))
                 if mut != "normal":
                     self._bump(conn, g, u, f"crop_{mut}")
-                results.append({"slot": s, "item_id": item_id, "qty": qty, "mutation": mut, "crop_id": plot["crop_id"]})
+                results.append({"slot": s, "items": items, "item_id": items[0][0], "qty": qty, "mutation": mut,
+                                "crop_id": plot["crop_id"], "tier": plot["tier"]})
         if not results:
             raise TownError("目前沒有可以收成的作物。")
         return results
@@ -433,6 +458,26 @@ class TownDB:
             conn.execute("UPDATE town_players SET plot_count = plot_count + 1 WHERE guild_id=? AND user_id=?", (g, u))
         return {"plot_count": p["plot_count"] + 1, "price": price}
 
+    def upgrade_plot(self, guild_id, user_id, slot, now):
+        """把一塊田升一級（一般 → 中型 → 大型）。需要先解鎖全部田地。"""
+        g, u = self._ids(guild_id, user_id)
+        need = self.content.settings["plot_tiers"]["require_plots"]
+        with self.tx() as conn:
+            p = self._player(conn, g, u)
+            if p["plot_count"] < need:
+                raise TownError(f"要先解鎖全部 {need} 塊田，才能開始升級農田。")
+            if not 1 <= slot <= p["plot_count"]:
+                raise TownError("沒有這塊田。")
+            row = conn.execute("SELECT tier FROM town_plots WHERE guild_id=? AND user_id=? AND slot=?", (g, u, slot)).fetchone()
+            nxt = svc.next_plot_tier(self.content, row["tier"] if row else 1)
+            if nxt is None:
+                raise TownError(f"第 {slot} 格已經是最高等級了。")
+            self._spend(conn, g, u, nxt["price"], "plot_tier", now)
+            conn.execute("""INSERT INTO town_plots (guild_id, user_id, slot, tier) VALUES (?,?,?,?)
+                            ON CONFLICT (guild_id, user_id, slot) DO UPDATE SET tier = excluded.tier""",
+                         (g, u, slot, nxt["tier"]))
+        return {"slot": slot, **nxt}
+
     def upgrade_pickaxe(self, guild_id, user_id, now):
         g, u = self._ids(guild_id, user_id)
         with self.tx() as conn:
@@ -547,6 +592,9 @@ class TownDB:
                                       (g, u, action)).fetchone()[0]
         stats["pest_helped"] = conn.execute(
             "SELECT COUNT(*) FROM town_ledger WHERE guild_id=? AND user_id=? AND reason='pest_reward'", (g, u)).fetchone()[0]
+        for key, tier in (("plots_mid", 2), ("plots_large", 3)):
+            stats[key] = conn.execute("SELECT COUNT(*) FROM town_plots WHERE guild_id=? AND user_id=? AND tier >= ?",
+                                      (g, u, tier)).fetchone()[0]
         stats["sell_total"] = conn.execute(
             "SELECT COALESCE(SUM(delta), 0) FROM town_ledger WHERE guild_id=? AND user_id=? AND reason='sell'", (g, u)).fetchone()[0]
         return stats
@@ -578,6 +626,58 @@ class TownDB:
         with self.read() as conn:
             return {r[0] for r in conn.execute(
                 "SELECT achievement_id FROM town_achievements WHERE guild_id=? AND user_id=?", (g, u))}
+
+    # ---------- 私訊通知 ----------
+
+    def _notify_events(self, conn, g, u, mode, now):
+        """算出該通知的事件，並把它們標記為已通知（同一個交易內，不會重複發）。"""
+        mining = conn.execute("SELECT * FROM town_mining WHERE guild_id=? AND user_id=?", (g, u)).fetchone()
+        plots = self._plots(conn, g, u)
+        ev = svc.notify_events(self.content, mode, plots, dict(mining) if mining else None, now)
+        for s, bits in ev["flags"].items():
+            conn.execute("UPDATE town_plots SET notified=? WHERE guild_id=? AND user_id=? AND slot=?", (bits, g, u, s))
+        if ev["mine"]:
+            conn.execute("UPDATE town_mining SET notified=1 WHERE guild_id=? AND user_id=?", (g, u))
+        ev["plots"] = {s: plots[s] for s in ev["ready"]}
+        ev["plots"].update({s: plots[s] for s, _ in ev["warn"]})
+        ev["mining"] = dict(mining) if ev["mine"] else None
+        return ev
+
+    def cycle_notify(self, guild_id, user_id, now):
+        """切換通知模式（關 → 每塊 → 全部 → 關），回傳新模式。
+        切換時把現在已經成熟／挖完的東西標成已通知，玩家正看著畫面，不用再私訊。"""
+        g, u = self._ids(guild_id, user_id)
+        modes = svc.NOTIFY_MODES
+        with self.tx() as conn:
+            mode = self._player(conn, g, u)["notify"]
+            new = modes[(modes.index(mode) + 1) % len(modes)] if mode in modes else modes[1]
+            conn.execute("UPDATE town_players SET notify=?, notify_failed=0 WHERE guild_id=? AND user_id=?", (new, g, u))
+            if new != "off":
+                self._notify_events(conn, g, u, "each", now)
+        return new
+
+    def pending_notifications(self, now):
+        """背景排程用：所有開了通知的玩家該收到的私訊，並標記為已通知。"""
+        out = []
+        with self.tx() as conn:
+            for p in conn.execute("SELECT guild_id, user_id, notify FROM town_players WHERE notify != 'off'").fetchall():
+                ev = self._notify_events(conn, p["guild_id"], p["user_id"], p["notify"], now)
+                if ev["ready"] or ev["warn"] or ev["mine"]:
+                    out.append({"guild_id": p["guild_id"], "user_id": p["user_id"], **ev})
+        return out
+
+    def disable_notify(self, guild_id, user_id):
+        """私訊失敗：關掉通知並留下提醒。"""
+        g, u = self._ids(guild_id, user_id)
+        with self.tx() as conn:
+            conn.execute("UPDATE town_players SET notify='off', notify_failed=1 WHERE guild_id=? AND user_id=?", (g, u))
+
+    def pop_notify_failed(self, guild_id, user_id):
+        """回傳是否有私訊失敗的提醒，並清掉（只提醒一次）。"""
+        g, u = self._ids(guild_id, user_id)
+        with self.tx() as conn:
+            return conn.execute("UPDATE town_players SET notify_failed=0 WHERE guild_id=? AND user_id=? AND notify_failed=1",
+                                (g, u)).rowcount == 1
 
     def set_title(self, guild_id, user_id, achievement_id):
         """裝備稱號；achievement_id=None 代表不顯示。"""

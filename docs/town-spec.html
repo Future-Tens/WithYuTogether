@@ -306,7 +306,7 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
     <ul>
       <li>任務被完成後那一格冷卻 <b>30 分鐘</b>才補新任務；過期的任務直接換掉。</li>
       <li>作物只收 100% 新鮮的；「任意金色作物」這類萬用需求從最便宜的開始扣，獎勵依實際交出的作物計價（任務牆顯示「起」價，物品夠時顯示你現在交付可得多少）。</li>
-      <li>成就共 36 個，分成簽到、農田、礦坑、社交、財富、任務六類（例如累計簽到 365 天、收成 10 株彩虹作物、挖到星辰石、幫朋友澆水 100 次、累計賣出 10 萬風幣、完成神話任務）。解鎖後可裝備成稱號顯示在小鎮標題；標記 announce 的成就會發公告。</li>
+      <li>成就共 38 個，分成簽到、農田、礦坑、社交、財富、任務六類（例如累計簽到 365 天、收成 10 株彩虹作物、挖到星辰石、幫朋友澆水 100 次、累計賣出 10 萬風幣、完成神話任務）。解鎖後可裝備成稱號顯示在小鎮標題；標記 announce 的成就會發公告。</li>
       <li>管理員用 <code>/設定公告 頻道:#頻道</code> 指定公告頻道。傳說以上任務的出現與完成、彩虹作物都發到那裡；沒設定時，任務出現不通知，完成和彩虹作物則發在當下的頻道。</li>
     </ul>
   </section>
@@ -321,9 +321,13 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
         <tr><td>解鎖第 5 塊田</td><td class="num">2,500</td><td>可同時種 5 株（上限）</td></tr>
         <tr><td>十字鎬 Lv2</td><td class="num">500</td><td>稀有礦權重 ×1.5，可挖到秘銀</td></tr>
         <tr><td>十字鎬 Lv3</td><td class="num">1,500</td><td>稀有礦權重 ×2，行程時間 −10%，解鎖地心礦坑與星辰石</td></tr>
+        <tr><td>⬆️ 中型農田（每塊）</td><td class="num">4,000</td><td>該格收成 ×2；需先解鎖全部 5 塊田</td></tr>
+        <tr><td>⏫ 大型農田（每塊）</td><td class="num">10,000</td><td>該格收成 ×3；需先升到中型</td></tr>
       </tbody>
     </table></div>
     <p><b>排行榜</b>（伺服器內）：總資產、本週收入（每週一台灣時間 00:00 重算）、人氣、稀有收藏數、任務完成數。</p>
+    <p><b>農田升級</b>：每塊田分開升級，倍數以收成當下的等級為準，多出來的份量 = 作物產量 × (倍數 − 1)，一律是普通作物；變異作物的數量跟一般田相同（例如大型田：彩虹 1 + 普通 2、巨大 2 + 普通 2）。只有升級過的田才在農場畫面顯示等級標籤。</p>
+    <p><b>🔔 私訊通知</b>：首頁按鈕依序切換「🔕 關 → 🔔 每塊 → 🔔 全部」，預設關閉，每個伺服器分開設定。「每塊」是每塊田一成熟就私訊；「全部」是所有種了作物（未枯萎）的田都成熟才私訊一次，訊息列出全部成熟的田。兩種模式都會在作物過熟前 1 小時（<code>settings.notify.overripe_warn_minutes</code>）和礦坑挖完時私訊。同一分鐘的事件合成一則，寫明是哪個伺服器並附伺服器連結。私訊被拒（Forbidden）時自動改回「關」，玩家下次自己打開 <code>/小鎮</code> 時提醒一次「私訊失敗，通知已關閉，請開啟伺服器私訊」。</p>
     <p><b>賣出</b>：Select 賣單一物品、「🧺 賣出普通作物」「⛏️ 賣出普通礦物」各自一鍵賣掉該類的非稀有物品、「全部賣出」連稀有一起賣。稀有物品＝有變異的作物（金色、巨大、彩虹）＋任何礦坑中標記 <code>rare</code> 的礦物（金礦、寶石、秘銀、星辰石），由 <code>svc.is_rare_item</code> 判斷。</p>
     <p class="muted small">本頁所有數值都是初始值，會放在 JSON 裡，上線後依實際經濟狀況調整。</p>
   </section>
@@ -347,6 +351,7 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
       <div><span class="k">轉帳</span><span class="v">不開放</span></div>
       <div><span class="k">任務牆</span><span class="v">伺服器共用 6 格、交付型、先到先得、無每日上限、完成後冷卻 30 分鐘</span></div>
       <div><span class="k">稀有度</span><span class="v">普通 70%、稀有 20%、罕見 8.9%、傳說 1%、神話 0.1%</span></div>
+      <div><span class="k">私訊通知</span><span class="v">首頁三段切換（關／每塊／全部），預設關閉；過熟前 1 小時、礦坑挖完也通知；私訊失敗自動關閉並提醒</span></div>
       <div><span class="k">公告</span><span class="v">管理員用 <code>/設定公告</code> 指定頻道；傳說以上任務的出現與完成、彩虹作物都發到那裡</span></div>
     </div>
   </section>
@@ -388,7 +393,7 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
  │   ├─ 🌱 農田 → 選格子 → 種植（Select 選種子）/ 收成 / 除蟲 / 清除枯萎
  │   ├─ ⛏️ 礦坑 → 選行程出發 / 收取
  │   ├─ 🎒 背包             （ephemeral）
- │   ├─ 🏪 商店 → 賣出（Select 單項 / 🧺 普通作物 / ⛏️ 普通礦物 / 全部賣出）/ 解鎖田地 / 升級十字鎬
+ │   ├─ 🏪 商店 → 賣出（Select 單項 / 🧺 普通作物 / ⛏️ 普通礦物 / 全部賣出）/ 🌾 升級農田（Select）/ 解鎖田地 / 升級十字鎬
  │   ├─ 📜 任務牆 → 交付 1～6（物品不夠時停用）
  │   ├─ 🏅 成就 → Select 裝備稱號
  │   └─ 🏆 排行榜 → 總資產 / 本週收入 / 人氣 / 稀有收藏 / 任務
@@ -451,6 +456,19 @@ for slot in 1..6:
 
 <span class="c">-- 交付：BEGIN IMMEDIATE 內檢查 status='open' 且未過期 → 扣物品 → 標 done → 發風幣 → 檢查成就</span>
 <span class="c">-- 兩人同時按只有一個交易成功，另一個看到「手慢了」，物品不會被扣</span></pre>
+    <h4>私訊通知</h4>
+<pre><span class="c">-- notify_loop：每分鐘一次，一個 BEGIN IMMEDIATE 交易內算出並標記，交易結束後才發私訊</span>
+for 每個 notify != 'off' 的玩家:
+    每塊有種東西的田（notified 位元：1 = 已通知成熟、2 = 已提醒過熟）
+        枯萎          → 位元全設，不通知
+        新鮮/過熟且無 1 → 成熟候選
+        新鮮且 now ≥ 過熟時間 − 60 分鐘且無 2 → 快過熟提醒；已過熟 → 直接設 2 不提醒
+    mode = 'all' → 所有未枯萎的田都已成熟且有成熟候選時，通知全部成熟的田；否則不通知成熟
+    礦坑 now ≥ ready_at 且 notified = 0 → 通知並設 1
+種下新作物 / 收成清空 → notified 歸零；新行程 INSERT → notified 預設 0
+切換通知模式時 → 把目前已成熟／挖完的先標成已通知（玩家正看著畫面）
+私訊 Forbidden → notify = 'off'、notify_failed = 1；/小鎮 打開自己農場時讀取並清除 notify_failed</pre>
+    <p>每塊田只會通知一次；機器人停機期間成熟的東西，重啟後下一分鐘補發一次。私訊發送失敗（非 Forbidden）不重試，避免重複。</p>
     <h4>時間</h4>
     <p>DB 存 UTC Unix 秒數。「哪一天」和「哪一週」用 <code>Asia/Taipei</code> 計算，<code>day</code> 欄位存 <code>YYYY-MM-DD</code>。</p>
   </section>
@@ -460,14 +478,16 @@ for slot in 1..6:
     <p>建在現有的 <code>data/with_you_together.db</code>，由 <code>town_db</code> 啟動時 <code>CREATE TABLE IF NOT EXISTS</code>。不使用舊的 <code>users</code> 表，因為那張表沒有 guild_id。</p>
 <pre>town_players    guild_id, user_id, gold=100, plot_count=2, pickaxe_lv=1,
                 last_checkin, checkin_total=0, likes=0, total_harvest=0,
-                rare_found=0, created_at                PK(guild_id, user_id)
+                rare_found=0, created_at, title,
+                notify='off'(off/each/all), notify_failed=0
+                                                        PK(guild_id, user_id)
 
-farm_plots      guild_id, user_id, slot, crop_id, planted_at, ready_at,
+farm_plots      guild_id, user_id, slot, tier=1, crop_id, planted_at, ready_at,
                 mutation, mutation_alt, pest_at, pest_cleared=0,
-                watered_by                              PK(guild_id, user_id, slot)
+                watered_by, notified=0                  PK(guild_id, user_id, slot)
                 <span class="c">-- crop_id 為 NULL 代表空地；slot 1..plot_count</span>
 
-mining          guild_id, user_id, trip_id, started_at, ready_at
+mining          guild_id, user_id, trip_id, started_at, ready_at, notified=0
                                                         PK(guild_id, user_id)
                 <span class="c">-- 有列 = 行程進行中或待收取</span>
 
@@ -510,6 +530,11 @@ guild_settings.announce_channel   <span class="c">-- /設定公告；由 Databas
   "gold":    { "weight": 7,   "price_mult": 3, "yield_mult": 1, "label": "✨金色" },
   "giant":   { "weight": 2.5, "price_mult": 1, "yield_mult": 2, "label": "🌟巨大" },
   "rainbow": { "weight": 0.5, "price_mult": 8, "yield_mult": 1, "label": "🌈彩虹", "announce": true } }
+
+<span class="c">// settings.json → plot_tiers（tier 1 = 一般田，不列）</span>
+{ "plot_tiers": { "require_plots": 5, "tiers": [
+    { "tier": 2, "name": "中型", "emoji": "⬆️", "yield_mult": 2, "price": 4000 },
+    { "tier": 3, "name": "大型", "emoji": "⏫", "yield_mult": 3, "price": 10000 } ] } }
 
 <span class="c">// mines.json</span>
 { "core": { "name": "地心", "hours": 12, "rolls": 12, "chest_chance": 0.02, "min_pickaxe": 3,
@@ -561,7 +586,7 @@ guild_settings.announce_channel   <span class="c">-- /設定公告；由 Databas
     <h3>開發路線</h3>
     <div class="phases">
       <div><span class="p">MVP</span><span>簽到、農田（蟲害、變異、過熟枯萎）、礦坑、背包、商店與升級、排行榜、澆水／除蟲／按讚</span></div>
-      <div><span class="p">第二階段</span><span>✅ 任務牆、36 個成就與稱號、公告頻道。接下來：送禮（待領取禮物盒）、好感度、農場留言板、每週社區目標</span></div>
+      <div><span class="p">第二階段</span><span>✅ 任務牆、38 個成就與稱號、公告頻道、農田升級、私訊通知。接下來：送禮（待領取禮物盒）、好感度、農場留言板、每週社區目標</span></div>
       <div><span class="p">之後</span><span>成熟私訊通知、季節與天氣事件、更多作物與礦層</span></div>
     </div>
   </section>

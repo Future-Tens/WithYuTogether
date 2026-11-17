@@ -25,6 +25,7 @@ MEDALS = ["🥇", "🥈", "🥉"]
 ACH_CATEGORIES = {"checkin": "📅 簽到", "farm": "🌱 農田", "mine": "⛏️ 礦坑",
                   "social": "🤝 社交", "wealth": "💰 財富", "quest": "📜 任務"}
 # 只是切換頁面的動作，不需要檢查成就（"ach" 不在這裡：打開成就頁時順便補發舊存檔的成就）
+NOTIFY_LABELS = {"off": "通知：關", "each": "通知：每塊", "all": "通知：全部"}
 NAV_ACTIONS = {"home", "refresh", "farm", "mine", "shop", "rank", "plantpick", "quest"}
 GREEN = discord.Color.from_rgb(87, 168, 75)
 NO_PINGS = discord.AllowedMentions.none()
@@ -95,9 +96,11 @@ class TownCog(commands.Cog):
     async def cog_load(self):
         self.bot.add_dynamic_items(TownButton, TownSelect)
         self.quest_loop.start()
+        self.notify_loop.start()
 
     async def cog_unload(self):
         self.quest_loop.cancel()
+        self.notify_loop.cancel()
         self.bot.remove_dynamic_items(TownButton, TownSelect)
 
     # ---------- 任務牆排程與公告 ----------
@@ -116,6 +119,49 @@ class TownCog(commands.Cog):
     @quest_loop.error
     async def _quest_loop_error(self, error):
         traceback.print_exception(error)
+
+    # ---------- 私訊通知 ----------
+
+    @tasks.loop(minutes=1)
+    async def notify_loop(self):
+        """每分鐘檢查開了通知的玩家，田成熟／快過熟、礦坑挖完就私訊（同一分鐘的事件合併成一則）。"""
+        now = int(time.time())
+        for ev in self.db.pending_notifications(now):
+            guild = self.bot.get_guild(int(ev["guild_id"]))
+            if guild is None:
+                continue
+            try:
+                user = self.bot.get_user(int(ev["user_id"])) or await self.bot.fetch_user(int(ev["user_id"]))
+                await user.send(self._notify_text(guild, ev))
+            except discord.Forbidden:
+                self.db.disable_notify(ev["guild_id"], ev["user_id"])
+            except discord.HTTPException:
+                traceback.print_exc()
+
+    @notify_loop.before_loop
+    async def _before_notify_loop(self):
+        await self.bot.wait_until_ready()
+
+    @notify_loop.error
+    async def _notify_loop_error(self, error):
+        traceback.print_exception(error)
+
+    def _notify_text(self, guild, ev):
+        def plot_name(s):
+            crop = self.content.crops[ev["plots"][s]["crop_id"]]
+            return f"第 {s} 格{crop['emoji']}{crop['name']}"
+        lines = [f"🔔 你在 **{guild.name}** 的小鎮有新動態！"]
+        if ev["ready"]:
+            head = "🌾 田全部成熟了" if ev["all_ready"] else "🌾 成熟了"
+            lines.append(f"{head}：{'、'.join(plot_name(s) for s in ev['ready'])}")
+        for s, at in ev["warn"]:
+            lines.append(f"⏰ {plot_name(s)} <t:{at}:R> 就會過熟（過熟只能賣一半），快去收成！")
+        if ev["mining"]:
+            trip = self.content.mines[ev["mining"]["trip_id"]]
+            lines.append(f"⛏️ {trip['emoji']}{trip['name']} 挖完了，可以收取")
+        lines.append(f"到伺服器輸入 `/小鎮` 看看吧～ https://discord.com/channels/{guild.id}")
+        lines.append("-# 不想收到通知可以在小鎮首頁按「🔔 通知」切換或關閉")
+        return "\n".join(lines)
 
     async def _refresh_quests(self, guild, guild_id, now):
         for q in self.db.refresh_quests(guild_id, now):
@@ -177,6 +223,8 @@ class TownCog(commands.Cog):
                 start = self.content.settings["start"]
                 notice = (f"🎉 歡迎來到小鎮！你拿到了 {start['plots']} 塊田和 {start['gold']} 風幣，"
                           "先按「📅 簽到」，再去「🌱 農田」種下第一株作物吧。")
+            elif self.db.pop_notify_failed(g, owner):
+                notice = "⚠️ 私訊失敗，通知已關閉，請開啟伺服器私訊後再按「🔕 通知」打開。"
         embed, view = self.render("home", g, owner, now, notice=notice)
         await interaction.response.send_message(embed=embed, view=view, allowed_mentions=NO_PINGS)
 
@@ -278,6 +326,17 @@ class TownCog(commands.Cog):
                 text += f"\n🎁 累計 {r['total']} 天里程碑：額外 +{r['milestone']} 風幣！"
             return "home", None, text, []
 
+        if action == "notify":
+            mode = db.cycle_notify(g, owner, now)
+            text = {
+                "off": "🔕 已關閉私訊通知。",
+                "each": "🔔 通知：**每塊**。每塊田成熟、作物快過熟、礦坑挖完都會私訊你。",
+                "all": "🔔 通知：**全部**。所有種了作物的田都成熟才私訊一次；作物快過熟、礦坑挖完也會私訊你。",
+            }[mode]
+            if mode != "off":
+                text += "\n-# 記得開啟這個伺服器的私訊，否則收不到通知。"
+            return "home", None, text, []
+
         if action == "plantpick":
             return "plant", arg, None, []
         if action == "plant":
@@ -291,7 +350,14 @@ class TownCog(commands.Cog):
             name = db.snapshot(g, owner)["player"]["name"]
             for r in results:
                 info = svc.item_info(content, r["item_id"])
-                lines.append(f"🧺 第 {r['slot']} 格：{info['emoji']}{info['name']} ×{r['qty']}（價值 {info['price'] * r['qty']} 風幣）")
+                tier = svc.plot_tier(content, r["tier"])
+                bonus = f" · {tier['emoji']}{tier['name']}農田" if r["tier"] > 1 else ""
+                parts, value = [], 0
+                for item_id, n in r["items"]:
+                    it = svc.item_info(content, item_id)
+                    parts.append(f"{it['emoji']}{it['name']} ×{n}")
+                    value += it["price"] * n
+                lines.append(f"🧺 第 {r['slot']} 格：{' ＋ '.join(parts)}（價值 {value:,} 風幣{bonus}）")
                 if content.mutations[r["mutation"]].get("announce"):
                     announces.append(f"🌈 **{name}** 收成了一株{info['emoji']}{info['name']}！快去 `/小鎮` 看看吧！")
             return "farm", None, "\n".join(lines), announces
@@ -326,6 +392,10 @@ class TownCog(commands.Cog):
         if action == "unlock":
             r = db.unlock_plot(g, owner, now)
             return "shop", None, f"🟫 花了 {r['price']:,} 風幣，解鎖第 {r['plot_count']} 塊田！", []
+        if action == "plotup":
+            r = db.upgrade_plot(g, owner, int(value), now)
+            return "shop", None, (f"🌾 花了 {r['price']:,} 風幣，第 {r['slot']} 格升級成{r['emoji']}{r['name']}農田！"
+                                  f"之後收成 ×{r['yield_mult']}。"), []
         if action == "pickaxe":
             r = db.upgrade_pickaxe(g, owner, now)
             text = f"⛏️ 花了 {r['price']:,} 風幣，十字鎬升級到 Lv{r['level']}！"
@@ -382,15 +452,20 @@ class TownCog(commands.Cog):
     def _back(self, owner, row=4):
         return self._btn("home", owner, label="返回", emoji="⬅️", row=row)
 
-    def _plot_line(self, slot, plot, now, plot_count):
+    def _tier_tag(self, tier):
+        """升級過的田才顯示等級標籤。"""
+        t = svc.plot_tier(self.content, tier)
+        return f" {t['emoji']}{t['name']}" if tier > 1 else ""
+
+    def _plot_line(self, slot, plot, now, plot_count, tier=1):
         if slot > plot_count:
             price = svc.next_plot_price(self.content, plot_count) if slot == plot_count + 1 else None
             return f"`{slot}` 🔒 未解鎖" + (f"（商店 {price:,} 風幣）" if price else "")
         if not plot:
-            return f"`{slot}` 🟫 空地"
+            return f"`{slot}` 🟫 空地{self._tier_tag(tier)}"
         crop = self.content.crops[plot["crop_id"]]
         state, nxt = svc.plot_state(self.content, plot, now)
-        name = f"{crop['emoji']} {crop['name']}"
+        name = f"{crop['emoji']} {crop['name']}{self._tier_tag(tier)}"
         tags = (" 💧" if plot["watered_by"] else "") + (" 🐛有蟲" if svc.has_pest(plot, now) else "")
         if state == svc.GROWING:
             return f"`{slot}` {name} — <t:{nxt}:R> 成熟{tags}"
@@ -404,7 +479,7 @@ class TownCog(commands.Cog):
 
     def _plot_lines(self, snap, now):
         p = snap["player"]
-        return "\n".join(self._plot_line(s, snap["plots"].get(s), now, p["plot_count"])
+        return "\n".join(self._plot_line(s, snap["plots"].get(s), now, p["plot_count"], snap["tiers"].get(s, 1))
                          for s in range(1, self.max_plots + 1))
 
     def _mine_line(self, snap, now):
@@ -439,6 +514,8 @@ class TownCog(commands.Cog):
             self._btn("rank", owner, "assets", label="排行榜", emoji="🏆", row=1),
             self._btn("ach", owner, label="成就", emoji="🏅", row=1),
             self._btn("refresh", owner, label="重新整理", emoji="🔄", row=1),
+            self._btn("notify", owner, label=NOTIFY_LABELS.get(p.get("notify"), NOTIFY_LABELS["off"]),
+                      emoji="🔕" if p.get("notify", "off") == "off" else "🔔", row=1),
             self._btn("water", owner, label="幫忙澆水", emoji="💧", style=discord.ButtonStyle.primary, row=2),
             self._btn("pest", owner, "home", label="除蟲", emoji="🐛", style=discord.ButtonStyle.primary, row=2),
             self._btn("like", owner, label="按讚", emoji="❤️", style=discord.ButtonStyle.primary, row=2),
@@ -557,6 +634,24 @@ class TownCog(commands.Cog):
         e.add_field(name="⛏️ 十字鎬", value=f"Lv{p['pickaxe_lv']}"
                     + (f"，升級 {nxt_pick['price']:,} 風幣" + (f"\n下一級：{nxt_pick['unlocks']}" if nxt_pick.get("unlocks") else "")
                        if nxt_pick else "（最高等級）"))
+        tiers_cfg = self.content.settings["plot_tiers"]
+        upgrades = []  # (slot, 目前等級, 下一級)
+        if p["plot_count"] >= tiers_cfg["require_plots"]:
+            lines = []
+            for slot in range(1, p["plot_count"] + 1):
+                cur = snap["tiers"].get(slot, 1)
+                nxt = svc.next_plot_tier(self.content, cur)
+                cur_name = svc.plot_tier(self.content, cur)["name"] or "一般"
+                if nxt:
+                    upgrades.append((slot, cur_name, nxt))
+                    lines.append(f"`{slot}` {cur_name} → {nxt['emoji']}{nxt['name']}（收成 ×{nxt['yield_mult']}）{nxt['price']:,} 風幣")
+                else:
+                    lines.append(f"`{slot}` {self._tier_tag(cur).strip()}（已滿級）")
+            e.add_field(name="🌾 農田升級", value="\n".join(lines), inline=False)
+        else:
+            e.add_field(name="🌾 農田升級", inline=False,
+                        value=f"解鎖全部 {tiers_cfg['require_plots']} 塊田後開放（目前 {p['plot_count']} 塊）："
+                              + "、".join(f"{t['name']} ×{t['yield_mult']}" for t in tiers_cfg["tiers"]))
         e.set_footer(text=f"💰 你有 {p['gold']:,} 風幣 · 稀有物品：金色／巨大／彩虹作物、金礦、寶石、秘銀、星辰石")
         items = []
         if inv:
@@ -573,11 +668,19 @@ class TownCog(commands.Cog):
                       label=f"賣出普通礦物（{ore_total:,} 風幣）" if ore_total else "沒有普通礦物",
                       emoji="⛏️", style=discord.ButtonStyle.success, disabled=not ore_total, row=1),
             self._btn("sellall", owner, label="全部賣出（含稀有）", emoji="💰", disabled=not inv, row=1),
+        ]
+        if upgrades:
+            options = [discord.SelectOption(label=f"第 {slot} 格：{cur} → {nxt['name']}（{nxt['price']:,} 風幣）",
+                                            value=str(slot), emoji=nxt["emoji"],
+                                            description=f"之後這塊田收成 ×{nxt['yield_mult']}")
+                       for slot, cur, nxt in upgrades]
+            items.append(TownSelect("plotup", owner, options=options, placeholder="🌾 選擇要升級的農田", row=2))
+        items += [
             self._btn("unlock", owner, label=f"解鎖田地（{plot_price:,} 風幣）" if plot_price else "田地已滿",
-                      emoji="🟫", disabled=plot_price is None, row=2),
+                      emoji="🟫", disabled=plot_price is None, row=3),
             self._btn("pickaxe", owner, label=f"十字鎬 Lv{nxt_pick['level']}（{nxt_pick['price']:,} 風幣）" if nxt_pick else "十字鎬已滿級",
-                      emoji="⛏️", disabled=nxt_pick is None, row=2),
-            self._back(owner, row=2),
+                      emoji="⛏️", disabled=nxt_pick is None, row=3),
+            self._back(owner, row=3),
         ]
         return e, items
 

@@ -13,6 +13,8 @@
     "rainbow_1":    { "category": "farm", "name": "彩虹之子",   "emoji": "🌈", "desc": "收成 1 株彩虹作物",  "stat": "crop_rainbow", "count": 1 },
     "rainbow_10":   { "category": "farm", "name": "追虹者",     "emoji": "🌈", "desc": "收成 10 株彩虹作物", "stat": "crop_rainbow", "count": 10, "announce": true },
     "plots_5":      { "category": "farm", "name": "大地主",     "emoji": "🟫", "desc": "解鎖全部 5 塊田",    "stat": "plot_count", "count": 5 },
+    "plot_mid_1":   { "category": "farm", "name": "農地改良",   "emoji": "⬆️", "desc": "第一次升級農田",     "stat": "plots_mid", "count": 1 },
+    "plot_large_5": { "category": "farm", "name": "農場帝國",   "emoji": "🏰", "desc": "5 塊田全部升到大型", "stat": "plots_large", "count": 5, "announce": true },
 
     "mine_1":       { "category": "mine", "name": "初次下礦",   "emoji": "⛏️", "desc": "完成 1 趟挖礦",   "stat": "mine_trips", "count": 1 },
     "mine_50":      { "category": "mine", "name": "礦坑老手",   "emoji": "🪨", "desc": "完成 50 趟挖礦",  "stat": "mine_trips", "count": 50 },

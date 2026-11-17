@@ -123,8 +123,49 @@ def plot_state(content, plot, now):
     return WITHERED, None
 
 
+NOTIFY_MODES = ["off", "each", "all"]  # 通知按鈕依序切換
+NOTIFY_READY, NOTIFY_WARN = 1, 2       # town_plots.notified 的位元
+
+
+def notify_events(content, mode, plots, mining, now):
+    """找出該私訊的事件。plots 是 {slot: plot}（只含有種東西的田），plot["notified"] 是已通知的位元。
+    回傳 {"ready": [slot...], "all_ready": bool, "warn": [(slot, 過熟時間)...], "mine": bool, "flags": {slot: 新位元}}。
+    mode="all" 時要所有種了作物（未枯萎）的田都成熟才通知成熟；快過熟與礦坑兩種模式都會通知。"""
+    warn_secs = content.settings["notify"]["overripe_warn_minutes"] * 60
+    ready, grown, warn, flags, all_grown, alive = [], [], [], {}, True, 0
+    for s, p in sorted(plots.items()):
+        bits = p.get("notified") or 0
+        new = bits
+        state, nxt = plot_state(content, p, now)
+        if state == WITHERED:
+            new = NOTIFY_READY | NOTIFY_WARN
+        else:
+            alive += 1
+            if state == GROWING:
+                all_grown = False
+            else:
+                grown.append(s)
+                if not bits & NOTIFY_READY:
+                    ready.append(s)
+            if state == OVERRIPE:
+                new |= NOTIFY_WARN  # 已經過熟就不必再提醒
+            elif state == FRESH and now >= nxt - warn_secs and not bits & NOTIFY_WARN:
+                warn.append((s, nxt))
+                new |= NOTIFY_WARN
+        flags[s] = new
+    if mode == "all":
+        # 全部模式：等所有田都成熟，有新成熟的才發，訊息列出全部成熟的田
+        ready = grown if all_grown and ready else []
+    for s in ready:
+        flags[s] |= NOTIFY_READY
+    mine = bool(mining and not mining.get("notified") and now >= mining["ready_at"])
+    return {"ready": ready, "all_ready": mode == "all" and bool(ready), "warn": warn, "mine": mine,
+            "flags": {s: f for s, f in flags.items() if f != (plots[s].get("notified") or 0)}}
+
+
 def harvest_result(content, plot, now):
-    """回傳 (item_id, 數量, 實際變異)。只能在新鮮或過熟時呼叫。"""
+    """回傳 ([(item_id, 數量), ...], 實際變異)，第一項是主要收成。只能在新鮮或過熟時呼叫。
+    升級過的田（中型 ×2、大型 ×3）多出來的份量一律是普通作物，稀有作物的數量跟一般田一樣。"""
     state, _ = plot_state(content, plot, now)
     if state not in (FRESH, OVERRIPE):
         raise TownError("這格現在不能收成。")
@@ -136,8 +177,15 @@ def harvest_result(content, plot, now):
         pct = pct * fresh["pest_pct"] // 100
     mut = effective_mutation(content, plot, now)
     crop = content.crops[plot["crop_id"]]
-    qty = crop["yield"] * content.mutations[mut]["yield_mult"]
-    return f"crop:{plot['crop_id']}:{mut}:{pct}", qty, mut
+    tier = plot_tier(content, plot.get("tier") or 1)  # 以收成當下的田地等級為準
+    base = crop["yield"] * content.mutations[mut]["yield_mult"]   # 跟一般田一樣（巨大作物照樣 ×2）
+    extra = crop["yield"] * (tier["yield_mult"] - 1)               # 升級田多出來的份量
+    if mut == "normal":
+        return [(f"crop:{plot['crop_id']}:normal:{pct}", base + extra)], mut
+    items = [(f"crop:{plot['crop_id']}:{mut}:{pct}", base)]
+    if extra:
+        items.append((f"crop:{plot['crop_id']}:normal:{pct}", extra))
+    return items, mut
 
 
 # ==========================================
@@ -233,6 +281,21 @@ def checkin_reward(content, new_total):
     """回傳 (每日風幣, 里程碑風幣)。"""
     c = content.settings["checkin"]
     return c["daily"], c["milestones"].get(str(new_total), 0)
+
+
+BASE_TIER = {"tier": 1, "name": "", "emoji": "", "yield_mult": 1}
+
+
+def plot_tier(content, tier):
+    """田地等級資訊；1 是一般田。"""
+    if tier <= 1:
+        return BASE_TIER
+    return next(t for t in content.settings["plot_tiers"]["tiers"] if t["tier"] == tier)
+
+
+def next_plot_tier(content, tier):
+    """下一級田地；已是最高級回傳 None。"""
+    return next((t for t in content.settings["plot_tiers"]["tiers"] if t["tier"] == tier + 1), None)
 
 
 def next_plot_price(content, plot_count):
