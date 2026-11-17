@@ -212,11 +212,15 @@ class TownCog(commands.Cog):
         g = interaction.guild_id
         notice = None
         if member and member.id != interaction.user.id:
+            # 拜訪別人：只有自己看得到，只留訪客按鈕和重新整理
             if member.bot or not self.db.player_exists(g, member.id):
                 await interaction.response.send_message(
                     f"{member.display_name} 還沒有開始經營小鎮。", ephemeral=True)
                 return
-            owner = member.id
+            embed, view = self.render("visit", g, member.id, now)
+            await interaction.response.send_message(embed=embed, view=view, ephemeral=True,
+                                                    allowed_mentions=NO_PINGS)
+            return
         else:
             owner = interaction.user.id
             if self.db.ensure_player(g, owner, interaction.user.display_name, now):
@@ -245,6 +249,10 @@ class TownCog(commands.Cog):
         try:
             if action in VISITOR_ACTIONS or action in SHARED_ACTIONS:
                 await self._helper_action(interaction, action, g, owner, user, arg, now)
+                return
+            if action == "visit":  # 訪客畫面的重新整理
+                embed, view = self.render("visit", g, owner, now)
+                await interaction.response.edit_message(embed=embed, view=view, allowed_mentions=NO_PINGS)
                 return
             if user != owner:
                 raise TownError(f"這是 <@{owner}> 的農場喔！輸入 `/小鎮` 打開你自己的。")
@@ -301,6 +309,11 @@ class TownCog(commands.Cog):
         text = "\n".join([text, *lines])
         for a in ach_announces:
             await send_announcement(interaction.guild, a, fallback=interaction.channel, allowed_mentions=NO_PINGS)
+        if arg == "visit":
+            # 訪客自己的訪客畫面（ephemeral）：結果寫在畫面上方
+            embed, view = self.render("visit", g, owner, now, notice=text)
+            await interaction.response.edit_message(embed=embed, view=view, allowed_mentions=NO_PINGS)
+            return
         page = arg if arg in ("home", "farm") else "home"
         embed, view = self.render(page, g, owner, now, notice=text if is_owner else None)
         if is_owner:
@@ -436,7 +449,7 @@ class TownCog(commands.Cog):
         renderer = {
             "home": self._render_home, "farm": self._render_farm, "plant": self._render_plant,
             "mine": self._render_mine, "shop": self._render_shop, "rank": self._render_rank,
-            "quest": self._render_quest, "ach": self._render_ach,
+            "quest": self._render_quest, "ach": self._render_ach, "visit": self._render_visit,
         }[page]
         embed, items = renderer(snap, g, owner, now, arg)
         if notice:
@@ -519,6 +532,18 @@ class TownCog(commands.Cog):
             self._btn("water", owner, label="幫忙澆水", emoji="💧", style=discord.ButtonStyle.primary, row=2),
             self._btn("pest", owner, "home", label="除蟲", emoji="🐛", style=discord.ButtonStyle.primary, row=2),
             self._btn("like", owner, label="按讚", emoji="❤️", style=discord.ButtonStyle.primary, row=2),
+        ]
+        return e, items
+
+    def _render_visit(self, snap, g, owner, now, arg):
+        """拜訪別人的小鎮：同樣的農場畫面，只有訪客按鈕和重新整理。按鈕的 arg 都是 visit，結果會更新這則訊息。"""
+        e, _ = self._render_home(snap, g, owner, now, arg)
+        e.set_footer(text="你正在拜訪這座小鎮，只有你看得到這則訊息 · 每天 00:00（台灣時間）換日")
+        items = [
+            self._btn("water", owner, "visit", label="幫忙澆水", emoji="💧", style=discord.ButtonStyle.primary, row=0),
+            self._btn("pest", owner, "visit", label="除蟲", emoji="🐛", style=discord.ButtonStyle.primary, row=0),
+            self._btn("like", owner, "visit", label="按讚", emoji="❤️", style=discord.ButtonStyle.primary, row=0),
+            self._btn("visit", owner, label="重新整理", emoji="🔄", row=0),
         ]
         return e, items
 

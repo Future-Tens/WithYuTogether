@@ -37,14 +37,14 @@
         ],
         "legendary": [
             [ { "match": "crop:*:rainbow", "qty": [1, 1] } ],
-            [ { "match": "ore:starstone", "qty": [1, 1] }, { "match": "ore:mithril", "qty": [2, 3] } ],
-            [ { "match": ["crop:watermelon:gold", "crop:pineapple:gold"], "qty": [1, 1] }, { "match": "ore:gem", "qty": [2, 3] } ],
-            [ { "match": "crop:*:gold", "qty": [4, 6] }, { "match": "ore:goldore", "qty": [6, 10] } ]
+            [ { "match": "ore:starstone", "qty": [2, 2] }, { "match": "ore:mithril", "qty": [4, 6] } ],
+            [ { "match": ["crop:watermelon:gold", "crop:pineapple:gold"], "qty": [1, 1] }, { "match": "ore:gem", "qty": [4, 6] } ],
+            [ { "match": "crop:*:gold", "qty": [4, 6] }, { "match": "ore:goldore", "qty": [12, 20] } ]
         ],
         "mythic": [
-            [ { "match": "crop:*:rainbow", "qty": [2, 2] }, { "match": "ore:starstone", "qty": [2, 3] } ],
-            [ { "match": "ore:starstone", "qty": [4, 5] }, { "match": "ore:mithril", "qty": [5, 6] }, { "match": "ore:gem", "qty": [5, 5] } ],
-            [ { "match": "crop:*:rainbow", "qty": [1, 1] }, { "match": "crop:pineapple:gold", "qty": [1, 1] }, { "match": "ore:starstone", "qty": [2, 2] } ]
+            [ { "match": "crop:*:rainbow", "qty": [2, 2] }, { "match": "ore:starstone", "qty": [4, 6] } ],
+            [ { "match": "ore:starstone", "qty": [8, 10] }, { "match": "ore:mithril", "qty": [10, 12] }, { "match": "ore:gem", "qty": [10, 10] } ],
+            [ { "match": "crop:*:rainbow", "qty": [1, 1] }, { "match": "crop:pineapple:gold", "qty": [1, 1] }, { "match": "ore:starstone", "qty": [4, 4] } ]
         ]
     }
 }

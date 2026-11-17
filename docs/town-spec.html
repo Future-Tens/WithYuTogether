@@ -255,12 +255,13 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
     <div class="tbl"><table>
       <thead><tr><th>行程</th><th class="num">挖掘次數</th><th>特色</th></tr></thead>
       <tbody>
-        <tr><td>淺層 · 1 小時</td><td class="num">3</td><td>以石頭、銅礦為主</td></tr>
-        <tr><td>中層 · 4 小時</td><td class="num">6</td><td>鐵礦、金礦機率提高；Lv2 起偶爾有秘銀</td></tr>
-        <tr><td>深層 · 8 小時</td><td class="num">10</td><td>寶石從這裡開始出現；Lv2 起有秘銀</td></tr>
-        <tr><td>地心 · 12 小時（需要 Lv3 十字鎬）</td><td class="num">12</td><td>稀有礦最多，星辰石只在這裡出現</td></tr>
+        <tr><td>淺層 · 1 小時</td><td class="num">9</td><td>以石頭、銅礦為主</td></tr>
+        <tr><td>中層 · 4 小時</td><td class="num">18</td><td>鐵礦、金礦機率提高；Lv2 起偶爾有秘銀</td></tr>
+        <tr><td>深層 · 8 小時</td><td class="num">30</td><td>寶石從這裡開始出現；Lv2 起有秘銀</td></tr>
+        <tr><td>地心 · 12 小時（需要 Lv3 十字鎬）</td><td class="num">42</td><td>稀有礦最多，星辰石只在這裡出現</td></tr>
       </tbody>
     </table></div>
+    <p class="muted small">挖掘次數的設計目標：各階段最好的路線時薪不低於同階段「過熟作物的總產量」（新手 30、中期 75、後期 225 風幣/小時），最高約 250 風幣/小時（地心、Lv3 鎬）。寶箱機率依次數縮放，每趟挖到寶箱的機會維持原本的水準。</p>
     <div class="tbl"><table>
       <thead><tr><th>礦物</th><th class="num">售價</th></tr></thead>
       <tbody>
@@ -271,14 +272,14 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
         <tr><td>💎 寶石</td><td class="num">120</td></tr>
         <tr><td>🔷 秘銀（Lv2 十字鎬以上）</td><td class="num">200</td></tr>
         <tr><td>🌠 星辰石（Lv3 十字鎬，只在地心）</td><td class="num">500</td></tr>
-        <tr><td>🎁 寶箱（每次挖掘 1%）</td><td class="num">100–300 風幣</td></tr>
+        <tr><td>🎁 寶箱（每趟約 3%，地心約 24%）</td><td class="num">100–300 風幣</td></tr>
       </tbody>
     </table></div>
   </section>
 
   <section id="social">
     <h3>🤝 拜訪與互助</h3>
-    <p>農場畫面是公開的。看到朋友的農場訊息，可以直接按上面的訪客按鈕；也可以用 <code>/小鎮 @某人</code> 拜訪。</p>
+    <p>自己的農場畫面是公開的，看到朋友的農場訊息，可以直接按上面的訪客按鈕。用 <code>/小鎮 @某人</code> 拜訪別人時，畫面是 <b>ephemeral</b>（只有自己看得到），只有 💧 澆水、🐛 除蟲、❤️ 按讚和 🔄 重新整理。</p>
     <div class="tbl"><table>
       <thead><tr><th>動作</th><th>效果</th><th>每日限制</th></tr></thead>
       <tbody>
@@ -397,15 +398,17 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
  │   ├─ 📜 任務牆 → 交付 1～6（物品不夠時停用）
  │   ├─ 🏅 成就 → Select 裝備稱號
  │   └─ 🏆 排行榜 → 總資產 / 本週收入 / 人氣 / 稀有收藏 / 任務
- └─ 別人的農場（訪客按鈕）
-     └─ 💧 澆水（選格子）/ 🐛 除蟲 / ❤️ 按讚</pre>
+ ├─ 別人的公開農場訊息（第二排訪客按鈕）
+ │   └─ 💧 澆水 / 🐛 除蟲 / ❤️ 按讚 → 回饋用 ephemeral，順便更新那則公開訊息
+ └─ /小鎮 @某人（ephemeral 訪客畫面，page = visit）
+     └─ 💧 澆水 / 🐛 除蟲 / ❤️ 按讚 / 🔄 重新整理（arg = visit，結果直接更新這則 ephemeral 訊息）</pre>
     <h4>互動原則</h4>
     <ul>
       <li>每個操作都 <b>編輯同一則訊息</b>，子畫面一律有「⬅ 返回」。</li>
-      <li>錯誤、背包明細、賣出確認、訪客操作的回饋都用 ephemeral。</li>
+      <li>錯誤、背包明細、賣出確認、訪客操作的回饋都用 ephemeral。<code>/小鎮 @某人</code>（成員不是自己）整個拜訪畫面都是 ephemeral；成員填自己或不填，就是公開的完整農場。</li>
       <li>按鈕用 <code>discord.ui.DynamicItem</code>，<code>custom_id</code> 格式 <code>town:&lt;action&gt;:&lt;owner_id&gt;[:&lt;arg&gt;]</code>，重啟後仍可用；guild_id 取自 interaction。</li>
       <li>每次點擊都從 DB 重讀狀態再重繪，不信任訊息上的舊資料。</li>
-      <li>擁有者按鈕檢查 <code>interaction.user.id == owner_id</code>；訪客按鈕反過來，擁有者自己按澆水或按讚會被拒。除蟲兩邊都能按。</li>
+      <li>擁有者按鈕檢查 <code>interaction.user.id == owner_id</code>；訪客按鈕反過來，擁有者自己按澆水或按讚會被拒。除蟲兩邊都能按；訪客畫面的重新整理（<code>visit</code>）任何人都能按。</li>
       <li>倒數用 <code>&lt;t:ready_at:R&gt;</code>，Discord 會自動更新顯示。</li>
     </ul>
   </section>
@@ -537,7 +540,7 @@ guild_settings.announce_channel   <span class="c">-- /設定公告；由 Databas
     { "tier": 3, "name": "大型", "emoji": "⏫", "yield_mult": 3, "price": 10000 } ] } }
 
 <span class="c">// mines.json</span>
-{ "core": { "name": "地心", "hours": 12, "rolls": 12, "chest_chance": 0.02, "min_pickaxe": 3,
+{ "core": { "name": "地心", "hours": 12, "rolls": 42, "chest_chance": 0.0057, "min_pickaxe": 3,
             "loot": [ { "item": "stone", "weight": 20 },
                       { "item": "mithril", "weight": 5, "rare": true, "min_pickaxe": 2 },
                       { "item": "starstone", "weight": 2, "rare": true, "min_pickaxe": 3 } ] } }
