@@ -352,6 +352,16 @@ class TownCog(commands.Cog):
 
         if action == "plantpick":
             return "plant", arg, None, []
+        if action == "plant" and arg == "all":
+            r = db.plant_all(g, owner, value, now)
+            crop = r["crop"]
+            ready = now + int(crop["grow_hours"] * svc.HOUR)
+            slots = "、".join(str(s) for s in r["slots"])
+            text = (f"🌱 一鍵種植：在第 {slots} 格種下了{crop['emoji']}{crop['name']}"
+                    f"（花了 {r['cost']:,} 風幣），<t:{ready}:R> 成熟。")
+            if r["skipped"]:
+                text += f"\n💸 風幣不夠，第 {'、'.join(str(s) for s in r['skipped'])} 格沒有種。"
+            return "farm", None, text, []
         if action == "plant":
             slot = int(arg)
             crop = db.plant(g, owner, slot, value, now)
@@ -572,12 +582,15 @@ class TownCog(commands.Cog):
             else:
                 items.append(self._btn("plantpick", owner, str(slot), label=f"第 {slot} 格生長中", emoji="⏳",
                                        disabled=True, row=0))
+        any_empty = any(not snap["plots"].get(s) for s in range(1, p["plot_count"] + 1))
         items += [
+            self._btn("plantpick", owner, "all", label="一鍵種植", emoji="🌱",
+                      style=discord.ButtonStyle.success, disabled=not any_empty, row=1),
             self._btn("harvestall", owner, label="全部收成", emoji="🧺", disabled=not any_ready, row=1),
             self._btn("pest", owner, "farm", label="除蟲", emoji="🐛", disabled=not any_pest, row=1),
             self._btn("clearwither", owner, label="清除枯萎", emoji="🥀", disabled=not any_wither, row=1),
-            self._btn("farm", owner, label="重新整理", emoji="🔄", row=1),
-            self._back(owner, row=1),
+            self._btn("farm", owner, label="重新整理", emoji="🔄", row=2),
+            self._back(owner, row=2),
         ]
         return e, items
 
@@ -585,11 +598,24 @@ class TownCog(commands.Cog):
         p = snap["player"]
         lines = [f"{c['emoji']} **{c['name']}** — 種子 {c['seed_price']} 風幣 · {c['grow_hours']} 小時 · 賣 {c['sell_price']} 風幣"
                  for c in self.content.crops.values()]
-        e = discord.Embed(title=f"🌱 第 {arg} 格要種什麼？", color=GREEN, description="\n".join(lines))
-        e.set_footer(text=f"💰 你有 {p['gold']:,} 風幣 · 短作物每小時賺比較多，長作物適合過夜")
-        options = [discord.SelectOption(label=f"{c['name']}（{c['seed_price']} 風幣）", value=cid, emoji=c["emoji"],
-                                        description=f"{c['grow_hours']} 小時成熟 · 賣 {c['sell_price']} 風幣")
-                   for cid, c in self.content.crops.items()]
+        if arg == "all":
+            empty = [s for s in range(1, p["plot_count"] + 1) if not snap["plots"].get(s)]
+            n = len(empty)
+            title = f"🌱 一鍵種植：剩下 {n} 塊空地（第 {'、'.join(map(str, empty))} 格）要種什麼？"
+            options = [discord.SelectOption(
+                label=f"{c['name']}（{n} 格共 {c['seed_price'] * n:,} 風幣）", value=cid, emoji=c["emoji"],
+                description=f"每格 {c['seed_price']} 風幣 · {c['grow_hours']} 小時成熟 · 賣 {c['sell_price']} 風幣")
+                for cid, c in self.content.crops.items()]
+        else:
+            title = f"🌱 第 {arg} 格要種什麼？"
+            options = [discord.SelectOption(label=f"{c['name']}（{c['seed_price']} 風幣）", value=cid, emoji=c["emoji"],
+                                            description=f"{c['grow_hours']} 小時成熟 · 賣 {c['sell_price']} 風幣")
+                       for cid, c in self.content.crops.items()]
+        e = discord.Embed(title=title, color=GREEN, description="\n".join(lines))
+        footer = f"💰 你有 {p['gold']:,} 風幣 · 短作物每小時賺比較多，長作物適合過夜"
+        if arg == "all":
+            footer += " · 風幣不夠時從小號的格子開始種"
+        e.set_footer(text=footer)
         return e, [
             TownSelect("plant", owner, arg, options=options, placeholder="選擇要種的作物", row=0),
             self._btn("farm", owner, label="返回農田", emoji="⬅️", row=1),

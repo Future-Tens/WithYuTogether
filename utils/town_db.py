@@ -270,6 +270,28 @@ class TownDB:
             self._set_plot(conn, g, u, slot, {**svc.roll_planting(self.content, crop_id, now, rng), "notified": 0})
         return crop
 
+    def plant_all(self, guild_id, user_id, crop_id, now, rng=random):
+        """一鍵種植：把所有空地種上同一種作物。風幣不夠時從小號格子開始種到買不起為止。
+        回傳 {"crop", "slots": 種下的格子, "skipped": 因風幣不夠沒種的格子, "cost"}。"""
+        g, u = self._ids(guild_id, user_id)
+        crop = self.content.crops.get(crop_id)
+        if not crop:
+            raise TownError("沒有這種作物。")
+        with self.tx() as conn:
+            p = self._player(conn, g, u)
+            planted = self._plots(conn, g, u)
+            empty = [s for s in range(1, p["plot_count"] + 1) if s not in planted]
+            if not empty:
+                raise TownError("沒有空地可以種了。")
+            n = min(len(empty), p["gold"] // crop["seed_price"])
+            if n == 0:
+                raise TownError(f"風幣不夠：一格{crop['name']}的種子要 {crop['seed_price']} 風幣，你只有 {p['gold']} 風幣。")
+            slots, cost = empty[:n], crop["seed_price"] * n
+            self._spend(conn, g, u, cost, "seed", now)
+            for s in slots:
+                self._set_plot(conn, g, u, s, {**svc.roll_planting(self.content, crop_id, now, rng), "notified": 0})
+        return {"crop": crop, "slots": slots, "skipped": empty[n:], "cost": cost}
+
     def harvest(self, guild_id, user_id, now, slot=None):
         """收成指定格子；slot=None 時收成所有可收的格子。回傳收成清單。"""
         g, u = self._ids(guild_id, user_id)
