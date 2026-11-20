@@ -86,6 +86,21 @@ class TownSelect(discord.ui.DynamicItem[discord.ui.Select],
             interaction, self.action, self.owner, self.arg, values[0] if values else None)
 
 
+class TownUserSelect(discord.ui.DynamicItem[discord.ui.UserSelect], template=r"townuser:visit"):
+    """選成員去拜訪。誰都能用，結果只有選的人看得到。"""
+    def __init__(self, *, placeholder="選擇要拜訪的成員", row=None):
+        super().__init__(discord.ui.UserSelect(custom_id="townuser:visit", placeholder=placeholder, row=row))
+
+    @classmethod
+    async def from_custom_id(cls, interaction, item, match):
+        return cls()
+
+    async def callback(self, interaction):
+        values = interaction.data.get("values", [])
+        if values:
+            await interaction.client.get_cog("TownCog").on_visit_pick(interaction, int(values[0]))
+
+
 # ==========================================
 # 🏡 小鎮
 # ==========================================
@@ -99,14 +114,14 @@ class TownCog(commands.Cog):
         self.max_plots = s["start"]["plots"] + len(s["plots"])
 
     async def cog_load(self):
-        self.bot.add_dynamic_items(TownButton, TownSelect)
+        self.bot.add_dynamic_items(TownButton, TownSelect, TownUserSelect)
         self.quest_loop.start()
         self.notify_loop.start()
 
     async def cog_unload(self):
         self.quest_loop.cancel()
         self.notify_loop.cancel()
-        self.bot.remove_dynamic_items(TownButton, TownSelect)
+        self.bot.remove_dynamic_items(TownButton, TownSelect, TownUserSelect)
 
     # ---------- 任務牆排程與公告 ----------
 
@@ -259,6 +274,11 @@ class TownCog(commands.Cog):
             if action in VISITOR_ACTIONS or action in SHARED_ACTIONS:
                 await self._helper_action(interaction, action, g, owner, user, arg, now)
                 return
+            if action == "visitpick":  # 首頁的「拜訪」：誰按都可以，跳出只有自己看得到的成員選單
+                view = discord.ui.View(timeout=None)
+                view.add_item(TownUserSelect())
+                await interaction.response.send_message("🏘️ 要去誰的小鎮逛逛？", view=view, ephemeral=True)
+                return
             if action == "visit":  # 訪客畫面的重新整理
                 embed, view = self.render("visit", g, owner, now)
                 await interaction.response.edit_message(embed=embed, view=view, allowed_mentions=NO_PINGS)
@@ -280,6 +300,24 @@ class TownCog(commands.Cog):
             for text in announces:
                 await send_announcement(interaction.guild, text, fallback=interaction.channel,
                                         allowed_mentions=NO_PINGS)
+        except TownError as e:
+            await self._reply_error(interaction, str(e))
+        except Exception:
+            traceback.print_exc()
+            await self._reply_error(interaction, "發生了一點問題，請稍後再試，或重新輸入 `/小鎮`。")
+
+    async def on_visit_pick(self, interaction: discord.Interaction, target):
+        """成員選單選好了：把這則只有自己看得到的訊息換成對方的訪客畫面。"""
+        if interaction.guild_id is None:
+            return
+        g, now = interaction.guild_id, int(time.time())
+        try:
+            if target == interaction.user.id:
+                raise TownError("這是你自己喔！輸入 `/小鎮` 打開你的農場。")
+            if not self.db.player_exists(g, target):
+                raise TownError(f"<@{target}> 還沒有開始經營小鎮。")
+            embed, view = self.render("visit", g, target, now)
+            await interaction.response.edit_message(content=None, embed=embed, view=view, allowed_mentions=NO_PINGS)
         except TownError as e:
             await self._reply_error(interaction, str(e))
         except Exception:
@@ -599,21 +637,29 @@ class TownCog(commands.Cog):
         e.add_field(name="⛏️ 礦坑", value=self._mine_line(snap, now), inline=False)
         e.add_field(name="🏭 工坊", value=self._workshop_line(snap, now), inline=False)
         e.set_footer(text="朋友可以用最下排按鈕幫忙 · 每天 00:00（台灣時間）換日")
+        # 有東西可以收的地方按鈕變綠色
+        def go(flag):
+            return discord.ButtonStyle.success if flag else discord.ButtonStyle.secondary
+        farm_ready = any(svc.plot_state(self.content, plot, now)[0] in (svc.FRESH, svc.OVERRIPE)
+                         for plot in snap["plots"].values() if plot)
+        mine_ready = bool(snap["mining"]) and now >= snap["mining"]["ready_at"]
+        ws_ready = any(now >= r["ready_at"] for r in snap["workshop"].values())
         items = [
             self._btn("checkin", owner, label="已簽到" if checked else "簽到", emoji="📅",
                       style=discord.ButtonStyle.success, disabled=checked, row=0),
-            self._btn("farm", owner, label="農田", emoji="🌱", row=0),
-            self._btn("mine", owner, label="礦坑", emoji="⛏️", row=0),
-            self._btn("workshop", owner, label="工坊", emoji="🏭", row=0),
-            self._btn("bag", owner, label="背包", emoji="🎒", row=0),
+            self._btn("farm", owner, label="農田", emoji="🌱", style=go(farm_ready), row=0),
+            self._btn("mine", owner, label="礦坑", emoji="⛏️", style=go(mine_ready), row=0),
+            self._btn("workshop", owner, label="工坊", emoji="🏭", style=go(ws_ready), row=0),
+            self._btn("quest", owner, label="任務牆", emoji="📜", style=discord.ButtonStyle.primary, row=0),
+            self._btn("bag", owner, label="背包", emoji="🎒", row=1),
             self._btn("shop", owner, label="商店", emoji="🏪", row=1),
             self._btn("trader", owner, label="貿易商", emoji="🧳", row=1),
-            self._btn("quest", owner, label="任務牆", emoji="📜", style=discord.ButtonStyle.primary, row=1),
-            self._btn("rank", owner, "assets", label="排行榜", emoji="🏆", row=1),
             self._btn("ach", owner, label="成就", emoji="🏅", row=1),
+            self._btn("rank", owner, "assets", label="排行榜", emoji="🏆", row=1),
             self._btn("refresh", owner, label="重新整理", emoji="🔄", row=2),
             self._btn("notify", owner, label=NOTIFY_LABELS.get(p.get("notify"), NOTIFY_LABELS["off"]),
                       emoji="🔕" if p.get("notify", "off") == "off" else "🔔", row=2),
+            self._btn("visitpick", owner, label="拜訪", emoji="🏘️", row=2),
             self._btn("water", owner, label="幫忙澆水", emoji="💧", style=discord.ButtonStyle.primary, row=3),
             self._btn("pest", owner, "home", label="除蟲", emoji="🐛", style=discord.ButtonStyle.primary, row=3),
             self._btn("like", owner, label="按讚", emoji="❤️", style=discord.ButtonStyle.primary, row=3),
@@ -629,6 +675,7 @@ class TownCog(commands.Cog):
             self._btn("pest", owner, "visit", label="除蟲", emoji="🐛", style=discord.ButtonStyle.primary, row=0),
             self._btn("like", owner, "visit", label="按讚", emoji="❤️", style=discord.ButtonStyle.primary, row=0),
             self._btn("visit", owner, label="重新整理", emoji="🔄", row=0),
+            TownUserSelect(placeholder="🏘️ 換去拜訪別人", row=1),
         ]
         return e, items
 

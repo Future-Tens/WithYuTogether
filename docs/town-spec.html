@@ -183,7 +183,7 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
 
   <section id="play">
     <h3>一天的節奏</h3>
-    <p>每個伺服器各自一個小鎮，錢包和進度只在該伺服器有效。新玩家開局有 <b>2 塊田、100 風幣</b>。輸入 <code>/小鎮</code> 打開自己的農場，之後全部用按鈕操作；輸入 <code>/小鎮 @某人</code> 可以拜訪別人的農場。</p>
+    <p>每個伺服器各自一個小鎮，錢包和進度只在該伺服器有效。新玩家開局有 <b>2 塊田、100 風幣</b>。輸入 <code>/小鎮</code> 打開自己的農場，之後全部用按鈕操作；輸入 <code>/小鎮 @某人</code>，或在任何小鎮首頁按「🏘️ 拜訪」選成員，就能拜訪別人的農場。</p>
     <div class="day">
       <div class="slot"><span class="time">早上</span><strong>簽到、收成、補種</strong><span>領每日風幣，收昨晚種的長時作物，換種 1–2 小時的短作物。</span></div>
       <div class="slot"><span class="time">中午</span><strong>收短作物、出發挖礦</strong><span>賣掉收成，選一趟 4 小時的礦坑行程。</span></div>
@@ -311,7 +311,7 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
 
   <section id="social">
     <h3>🤝 拜訪與互助</h3>
-    <p>自己的農場畫面是公開的，看到朋友的農場訊息，可以直接按上面的訪客按鈕。用 <code>/小鎮 @某人</code> 拜訪別人時，畫面是 <b>ephemeral</b>（只有自己看得到），只有 💧 澆水、🐛 除蟲、❤️ 按讚和 🔄 重新整理。</p>
+    <p>自己的農場畫面是公開的，看到朋友的農場訊息，可以直接按上面的訪客按鈕。用 <code>/小鎮 @某人</code> 拜訪別人時，畫面是 <b>ephemeral</b>（只有自己看得到），只有 💧 澆水、🐛 除蟲、❤️ 按讚、🔄 重新整理，以及換人拜訪的成員選單。首頁的「🏘️ 拜訪」按鈕誰都能按，會跳出只有自己看得到的成員選單，選好就進入同一個拜訪畫面。</p>
     <div class="tbl"><table>
       <thead><tr><th>動作</th><th>效果</th><th>每日限制</th></tr></thead>
       <tbody>
@@ -396,7 +396,7 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
     <h3>畫面與互動</h3>
     <div class="mocks">
       <div class="mock">
-        <span class="cap">主畫面（公開訊息；第一排給擁有者，第二排給訪客）</span>
+        <span class="cap">主畫面（公開訊息；上面三排給擁有者，最下排給訪客；有東西可收的地方按鈕變綠色）</span>
         <div class="embed"><div class="card">
           <div class="ttl"><span>🏡 Yu 的小鎮</span><span>💰 1,250</span></div>
           <div class="dim">📅 累計簽到 12 天 · ❤️ 人氣 34</div>
@@ -405,7 +405,9 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
           <div class="ln">2️⃣ 🥕 胡蘿蔔 🐛 — 剩 1 小時</div>
           <div class="ln">3️⃣ 🔒 未解鎖（300 風幣）</div>
           <div class="ln">⛏️ 中層礦坑 — 剩 20 分鐘</div>
-          <div class="btns"><span class="b off">📅 已簽到</span><span class="b ok">🌱 農田</span><span class="b">⛏️ 礦坑</span><span class="b">🎒 背包</span><span class="b">🏪 商店</span><span class="b">🏆 排行</span></div>
+          <div class="btns"><span class="b off">📅 已簽到</span><span class="b ok">🌱 農田</span><span class="b">⛏️ 礦坑</span><span class="b">🏭 工坊</span><span class="b">📜 任務牆</span></div>
+          <div class="btns"><span class="b">🎒 背包</span><span class="b">🏪 商店</span><span class="b">🧳 貿易商</span><span class="b">🏅 成就</span><span class="b">🏆 排行榜</span></div>
+          <div class="btns"><span class="b">🔄 重新整理</span><span class="b">🔕 通知</span><span class="b">🏘️ 拜訪</span></div>
           <div class="btns"><span class="b">💧 幫忙澆水</span><span class="b">🐛 幫忙除蟲</span><span class="b">❤️ 按讚</span></div>
         </div></div>
       </div>
@@ -425,7 +427,9 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
     <h4>畫面流程</h4>
 <pre>/小鎮 [@成員]
  ├─ 自己的主畫面
- │   ├─ 📅 簽到             （今日已簽 → 按鈕停用）
+ │   │  按鈕排法：簽到 農田 礦坑 工坊 任務牆 ／ 背包 商店 貿易商 成就 排行榜 ／ 重新整理 通知 拜訪 ／ 訪客
+│   │  農田有可收成的作物、礦坑挖完、工坊有做好的加工品時，該按鈕變綠色
+│   ├─ 📅 簽到             （今日已簽 → 按鈕停用）
  │   ├─ 🌱 農田 → 選格子 → 種植（Select 選種子）/ 一鍵種植（Select 選種子，種滿所有空地）/ 收成 / 除蟲 / 清除枯萎
  │   ├─ ⛏️ 礦坑 → 選行程出發 / 收取
  │   ├─ 🏭 工坊 → 解鎖 / Select 選配方製作 / 📦 領取 / 🔧 加製作槽 / 🧳 貿易商
@@ -436,7 +440,8 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
  │   ├─ 📜 任務牆 → 交付 1～6（物品不夠時停用）
  │   ├─ 🏅 成就 → Select 裝備稱號
  │   └─ 🏆 排行榜 → 總資產 / 本週收入 / 人氣 / 稀有收藏 / 任務
- ├─ 別人的公開農場訊息（第二排訪客按鈕）
+ ├─ 🏘️ 拜訪（任何人的首頁都能按）→ ephemeral 成員選單（UserSelect，custom_id townuser:visit）→ 換成對方的拜訪畫面
+ ├─ 別人的公開農場訊息（最下排訪客按鈕）
  │   └─ 💧 澆水 / 🐛 除蟲 / ❤️ 按讚 → 回饋用 ephemeral，順便更新那則公開訊息
  └─ /小鎮 @某人（ephemeral 訪客畫面，page = visit）
      └─ 💧 澆水 / 🐛 除蟲 / ❤️ 按讚 / 🔄 重新整理（arg = visit，結果直接更新這則 ephemeral 訊息）</pre>
