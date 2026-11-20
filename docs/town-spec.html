@@ -170,7 +170,7 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
   </header>
 
   <nav class="toc" aria-label="章節">
-    <a href="#play">玩法</a><a href="#crops">農田</a><a href="#rare">稀有作物</a><a href="#mine">礦坑</a><a href="#social">社交</a><a href="#quest">任務牆</a><a href="#shop">商店</a>
+    <a href="#play">玩法</a><a href="#crops">農田</a><a href="#rare">稀有作物</a><a href="#mine">礦坑</a><a href="#workshop">工坊</a><a href="#social">社交</a><a href="#quest">任務牆</a><a href="#shop">商店</a>
     <span class="sep">|</span>
     <a href="#decisions">決策</a><a href="#ui">畫面</a><a href="#rules">規則實作</a><a href="#schema">資料表</a><a href="#content">JSON</a><a href="#files">檔案</a><a href="#roadmap">路線</a>
   </nav>
@@ -277,6 +277,38 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
     </table></div>
   </section>
 
+  <section id="workshop">
+    <h3>🏭 工坊與貿易商</h3>
+    <p>首頁「🏭 工坊」花 <b>800 風幣</b>解鎖。選配方後立刻扣材料，用最小號的空製作槽開始做，時間到手動「📦 領取」。一個槽一次做一份。</p>
+    <ul>
+      <li><b>材料</b>：作物只用沒有突變的，<b>任何新鮮度都算全價</b>（過熟、有蟲的也行），從百分比最低的開始扣；突變作物（金色、巨大、彩虹）永遠不會被用掉。石頭也是材料。</li>
+      <li><b>製作槽</b>：1 → 3 個。第 2 槽 2,000 風幣＋鐵礦 ×20，第 3 槽 6,000 風幣＋秘銀 ×5。</li>
+      <li><b>品質</b>在開始製作時就擲好存進 DB（領取才揭曉，重新整理刷不到）：普通 80% ×1、✨精緻 19% ×1.5、🌟完美 1% ×3。完美品領取時發公告。</li>
+      <li>工坊做好會私訊通知（兩種通知模式都會）。</li>
+    </ul>
+    <div class="tbl"><table>
+      <thead><tr><th>加工品</th><th>材料</th><th>時間</th><th class="num">材料原價</th><th class="num">基準價</th></tr></thead>
+      <tbody>
+        <tr><td>🥬 醃白菜</td><td class="wrap-ok">小白菜 ×4＋石頭 ×5</td><td>1h</td><td class="num">130</td><td class="num">140</td></tr>
+        <tr><td>🥫 番茄醬</td><td class="wrap-ok">番茄 ×3＋銅礦 ×2</td><td>3h</td><td class="num">316</td><td class="num">340</td></tr>
+        <tr><td>🌽 玉米罐頭（Lv2）</td><td class="wrap-ok">玉米 ×3＋鐵礦 ×3</td><td>5h</td><td class="num">459</td><td class="num">490</td></tr>
+        <tr><td>🥧 南瓜派（Lv2）</td><td class="wrap-ok">南瓜 ×2＋胡蘿蔔 ×2＋銅礦 ×3</td><td>6h</td><td class="num">488</td><td class="num">520</td></tr>
+        <tr><td>🍍 黃金鳳梨（Lv3）</td><td class="wrap-ok">鳳梨 ×2＋金礦 ×4</td><td>10h</td><td class="num">1,040</td><td class="num">1,100</td></tr>
+        <tr><td>💍 寶石首飾（Lv3）</td><td class="wrap-ok">寶石 ×2＋秘銀 ×1</td><td>6h</td><td class="num">440</td><td class="num">470</td></tr>
+        <tr><td>🫙 星辰果醬（Lv3）</td><td class="wrap-ok">西瓜 ×2＋星辰石 ×1</td><td>12h</td><td class="num">1,000</td><td class="num">1,060</td></tr>
+      </tbody>
+    </table></div>
+    <p class="muted small">定價目標：等好價（3 天內最高價）才賣時，平均獲利 ≈ 材料原價 × 1.3。基準價 ≈ 材料原價 × 1.06，品質期望值 ×1.115，3 天最高行情期望約 +10%。當天直接賣約 ×1.19。滿級玩家 3 槽都做長配方，時薪約多 85 風幣。</p>
+    <h4>🧳 貿易商與每日行情</h4>
+    <p>加工品只能賣給首頁的「🧳 貿易商」（商店的賣出會略過 <code>goods:</code>）。<b>只有加工品有行情</b>：每種每天在基準價 ±20% 之間，台灣時間 00:00 換日，同一個伺服器大家一樣，作物與礦石維持固定價。任務獎勵用基準價，不受行情影響。</p>
+    <ul>
+      <li>頁面列出每項的今日價格（相對基準價的 %）、比昨天漲跌、近 7 天走勢（▁▂▃▄▅▆▇█）、各品質持有數、任務需要量；最上面列出今天漲最多的兩項。</li>
+      <li>Select 選加工品後出現：賣 1 個普通 · 普通全賣 · 精緻全賣 · 完美全賣（要按兩次確認）。按鈕上寫總額。</li>
+      <li>「📈 賣出今日上漲的普通品」：今天行情 &gt; 0 的普通品全部賣掉。</li>
+      <li><b>任務保護</b>：任務牆上 open 任務需要的加工品（同種加總）從普通開始保留；全賣與一鍵賣出不會賣掉保留量，「賣 1 個」則不保留。</li>
+    </ul>
+  </section>
+
   <section id="social">
     <h3>🤝 拜訪與互助</h3>
     <p>自己的農場畫面是公開的，看到朋友的農場訊息，可以直接按上面的訪客按鈕。用 <code>/小鎮 @某人</code> 拜訪別人時，畫面是 <b>ephemeral</b>（只有自己看得到），只有 💧 澆水、🐛 除蟲、❤️ 按讚和 🔄 重新整理。</p>
@@ -293,7 +325,7 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
 
   <section id="quest">
     <h3>📜 任務牆與成就</h3>
-    <p>每個伺服器一面任務牆，固定 6 格，所有人看到的都一樣。任務要求交付背包裡的作物或礦石，<b>誰先交付誰拿獎勵</b>，沒有每日次數上限。</p>
+    <p>每個伺服器一面任務牆，固定 6 格，所有人看到的都一樣。任務要求交付背包裡的作物、礦石或加工品，<b>誰先交付誰拿獎勵</b>，沒有每日次數上限。</p>
     <div class="tbl"><table>
       <thead><tr><th>稀有度</th><th class="num">機率</th><th class="num">獎勵</th><th>期限</th><th>內容</th></tr></thead>
       <tbody>
@@ -307,7 +339,8 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
     <ul>
       <li>任務被完成後那一格冷卻 <b>30 分鐘</b>才補新任務；過期的任務直接換掉。</li>
       <li>作物只收 100% 新鮮的；「任意金色作物」這類萬用需求從最便宜的開始扣，獎勵依實際交出的作物計價（任務牆顯示「起」價，物品夠時顯示你現在交付可得多少）。</li>
-      <li>成就共 38 個，分成簽到、農田、礦坑、社交、財富、任務六類（例如累計簽到 365 天、收成 10 株彩虹作物、挖到星辰石、幫朋友澆水 100 次、累計賣出 10 萬風幣、完成神話任務）。解鎖後可裝備成稱號顯示在小鎮標題；標記 announce 的成就會發公告。</li>
+      <li>加工品需求 <code>goods:&lt;配方&gt;</code> 任何品質都算，交付先扣普通的；初級配方出現在普通～稀有、中級在稀有～罕見、高級在傳說～神話。</li>
+      <li>成就共 44 個，分成簽到、農田、礦坑、工坊、社交、財富、任務七類（例如累計簽到 365 天、收成 10 株彩虹作物、挖到星辰石、幫朋友澆水 100 次、累計賣出 10 萬風幣、完成神話任務）。解鎖後可裝備成稱號顯示在小鎮標題；標記 announce 的成就會發公告。</li>
       <li>管理員用 <code>/設定公告 頻道:#頻道</code> 指定公告頻道。傳說以上任務的出現與完成、彩虹作物都發到那裡；沒設定時，任務出現不通知，完成和彩虹作物則發在當下的頻道。</li>
     </ul>
   </section>
@@ -328,8 +361,8 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
     </table></div>
     <p><b>排行榜</b>（伺服器內）：總資產、本週收入（每週一台灣時間 00:00 重算）、人氣、稀有收藏數、任務完成數。</p>
     <p><b>農田升級</b>：每塊田分開升級，倍數以收成當下的等級為準，多出來的份量 = 作物產量 × (倍數 − 1)，一律是普通作物；變異作物的數量跟一般田相同（例如大型田：彩虹 1 + 普通 2、巨大 2 + 普通 2）。只有升級過的田才在農場畫面顯示等級標籤。</p>
-    <p><b>🔔 私訊通知</b>：首頁按鈕依序切換「🔕 關 → 🔔 每塊 → 🔔 全部」，預設關閉，每個伺服器分開設定。「每塊」是每塊田一成熟就私訊；「全部」是所有種了作物（未枯萎）的田都成熟才私訊一次，訊息列出全部成熟的田。兩種模式都會在作物過熟前 1 小時（<code>settings.notify.overripe_warn_minutes</code>）和礦坑挖完時私訊。同一分鐘的事件合成一則，寫明是哪個伺服器並附伺服器連結。私訊被拒（Forbidden）時自動改回「關」，玩家下次自己打開 <code>/小鎮</code> 時提醒一次「私訊失敗，通知已關閉，請開啟伺服器私訊」。</p>
-    <p><b>賣出</b>：Select 賣單一物品、「🧺 賣出普通作物」「⛏️ 賣出普通礦物」各自一鍵賣掉該類的非稀有物品、「全部賣出」連稀有一起賣。稀有物品＝有變異的作物（金色、巨大、彩虹）＋任何礦坑中標記 <code>rare</code> 的礦物（金礦、寶石、秘銀、星辰石），由 <code>svc.is_rare_item</code> 判斷。</p>
+    <p><b>🔔 私訊通知</b>：首頁按鈕依序切換「🔕 關 → 🔔 每塊 → 🔔 全部」，預設關閉，每個伺服器分開設定。「每塊」是每塊田一成熟就私訊；「全部」是所有種了作物（未枯萎）的田都成熟才私訊一次，訊息列出全部成熟的田。兩種模式都會在作物過熟前 1 小時（<code>settings.notify.overripe_warn_minutes</code>）、礦坑挖完和工坊做好時私訊。同一分鐘的事件合成一則，寫明是哪個伺服器並附伺服器連結。私訊被拒（Forbidden）時自動改回「關」，玩家下次自己打開 <code>/小鎮</code> 時提醒一次「私訊失敗，通知已關閉，請開啟伺服器私訊」。</p>
+    <p><b>賣出</b>：Select 賣單一物品、「🧺 賣出普通作物」「⛏️ 賣出普通礦物」各自一鍵賣掉該類的非稀有物品、「全部賣出」連稀有一起賣（都不含加工品，加工品在貿易商賣）。稀有物品＝有變異的作物（金色、巨大、彩虹）＋任何礦坑中標記 <code>rare</code> 的礦物（金礦、寶石、秘銀、星辰石），由 <code>svc.is_rare_item</code> 判斷。</p>
     <p class="muted small">本頁所有數值都是初始值，會放在 JSON 裡，上線後依實際經濟狀況調整。</p>
   </section>
 
@@ -353,6 +386,8 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
       <div><span class="k">任務牆</span><span class="v">伺服器共用 6 格、交付型、先到先得、無每日上限、完成後冷卻 30 分鐘</span></div>
       <div><span class="k">稀有度</span><span class="v">普通 70%、稀有 20%、罕見 8.9%、傳說 1%、神話 0.1%</span></div>
       <div><span class="k">私訊通知</span><span class="v">首頁三段切換（關／每塊／全部），預設關閉；過熟前 1 小時、礦坑挖完也通知；私訊失敗自動關閉並提醒</span></div>
+      <div><span class="k">工坊</span><span class="v">800 風幣解鎖、1→3 槽（風幣＋礦石）、一槽一份、過熟作物算全價、突變作物不用、品質 80/19/1%（×1/×1.5/×3）</span></div>
+      <div><span class="k">貿易商</span><span class="v">只收購加工品；只有加工品有每日行情 ±20%（伺服器共用）；全賣保留任務需要量；完美品兩段確認</span></div>
       <div><span class="k">公告</span><span class="v">管理員用 <code>/設定公告</code> 指定頻道；傳說以上任務的出現與完成、彩虹作物都發到那裡</span></div>
     </div>
   </section>
@@ -393,7 +428,10 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; border-top: 1px
  │   ├─ 📅 簽到             （今日已簽 → 按鈕停用）
  │   ├─ 🌱 農田 → 選格子 → 種植（Select 選種子）/ 一鍵種植（Select 選種子，種滿所有空地）/ 收成 / 除蟲 / 清除枯萎
  │   ├─ ⛏️ 礦坑 → 選行程出發 / 收取
- │   ├─ 🎒 背包             （ephemeral）
+ │   ├─ 🏭 工坊 → 解鎖 / Select 選配方製作 / 📦 領取 / 🔧 加製作槽 / 🧳 貿易商
+ │   ├─ 🎒 背包             （ephemeral，加工品用今天的行情計價）
+ │   ├─ 🧳 貿易商 → Select 選加工品 → 賣 1 個 / 普通全賣 / 精緻全賣 / 完美全賣（→ 確定賣出）
+ │   │              📈 賣出今日上漲的普通品 / 🔄 重新整理 / 🏭 工坊
  │   ├─ 🏪 商店 → 賣出（Select 單項 / 🧺 普通作物 / ⛏️ 普通礦物 / 全部賣出）/ 🌾 升級農田（Select）/ 解鎖田地 / 升級十字鎬
  │   ├─ 📜 任務牆 → 交付 1～6（物品不夠時停用）
  │   ├─ 🏅 成就 → Select 裝備稱號
@@ -468,10 +506,20 @@ for 每個 notify != 'off' 的玩家:
         新鮮且 now ≥ 過熟時間 − 60 分鐘且無 2 → 快過熟提醒；已過熟 → 直接設 2 不提醒
     mode = 'all' → 所有未枯萎的田都已成熟且有成熟候選時，通知全部成熟的田；否則不通知成熟
     礦坑 now ≥ ready_at 且 notified = 0 → 通知並設 1
+    工坊每個槽 now ≥ ready_at 且 notified = 0 → 通知並設 1（品質不在私訊裡揭曉）
 種下新作物 / 收成清空 → notified 歸零；新行程 INSERT → notified 預設 0
 切換通知模式時 → 把目前已成熟／挖完的先標成已通知（玩家正看著畫面）
 私訊 Forbidden → notify = 'off'、notify_failed = 1；/小鎮 打開自己農場時讀取並清除 notify_failed</pre>
     <p>每塊田只會通知一次；機器人停機期間成熟的東西，重啟後下一分鐘補發一次。私訊發送失敗（非 Forbidden）不重試，避免重複。</p>
+    <h4>工坊與行情</h4>
+<pre><span class="c">-- 製作：BEGIN IMMEDIATE 內檢查解鎖、十字鎬、空槽 → recipe_input_items 算要扣的物品 → 扣物品 → 擲品質 → INSERT</span>
+recipe_input_items：ore:&lt;id&gt; 直接扣；crop:&lt;id&gt; 只看 crop:&lt;id&gt;:normal:&lt;pct&gt;，pct 由低到高扣
+領取：做好的槽 DELETE → 加 goods:&lt;配方&gt;:&lt;品質&gt; ×1 → bump craft_total、made_&lt;配方&gt;、craft_perfect
+
+<span class="c">-- 行情：不存 DB，用雜湊算，過去幾天也能重算（7 天走勢）</span>
+market_pct(guild, day, recipe) = sha256("guild:YYYY-MM-DD:recipe") 前 8 bytes mod 41 − 20
+收購價 = round(基準價 × 品質倍率 × (100 + pct) / 100)
+保留量 = Σ open 且未過期任務中 goods:&lt;配方&gt; 的數量；goods_sellable 依 普通 → 精緻 → 完美 扣保留量</pre>
     <h4>時間</h4>
     <p>DB 存 UTC Unix 秒數。「哪一天」和「哪一週」用 <code>Asia/Taipei</code> 計算，<code>day</code> 欄位存 <code>YYYY-MM-DD</code>。</p>
   </section>
@@ -482,8 +530,13 @@ for 每個 notify != 'off' 的玩家:
 <pre>town_players    guild_id, user_id, gold=100, plot_count=2, pickaxe_lv=1,
                 last_checkin, checkin_total=0, likes=0, total_harvest=0,
                 rare_found=0, created_at, title,
-                notify='off'(off/each/all), notify_failed=0
+                notify='off'(off/each/all), notify_failed=0,
+                workshop_slots=0（0 = 還沒解鎖工坊）
                                                         PK(guild_id, user_id)
+
+town_workshop   guild_id, user_id, slot, recipe_id, quality, started_at, ready_at,
+                notified=0                              PK(guild_id, user_id, slot)
+                <span class="c">-- 有列 = 製作中或做好待領取；品質開始製作時就擲好</span>
 
 farm_plots      guild_id, user_id, slot, tier=1, crop_id, planted_at, ready_at,
                 mutation, mutation_alt, pest_at, pest_cleared=0,
@@ -514,7 +567,8 @@ town_achievements  guild_id, user_id, achievement_id, earned_at
                 <span class="c">-- town_players.title 存裝備中的 achievement_id（舊表以 ALTER TABLE 補欄位）</span>
 
 town_stats      guild_id, user_id, key, value          PK(guild_id, user_id, key)
-                <span class="c">-- 無法從其他表推算的累計數字：mine_trips、chests、crop_gold、crop_rainbow、ore_&lt;id&gt;</span>
+                <span class="c">-- 無法從其他表推算的累計數字：mine_trips、chests、crop_gold、crop_rainbow、ore_&lt;id&gt;、</span>
+                <span class="c">-- craft_total、craft_perfect、made_&lt;配方&gt;（craft_kinds = made_* &gt; 0 的種類數）</span>
                 <span class="c">-- 其餘成就統計直接算：簽到/收成/讚數取 town_players，澆水/按讚次數取 town_social，</span>
                 <span class="c">-- 除蟲次數與賣出總額取 town_ledger，任務數取 town_quests（舊存檔也算得到）</span>
 
@@ -556,7 +610,18 @@ guild_settings.announce_channel   <span class="c">-- /設定公告；由 Databas
   "checkin": { "daily": 50, "milestones": { "7": 200, "30": 1000, "100": 3000 } },
   "social":  { "water_reward": 5, "pest_reward": 10, "water_daily_cap": 5 } }
 
-<span class="c">// quests.json  （match：ore:&lt;id&gt; / crop:&lt;作物&gt;:&lt;變異&gt; / crop:*:&lt;變異&gt;；match 給陣列時隨機選一個）</span>
+<span class="c">// workshop.json  （品質 weight 加總 100；inputs 的 crop:&lt;id&gt; 只用沒突變的、任何新鮮度）</span>
+{ "unlock_price": 800,
+  "slots": [ { "slot": 2, "price": 2000, "ores": { "iron": 20 } },
+             { "slot": 3, "price": 6000, "ores": { "mithril": 5 } } ],
+  "qualities": { "normal":  { "name": "普通", "weight": 80, "price_mult": 1 },
+                 "fine":    { "name": "精緻", "emoji": "✨", "weight": 19, "price_mult": 1.5 },
+                 "perfect": { "name": "完美", "emoji": "🌟", "weight": 1, "price_mult": 3, "announce": true } },
+  "market": { "range_pct": 20, "trend_days": 7 },
+  "recipes": { "ketchup": { "name": "番茄醬", "emoji": "🥫", "tier": 1, "min_pickaxe": 1, "hours": 3,
+                            "inputs": { "crop:tomato": 3, "ore:copper": 2 }, "base_price": 340 } } }
+
+<span class="c">// quests.json  （match：ore:&lt;id&gt; / crop:&lt;作物&gt;:&lt;變異&gt; / crop:*:&lt;變異&gt; / goods:&lt;配方&gt;；match 給陣列時隨機選一個）</span>
 { "slots": 6, "cooldown_minutes": 30,
   "rarities": { "legendary": { "name": "傳說", "emoji": "🟡", "weight": 1, "expire_hours": 72,
                                "reward_mult": 5, "announce": true } },
@@ -577,7 +642,7 @@ guild_settings.announce_channel   <span class="c">-- /設定公告；由 Databas
         <tr><td><code>cogs/town_cog.py</code></td><td class="wrap-ok"><code>/小鎮</code> 指令、所有 View 與 DynamicItem、embed 繪製</td></tr>
         <tr><td><code>utils/town_service.py</code></td><td class="wrap-ok">遊戲規則：擲骰、狀態判斷、計價。不碰 Discord、不碰 DB，可直接寫單元測試</td></tr>
         <tr><td><code>utils/town_db.py</code></td><td class="wrap-ok">建表與所有 SQL，沿用 <code>DatabaseManager.get_connection()</code></td></tr>
-        <tr><td><code>data/town/*.json</code></td><td class="wrap-ok">作物、變異、礦坑、礦物、升級與獎勵數值，任務池（quests）與成就（achievements）</td></tr>
+        <tr><td><code>data/town/*.json</code></td><td class="wrap-ok">作物、變異、礦坑、礦物、升級與獎勵數值，工坊配方與行情（workshop），任務池（quests）與成就（achievements）</td></tr>
         <tr><td><code>cogs/settings_cog.py</code></td><td class="wrap-ok"><code>/設定公告</code> 指令</td></tr>
         <tr><td><code>utils/announce.py</code></td><td class="wrap-ok"><code>send_announcement()</code>：發到公告頻道，沒設定時改發 fallback 頻道或不發</td></tr>
       </tbody>
@@ -590,11 +655,12 @@ guild_settings.announce_channel   <span class="c">-- /設定公告；由 Databas
     <div class="phases">
       <div><span class="p">MVP</span><span>簽到、農田（蟲害、變異、過熟枯萎）、礦坑、背包、商店與升級、排行榜、澆水／除蟲／按讚</span></div>
       <div><span class="p">第二階段</span><span>✅ 任務牆、38 個成就與稱號、公告頻道、農田升級、私訊通知。接下來：送禮（待領取禮物盒）、好感度、農場留言板、每週社區目標</span></div>
+      <div><span class="p">v1.4</span><span>✅ 工坊（7 種加工品、3 種品質、製作槽升級）、貿易商與加工品每日行情、加工品任務、6 個工坊成就</span></div>
       <div><span class="p">之後</span><span>成熟私訊通知、季節與天氣事件、更多作物與礦層</span></div>
     </div>
   </section>
 
-  <footer>小鎮 · WithYuTogether · 規格版本 v1.2（2026-11-15）。所有數值為初始值。</footer>
+  <footer>小鎮 · WithYuTogether · 規格版本 v1.4（2026-11-19）。所有數值為初始值。</footer>
 </div>
 
 </body>

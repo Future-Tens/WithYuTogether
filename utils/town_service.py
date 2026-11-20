@@ -1,4 +1,5 @@
 """小鎮遊戲規則：擲骰、作物狀態、計價。不碰 Discord、不碰 DB。"""
+import hashlib
 import json
 import os
 import random
@@ -31,6 +32,7 @@ class Content:
         self.settings = load("settings.json")
         self.quests = load("quests.json")
         self.achievements = load("achievements.json")
+        self.workshop = load("workshop.json")
 
 
 # ==========================================
@@ -40,6 +42,12 @@ class Content:
 def day_key(now):
     """台灣時間的日期字串，例如 2026-11-10。"""
     return datetime.fromtimestamp(now, TPE).date().isoformat()
+
+
+def next_day_start(now):
+    """下一個台灣時間 00:00 的 Unix 秒數。"""
+    d = datetime.fromtimestamp(now, TPE).replace(hour=0, minute=0, second=0, microsecond=0)
+    return int((d + timedelta(days=1)).timestamp())
 
 
 def week_start(now):
@@ -209,6 +217,12 @@ def item_info(content, item_id):
     if parts[0] == "ore":
         ore = content.ores[parts[1]]
         return {"name": ore["name"], "emoji": ore["emoji"], "price": ore["sell_price"]}
+    if parts[0] == "goods":
+        # 加工品的 price 是不含行情的基準價（任務獎勵用這個）；貿易商收購價另外乘上當天行情
+        _, rid, q = parts
+        r, qual = content.workshop["recipes"][rid], content.workshop["qualities"][q]
+        name = f"{qual['emoji']}{qual['name']}{r['name']}" if q != "normal" else r["name"]
+        return {"name": name, "emoji": r["emoji"], "price": goods_base_price(content, rid, q)}
     raise KeyError(item_id)
 
 
@@ -221,6 +235,8 @@ def is_rare_item(content, item_id):
     """稀有物品：有變異的作物（金色、巨大、彩虹），或稀有礦物。一鍵賣出時會保留。"""
     parts = item_id.split(":")
     if parts[0] == "crop":
+        return parts[2] != "normal"
+    if parts[0] == "goods":
         return parts[2] != "normal"
     return parts[1] in rare_ores(content)
 
@@ -304,16 +320,117 @@ def next_plot_price(content, plot_count):
 
 
 # ==========================================
+# 🏭 工坊與貿易商
+# ==========================================
+# 加工品的物品 id：goods:<配方>:<品質>。品質在開始製作時就擲好存起來，領取時才揭曉。
+
+def quality_order(content):
+    """品質由低到高：normal, fine, perfect。"""
+    return list(content.workshop["qualities"])
+
+
+def goods_base_price(content, recipe_id, quality):
+    q = content.workshop["qualities"][quality]
+    return int(round(content.workshop["recipes"][recipe_id]["base_price"] * q["price_mult"]))
+
+
+def roll_quality(content, rng=random):
+    return _weighted(rng, [(k, q["weight"]) for k, q in content.workshop["qualities"].items()])
+
+
+def recipe_input_items(content, recipe_id, inventory):
+    """配方要扣的物品：{item_id: qty}，或材料不夠時回傳 (None, 缺少清單 [(input, 缺幾個)])。
+    作物只用沒有突變的（任何新鮮度都算全價），從品質最差（百分比最低）的開始用；礦物就是 ore:<id>。"""
+    take, missing = {}, []
+    for inp, need in content.workshop["recipes"][recipe_id]["inputs"].items():
+        kind, iid = inp.split(":")
+        if kind == "ore":
+            cands = [f"ore:{iid}"]
+        else:
+            cands = sorted((i for i in inventory if i.startswith(f"crop:{iid}:normal:")),
+                           key=lambda i: int(i.split(":")[3]))
+        left = need
+        for i in cands:
+            n = min(left, inventory.get(i, 0) - take.get(i, 0))
+            if n > 0:
+                take[i] = take.get(i, 0) + n
+                left -= n
+            if left == 0:
+                break
+        if left:
+            missing.append((inp, left))
+    return (take, []) if not missing else (None, missing)
+
+
+def input_have(content, inp, inventory):
+    """背包裡有多少可以當作這項材料的東西。"""
+    kind, iid = inp.split(":")
+    if kind == "ore":
+        return inventory.get(inp, 0)
+    return sum(q for i, q in inventory.items() if i.startswith(f"crop:{iid}:normal:"))
+
+
+def input_info(content, inp):
+    kind, iid = inp.split(":")
+    src = content.ores[iid] if kind == "ore" else content.crops[iid]
+    return {"name": src["name"], "emoji": src["emoji"]}
+
+
+def next_workshop_slot(content, slots):
+    """下一個製作槽的價格資訊；已滿回傳 None。"""
+    return next((s for s in content.workshop["slots"] if s["slot"] == slots + 1), None)
+
+
+def market_pct(content, guild_id, recipe_id, day):
+    """某伺服器某天某加工品的行情（百分比，-range ~ +range）。用雜湊決定，同一天同一伺服器都一樣，過去幾天也能重算。"""
+    rng_pct = content.workshop["market"]["range_pct"]
+    h = hashlib.sha256(f"{guild_id}:{day}:{recipe_id}".encode()).digest()
+    return int.from_bytes(h[:8], "big") % (2 * rng_pct + 1) - rng_pct
+
+
+def market_day(now, days_ago=0):
+    return day_key(now - days_ago * 86400)
+
+
+def market_trend(content, guild_id, recipe_id, now):
+    """近 N 天（舊 → 今天）的行情百分比。"""
+    n = content.workshop["market"]["trend_days"]
+    return [market_pct(content, guild_id, recipe_id, market_day(now, d)) for d in range(n - 1, -1, -1)]
+
+
+def goods_price(content, guild_id, item_id, now):
+    """貿易商今天的收購單價。"""
+    _, rid, q = item_id.split(":")
+    pct = market_pct(content, guild_id, rid, market_day(now))
+    return int(round(content.workshop["recipes"][rid]["base_price"]
+                     * content.workshop["qualities"][q]["price_mult"] * (100 + pct) / 100))
+
+
+def goods_sellable(content, recipe_id, inventory, reserve):
+    """全賣時每種品質能賣幾個：任務需要的數量從普通開始保留（跟交任務時的扣法一樣）。
+    回傳 ({quality: 可賣數量}, {quality: 保留數量})。"""
+    left, sellable, kept = reserve, {}, {}
+    for q in quality_order(content):
+        have = inventory.get(f"goods:{recipe_id}:{q}", 0)
+        k = min(have, left)
+        left -= k
+        sellable[q], kept[q] = have - k, k
+    return sellable, kept
+
+
+# ==========================================
 # 📜 任務牆
 # ==========================================
-# 需求的 match 格式：ore:<id>、crop:<crop>:<mutation>、crop:*:<mutation>（任意作物）。
-# 作物只收 100% 新鮮的（過熟、有蟲的不算）。
+# 需求的 match 格式：ore:<id>、crop:<crop>:<mutation>、crop:*:<mutation>（任意作物）、goods:<配方>（任何品質）。
+# 作物只收 100% 新鮮的（過熟、有蟲的不算）。加工品先交普通的（allocate 從便宜的開始扣）。
 
 def requirement_info(content, match):
     """回傳 {name, emoji, price}；萬用作物的 price 取最便宜的那種。"""
     parts = match.split(":")
     if parts[0] == "ore":
         return item_info(content, match)
+    if parts[0] == "goods":
+        return item_info(content, f"{match}:normal")
     _, crop_id, mut = parts
     if crop_id != "*":
         return item_info(content, f"crop:{crop_id}:{mut}:100")
@@ -326,6 +443,8 @@ def requirement_matches(match, item_id):
     if match.startswith("ore:"):
         return item_id == match
     m, i = match.split(":"), item_id.split(":")
+    if m[0] == "goods":
+        return i[0] == "goods" and i[1] == m[1]
     return (i[0] == "crop" and len(i) == 4 and m[1] in ("*", i[1])
             and m[2] == i[2] and i[3] == "100")
 

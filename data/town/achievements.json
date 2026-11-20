@@ -34,6 +34,13 @@
     "sell_10k":     { "category": "wealth", "name": "小有積蓄",   "emoji": "💰", "desc": "累計賣出 10,000 風幣",  "stat": "sell_total", "count": 10000 },
     "sell_100k":    { "category": "wealth", "name": "富甲一方",   "emoji": "💎", "desc": "累計賣出 100,000 風幣", "stat": "sell_total", "count": 100000, "announce": true },
 
+    "craft_1":      { "category": "workshop", "name": "初次加工",   "emoji": "🏭", "desc": "領取 1 個加工品",       "stat": "craft_total", "count": 1 },
+    "craft_50":     { "category": "workshop", "name": "工坊師傅",   "emoji": "🧑‍🍳", "desc": "領取 50 個加工品",      "stat": "craft_total", "count": 50 },
+    "craft_300":    { "category": "workshop", "name": "加工大師",   "emoji": "🏆", "desc": "領取 300 個加工品",     "stat": "craft_total", "count": 300, "announce": true },
+    "craft_all":    { "category": "workshop", "name": "全能工匠",   "emoji": "🧰", "desc": "做出全部 7 種加工品",   "stat": "craft_kinds", "count": 7 },
+    "perfect_1":    { "category": "workshop", "name": "完美主義",   "emoji": "🌟", "desc": "做出 1 個完美加工品",   "stat": "craft_perfect", "count": 1 },
+    "perfect_10":   { "category": "workshop", "name": "匠心獨具",   "emoji": "💫", "desc": "做出 10 個完美加工品",  "stat": "craft_perfect", "count": 10, "announce": true },
+
     "quest_1":      { "category": "quest", "name": "小鎮跑腿",   "emoji": "📜", "desc": "完成第 1 個任務",   "stat": "quest_total", "count": 1 },
     "quest_10":     { "category": "quest", "name": "任務好手",   "emoji": "📜", "desc": "完成 10 個任務",    "stat": "quest_total", "count": 10 },
     "quest_50":     { "category": "quest", "name": "任務達人",   "emoji": "🎖️", "desc": "完成 50 個任務",    "stat": "quest_total", "count": 50 },

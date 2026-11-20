@@ -16,7 +16,8 @@
             [ { "match": "crop:corn:normal",    "qty": [2, 3] } ],
             [ { "match": "ore:copper", "qty": [10, 20] } ],
             [ { "match": "ore:iron",   "qty": [6, 12] } ],
-            [ { "match": "ore:stone",  "qty": [30, 50] }, { "match": "ore:copper", "qty": [5, 10] } ]
+            [ { "match": "ore:stone",  "qty": [30, 50] }, { "match": "ore:copper", "qty": [5, 10] } ],
+            [ { "match": ["goods:pickle", "goods:ketchup"], "qty": [1, 2] } ]
         ],
         "rare": [
             [ { "match": "crop:pumpkin:normal",    "qty": [2, 4] } ],
@@ -25,7 +26,9 @@
             [ { "match": "crop:tomato:normal", "qty": [3, 5] }, { "match": "ore:iron",   "qty": [8, 12] } ],
             [ { "match": "crop:corn:normal",   "qty": [2, 4] }, { "match": "ore:copper", "qty": [15, 25] } ],
             [ { "match": "crop:bokchoy:normal", "qty": [6, 10] }, { "match": "crop:carrot:normal", "qty": [4, 6] } ],
-            [ { "match": "crop:*:gold", "qty": [1, 1] } ]
+            [ { "match": "crop:*:gold", "qty": [1, 1] } ],
+            [ { "match": ["goods:pickle", "goods:ketchup"], "qty": [2, 3] } ],
+            [ { "match": ["goods:corncan", "goods:pie"], "qty": [1, 1] } ]
         ],
         "epic": [
             [ { "match": "ore:gem", "qty": [2, 3] }, { "match": "ore:goldore", "qty": [3, 5] } ],
@@ -33,18 +36,22 @@
             [ { "match": "crop:*:gold", "qty": [2, 3] } ],
             [ { "match": ["crop:tomato:gold", "crop:corn:gold", "crop:pumpkin:gold"], "qty": [1, 1] } ],
             [ { "match": "ore:mithril", "qty": [1, 2] }, { "match": "ore:iron", "qty": [10, 15] } ],
-            [ { "match": "crop:pumpkin:normal", "qty": [3, 5] }, { "match": "ore:gem", "qty": [1, 1] } ]
+            [ { "match": "crop:pumpkin:normal", "qty": [3, 5] }, { "match": "ore:gem", "qty": [1, 1] } ],
+            [ { "match": ["goods:corncan", "goods:pie"], "qty": [2, 3] } ]
         ],
         "legendary": [
             [ { "match": "crop:*:rainbow", "qty": [1, 1] } ],
             [ { "match": "ore:starstone", "qty": [2, 2] }, { "match": "ore:mithril", "qty": [4, 6] } ],
             [ { "match": ["crop:watermelon:gold", "crop:pineapple:gold"], "qty": [1, 1] }, { "match": "ore:gem", "qty": [4, 6] } ],
-            [ { "match": "crop:*:gold", "qty": [4, 6] }, { "match": "ore:goldore", "qty": [12, 20] } ]
+            [ { "match": "crop:*:gold", "qty": [4, 6] }, { "match": "ore:goldore", "qty": [12, 20] } ],
+            [ { "match": ["goods:goldpine", "goods:starjam"], "qty": [1, 1] } ],
+            [ { "match": "goods:jewelry", "qty": [2, 3] } ]
         ],
         "mythic": [
             [ { "match": "crop:*:rainbow", "qty": [2, 2] }, { "match": "ore:starstone", "qty": [4, 6] } ],
             [ { "match": "ore:starstone", "qty": [8, 10] }, { "match": "ore:mithril", "qty": [10, 12] }, { "match": "ore:gem", "qty": [10, 10] } ],
-            [ { "match": "crop:*:rainbow", "qty": [1, 1] }, { "match": "crop:pineapple:gold", "qty": [1, 1] }, { "match": "ore:starstone", "qty": [4, 4] } ]
+            [ { "match": "crop:*:rainbow", "qty": [1, 1] }, { "match": "crop:pineapple:gold", "qty": [1, 1] }, { "match": "ore:starstone", "qty": [4, 4] } ],
+            [ { "match": "goods:starjam", "qty": [2, 2] }, { "match": "goods:goldpine", "qty": [2, 2] }, { "match": "goods:jewelry", "qty": [2, 2] } ]
         ]
     }
 }

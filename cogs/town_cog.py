@@ -22,12 +22,17 @@ RANK_KINDS = {
     "quests": ("📜", "任務", "個"),
 }
 MEDALS = ["🥇", "🥈", "🥉"]
-ACH_CATEGORIES = {"checkin": "📅 簽到", "farm": "🌱 農田", "mine": "⛏️ 礦坑",
+ACH_CATEGORIES = {"checkin": "📅 簽到", "farm": "🌱 農田", "mine": "⛏️ 礦坑", "workshop": "🏭 工坊",
                   "social": "🤝 社交", "wealth": "💰 財富", "quest": "📜 任務"}
 # 只是切換頁面的動作，不需要檢查成就（"ach" 不在這裡：打開成就頁時順便補發舊存檔的成就）
 NOTIFY_LABELS = {"off": "通知：關", "each": "通知：每塊", "all": "通知：全部"}
-NAV_ACTIONS = {"home", "refresh", "farm", "mine", "shop", "rank", "plantpick", "quest"}
+NAV_ACTIONS = {"home", "refresh", "farm", "mine", "shop", "rank", "plantpick", "quest", "workshop", "trader", "gsellperf"}
+# 貿易商的賣出按鈕：action -> (sell_goods 的 mode, 品質)
+GOODS_SELL = {"gsellone": ("one", "normal"), "gsellnormal": ("all", "normal"), "gsellfine": ("all", "fine"),
+              "gsellperfok": ("all", "perfect"), "gsellup": ("rising", "normal")}
+SPARK = "▁▂▃▄▅▆▇█"
 GREEN = discord.Color.from_rgb(87, 168, 75)
+BROWN = discord.Color.from_rgb(166, 124, 82)
 NO_PINGS = discord.AllowedMentions.none()
 GUIDE_URL = "https://future-tens.github.io/WithYuTogether/"
 
@@ -65,10 +70,10 @@ class TownButton(discord.ui.DynamicItem[discord.ui.Button],
 
 class TownSelect(discord.ui.DynamicItem[discord.ui.Select],
                  template=r"townsel:(?P<action>[a-z_]+):(?P<owner>[0-9]+)(?::(?P<arg>[a-z0-9_]+))?"):
-    def __init__(self, action, owner, arg=None, *, options=None, placeholder=None, row=None):
+    def __init__(self, action, owner, arg=None, *, options=None, placeholder=None, row=None, disabled=False):
         custom_id = f"townsel:{action}:{owner}" + (f":{arg}" if arg else "")
         super().__init__(discord.ui.Select(custom_id=custom_id, options=options or [],
-                                           placeholder=placeholder, row=row))
+                                           placeholder=placeholder, row=row, disabled=disabled))
         self.action, self.owner, self.arg = action, int(owner), arg
 
     @classmethod
@@ -159,6 +164,10 @@ class TownCog(commands.Cog):
         if ev["mining"]:
             trip = self.content.mines[ev["mining"]["trip_id"]]
             lines.append(f"⛏️ {trip['emoji']}{trip['name']} 挖完了，可以收取")
+        if ev.get("crafts"):
+            recipes = self.content.workshop["recipes"]
+            names = "、".join(f"{recipes[c['recipe_id']]['emoji']}{recipes[c['recipe_id']]['name']}" for c in ev["crafts"])
+            lines.append(f"🏭 工坊做好了：{names}，可以領取")
         lines.append(f"到伺服器輸入 `/小鎮` 看看吧～ https://discord.com/channels/{guild.id}")
         lines.append("-# 不想收到通知可以在小鎮首頁按「🔔 通知」切換或關閉")
         return "\n".join(lines)
@@ -257,7 +266,7 @@ class TownCog(commands.Cog):
             if user != owner:
                 raise TownError(f"這是 <@{owner}> 的農場喔！輸入 `/小鎮` 打開你自己的。")
             if action == "bag":
-                await interaction.response.send_message(embed=self.render_bag(g, owner), ephemeral=True)
+                await interaction.response.send_message(embed=self.render_bag(g, owner, now), ephemeral=True)
                 return
             if action in ("quest", "questgo"):
                 await self._refresh_quests(interaction.guild, g, now)
@@ -343,8 +352,8 @@ class TownCog(commands.Cog):
             mode = db.cycle_notify(g, owner, now)
             text = {
                 "off": "🔕 已關閉私訊通知。",
-                "each": "🔔 通知：**每塊**。每塊田成熟、作物快過熟、礦坑挖完都會私訊你。",
-                "all": "🔔 通知：**全部**。所有種了作物的田都成熟才私訊一次；作物快過熟、礦坑挖完也會私訊你。",
+                "each": "🔔 通知：**每塊**。每塊田成熟、作物快過熟、礦坑挖完、工坊做好都會私訊你。",
+                "all": "🔔 通知：**全部**。所有種了作物的田都成熟才私訊一次；作物快過熟、礦坑挖完、工坊做好也會私訊你。",
             }[mode]
             if mode != "off":
                 text += "\n-# 記得開啟這個伺服器的私訊，否則收不到通知。"
@@ -426,6 +435,52 @@ class TownCog(commands.Cog):
                 text += f"\n🔓 {r['unlocks']}"
             return "shop", None, text, []
 
+        if action == "workshop":
+            return "workshop", None, None, []
+        if action == "wsunlock":
+            price = db.unlock_workshop(g, owner, now)
+            return "workshop", None, f"🏭 花了 {price:,} 風幣解鎖工坊！選一個配方，開始做第一份加工品吧。", []
+        if action == "wsslot":
+            r = db.upgrade_workshop(g, owner, now)
+            ores = "、".join(f"{content.ores[o]['emoji']}{content.ores[o]['name']} ×{n}" for o, n in r["ores"].items())
+            return "workshop", None, f"🔧 花了 {r['price']:,} 風幣和 {ores}，製作槽增加到 {r['slot']} 個！", []
+        if action == "craft":
+            r = db.craft(g, owner, value, now)
+            rec = r["recipe"]
+            used = "、".join(f"{svc.item_info(content, i)['emoji']}{svc.item_info(content, i)['name']} ×{n}"
+                             for i, n in r["take"].items())
+            return "workshop", None, (f"🏭 第 {r['slot']} 槽開始製作{rec['emoji']}{rec['name']}，<t:{r['ready_at']}:R> 完成。"
+                                      f"\n-# 用掉了 {used}"), []
+        if action == "wscollect":
+            res = db.collect_workshop(g, owner, now)
+            quals = content.workshop["qualities"]
+            lines, announces = [], []
+            name = db.snapshot(g, owner)["player"]["name"]
+            for r in res:
+                info = svc.item_info(content, r["item_id"])
+                tag = {"fine": " ✨", "perfect": " 🎉 **完美！**"}.get(r["quality"], "")
+                lines.append(f"📦 第 {r['slot']} 槽：{info['emoji']}{info['name']}{tag}")
+                if quals[r["quality"]].get("announce"):
+                    rec = content.workshop["recipes"][r["recipe_id"]]
+                    announces.append(f"🌟 **{name}** 在工坊做出了**完美的{rec['emoji']}{rec['name']}**！")
+            lines.append("-# 加工品可以拿去「🧳 貿易商」賣，或留著交任務")
+            return "workshop", None, "\n".join(lines), announces
+        if action == "trader":
+            return "trader", value or arg, None, []
+        if action == "gsellperf":
+            return "trader", (arg, True), None, []
+        if action in GOODS_SELL:
+            mode, quality = GOODS_SELL[action]
+            if mode != "rising" and arg not in content.workshop["recipes"]:
+                raise TownError("這個按鈕已經失效了，請重新打開貿易商。")
+            r = db.sell_goods(g, owner, now, mode, None if mode == "rising" else arg, quality)
+            sold = "、".join(f"{svc.item_info(content, i)['emoji']}{svc.item_info(content, i)['name']} ×{n}"
+                             for i, n in r["sold"].items())
+            text = f"💰 賣給貿易商：{sold}，獲得 **{r['gold']:,} 風幣**！"
+            if r["kept"]:
+                text += f"\n📜 保留了 {r['kept']} 個給任務牆。"
+            return "trader", arg if arg in content.workshop["recipes"] else None, text, []
+
         if action == "questgo":
             r = db.deliver_quest(g, owner, int(arg), now)
             q = r["quest"]
@@ -460,6 +515,7 @@ class TownCog(commands.Cog):
             "home": self._render_home, "farm": self._render_farm, "plant": self._render_plant,
             "mine": self._render_mine, "shop": self._render_shop, "rank": self._render_rank,
             "quest": self._render_quest, "ach": self._render_ach, "visit": self._render_visit,
+            "workshop": self._render_workshop, "trader": self._render_trader,
         }[page]
         embed, items = renderer(snap, g, owner, now, arg)
         if notice:
@@ -514,6 +570,22 @@ class TownCog(commands.Cog):
             return f"{trip['emoji']} {trip['name']} — <t:{m['ready_at']}:R> 挖完"
         return f"{trip['emoji']} {trip['name']} — ✅ 挖完了，可以收取"
 
+    def _workshop_line(self, snap, now):
+        n = snap["player"]["workshop_slots"]
+        if not n:
+            return "尚未解鎖，按「🏭 工坊」看看"
+        ws = snap["workshop"].values()
+        done = sum(1 for r in ws if now >= r["ready_at"])
+        busy = [r["ready_at"] for r in ws if now < r["ready_at"]]
+        parts = []
+        if done:
+            parts.append(f"✅ {done} 個做好了，可以領取")
+        if busy:
+            parts.append(f"⏳ {len(busy)} 個製作中（最快 <t:{min(busy)}:R>）")
+        if n - len(snap["workshop"]):
+            parts.append(f"🟫 {n - len(snap['workshop'])} 個空閒")
+        return " · ".join(parts)
+
     def _render_home(self, snap, g, owner, now, arg):
         p = snap["player"]
         checked = p["last_checkin"] == svc.day_key(now)
@@ -525,23 +597,26 @@ class TownCog(commands.Cog):
         e.add_field(name="❤️ 人氣", value=str(p["likes"]))
         e.add_field(name="🌱 農田", value=self._plot_lines(snap, now), inline=False)
         e.add_field(name="⛏️ 礦坑", value=self._mine_line(snap, now), inline=False)
+        e.add_field(name="🏭 工坊", value=self._workshop_line(snap, now), inline=False)
         e.set_footer(text="朋友可以用最下排按鈕幫忙 · 每天 00:00（台灣時間）換日")
         items = [
             self._btn("checkin", owner, label="已簽到" if checked else "簽到", emoji="📅",
                       style=discord.ButtonStyle.success, disabled=checked, row=0),
             self._btn("farm", owner, label="農田", emoji="🌱", row=0),
             self._btn("mine", owner, label="礦坑", emoji="⛏️", row=0),
+            self._btn("workshop", owner, label="工坊", emoji="🏭", row=0),
             self._btn("bag", owner, label="背包", emoji="🎒", row=0),
-            self._btn("shop", owner, label="商店", emoji="🏪", row=0),
+            self._btn("shop", owner, label="商店", emoji="🏪", row=1),
+            self._btn("trader", owner, label="貿易商", emoji="🧳", row=1),
             self._btn("quest", owner, label="任務牆", emoji="📜", style=discord.ButtonStyle.primary, row=1),
             self._btn("rank", owner, "assets", label="排行榜", emoji="🏆", row=1),
             self._btn("ach", owner, label="成就", emoji="🏅", row=1),
-            self._btn("refresh", owner, label="重新整理", emoji="🔄", row=1),
+            self._btn("refresh", owner, label="重新整理", emoji="🔄", row=2),
             self._btn("notify", owner, label=NOTIFY_LABELS.get(p.get("notify"), NOTIFY_LABELS["off"]),
-                      emoji="🔕" if p.get("notify", "off") == "off" else "🔔", row=1),
-            self._btn("water", owner, label="幫忙澆水", emoji="💧", style=discord.ButtonStyle.primary, row=2),
-            self._btn("pest", owner, "home", label="除蟲", emoji="🐛", style=discord.ButtonStyle.primary, row=2),
-            self._btn("like", owner, label="按讚", emoji="❤️", style=discord.ButtonStyle.primary, row=2),
+                      emoji="🔕" if p.get("notify", "off") == "off" else "🔔", row=2),
+            self._btn("water", owner, label="幫忙澆水", emoji="💧", style=discord.ButtonStyle.primary, row=3),
+            self._btn("pest", owner, "home", label="除蟲", emoji="🐛", style=discord.ButtonStyle.primary, row=3),
+            self._btn("like", owner, label="按讚", emoji="❤️", style=discord.ButtonStyle.primary, row=3),
         ]
         return e, items
 
@@ -653,7 +728,7 @@ class TownCog(commands.Cog):
 
     def _render_shop(self, snap, g, owner, now, arg):
         p = snap["player"]
-        inv = self.db.inventory(g, owner)
+        inv = [i for i in self.db.inventory(g, owner) if not i["item_id"].startswith("goods:")]  # 加工品在貿易商賣
         common = [i for i in inv if not i["rare"]]
         rare = [i for i in inv if i["rare"]]
         common_total = sum(i["total"] for i in common)
@@ -732,6 +807,175 @@ class TownCog(commands.Cog):
             self._btn("pickaxe", owner, label=f"十字鎬 Lv{nxt_pick['level']}（{nxt_pick['price']:,} 風幣）" if nxt_pick else "十字鎬已滿級",
                       emoji="⛏️", disabled=nxt_pick is None, row=3),
             self._back(owner, row=3),
+        ]
+        return e, items
+
+    def _render_workshop(self, snap, g, owner, now, arg):
+        p = snap["player"]
+        W = self.content.workshop
+        recipes = W["recipes"]
+        e = discord.Embed(title=f"🏭 {p['name']} 的工坊", color=BROWN)
+        if not p["workshop_slots"]:
+            e.description = ("把作物和礦石做成更值錢的**加工品**，再拿去「🧳 貿易商」賣。\n"
+                             "過熟、有蟲的作物也算全價，最適合拿來加工！\n"
+                             f"解鎖工坊需要 **{W['unlock_price']:,} 風幣**。")
+            e.add_field(name="配方預覽", inline=False, value="\n".join(
+                f"{r['emoji']} {r['name']}（Lv{r['min_pickaxe']} 十字鎬）" for r in recipes.values()))
+            e.set_footer(text=f"💰 你有 {p['gold']:,} 風幣")
+            return e, [
+                self._btn("wsunlock", owner, label=f"解鎖工坊（{W['unlock_price']:,} 風幣）", emoji="🏭",
+                          style=discord.ButtonStyle.success, row=0),
+                self._back(owner, row=1),
+            ]
+        inv = self.db.inventory_map(g, owner)
+        ws = snap["workshop"]
+        max_slots = 1 + len(W["slots"])
+        lines = []
+        for s in range(1, max_slots + 1):
+            row = ws.get(s)
+            if s > p["workshop_slots"]:
+                cfg = next(c for c in W["slots"] if c["slot"] == s)
+                ores = "、".join(f"{self.content.ores[o]['emoji']}{self.content.ores[o]['name']} ×{n}" for o, n in cfg["ores"].items())
+                lines.append(f"`{s}` 🔒 未解鎖（{cfg['price']:,} 風幣 ＋ {ores}）")
+            elif not row:
+                lines.append(f"`{s}` 🟫 空閒")
+            else:
+                r = recipes[row["recipe_id"]]
+                state = (f"<t:{row['ready_at']}:R> 完成" if now < row["ready_at"] else "✅ 做好了，可以領取")
+                lines.append(f"`{s}` {r['emoji']} {r['name']} — {state}")
+        e.add_field(name="🔧 製作槽", value="\n".join(lines), inline=False)
+
+        options, free = [], p["workshop_slots"] - len(ws)
+        for tier, label in ((1, "初級配方"), (2, "中級配方"), (3, "高級配方")):
+            group = [(rid, r) for rid, r in recipes.items() if r["tier"] == tier]
+            if not group:
+                continue
+            need_lv = min(r["min_pickaxe"] for _, r in group)
+            locked = p["pickaxe_lv"] < need_lv
+            rows = []
+            for rid, r in group:
+                mats, short = [], []
+                for inp, n in r["inputs"].items():
+                    info, have = svc.input_info(self.content, inp), svc.input_have(self.content, inp, inv)
+                    mats.append(f"{info['emoji']}{info['name']} ×{n}（有 {have}）")
+                    if have < n:
+                        short.append(f"{info['name']}×{n - have}")
+                mark = "🔒" if locked else ("✅" if not short else "▫️")
+                rows.append(f"{mark} {r['emoji']} **{r['name']}** · {fmt_duration(r['hours'] * svc.HOUR)} · "
+                            f"基準 {r['base_price']:,} 風幣\n　{' ＋ '.join(mats)}")
+                if not locked:
+                    options.append(discord.SelectOption(
+                        label=f"{r['name']}（{fmt_duration(r['hours'] * svc.HOUR)}）", value=rid, emoji=r["emoji"],
+                        description=("材料足夠" if not short else "還缺 " + "、".join(short))
+                                    + f" · 基準 {r['base_price']:,} 風幣"))
+            head = label + (f"（🔒 需要 Lv{need_lv} 十字鎬）" if locked else "")
+            e.add_field(name=head, value="\n".join(rows)[:1024], inline=False)
+        quals = W["qualities"]
+        e.set_footer(text="過熟、有蟲的作物也算全價，先用品質最差的 · 有突變的作物不會被用掉\n品質（開始製作時決定）："
+                          + " · ".join(f"{q['emoji']}{q['name']} {q['weight']:g}%（×{q['price_mult']:g}）" for q in quals.values()))
+        done = any(now >= r["ready_at"] for r in ws.values())
+        nxt = svc.next_workshop_slot(self.content, p["workshop_slots"])
+        items = []
+        if options:
+            items.append(TownSelect("craft", owner, options=options, row=0, disabled=free <= 0,
+                                    placeholder="🏭 選擇要製作的加工品" if free > 0 else "製作槽都在忙，等做好並領取後再來"))
+        if nxt:
+            ores = "、".join(f"{self.content.ores[o]['name']}×{n}" for o, n in nxt["ores"].items())
+            slot_label = f"加製作槽（{nxt['price']:,} 風幣＋{ores}）"
+        else:
+            slot_label = "製作槽已滿"
+        items += [
+            self._btn("wscollect", owner, label="領取做好的加工品", emoji="📦", style=discord.ButtonStyle.success,
+                      disabled=not done, row=1),
+            self._btn("wsslot", owner, label=slot_label, emoji="🔧", disabled=nxt is None, row=1),
+            self._btn("trader", owner, label="貿易商", emoji="🧳", row=2),
+            self._btn("workshop", owner, label="重新整理", emoji="🔄", row=2),
+            self._back(owner, row=2),
+        ]
+        return e, items
+
+    def _render_trader(self, snap, g, owner, now, arg):
+        sel, confirm = arg if isinstance(arg, tuple) else (arg, False)
+        W = self.content.workshop
+        recipes, quals = W["recipes"], W["qualities"]
+        if sel not in recipes:
+            sel, confirm = None, False
+        inv = self.db.inventory_map(g, owner)
+        reserve = self.db.quest_reserve(g, now)
+        rng_pct = W["market"]["range_pct"]
+        today = svc.market_day(now)
+        pct = {rid: svc.market_pct(self.content, g, rid, today) for rid in recipes}
+        price = {rid: {q: svc.goods_price(self.content, g, f"goods:{rid}:{q}", now) for q in quals} for rid in recipes}
+
+        def arrow(v):
+            return "📈" if v > 0 else "📉" if v < 0 else "➖"
+
+        top = [r for r in sorted(recipes, key=lambda r: -pct[r]) if pct[r] > 0][:2]
+        lines = [f"今天的收購價 · <t:{svc.next_day_start(now)}:R> 換行情",
+                 ("📈 今天最好賣：" + "、".join(f"{recipes[r]['emoji']}{recipes[r]['name']} {pct[r]:+d}%" for r in top))
+                 if top else "📉 今天沒有加工品漲價，不急著賣的話可以等明天", ""]
+        for rid, r in recipes.items():
+            trend = svc.market_trend(self.content, g, rid, now)
+            spark = "".join(SPARK[round((v + rng_pct) / (2 * rng_pct) * (len(SPARK) - 1))] for v in trend)
+            change = round(((100 + trend[-1]) / (100 + trend[-2]) - 1) * 100)
+            held = [f"{q['emoji']}{q['name']}×{inv.get(f'goods:{rid}:{qid}', 0)}"
+                    for qid, q in quals.items() if inv.get(f"goods:{rid}:{qid}", 0)]
+            line2 = f"　`{spark}` 比昨天 {change:+d}% · " + ("持有 " + " / ".join(held) if held else "沒有持有")
+            if reserve.get(rid):
+                line2 += f" · 📜 任務需要 ×{reserve[rid]}"
+            pick = "▶ " if rid == sel else ""
+            lines.append(f"{pick}{r['emoji']} **{r['name']}** — **{price[rid]['normal']:,}** 風幣（{arrow(pct[rid])} {pct[rid]:+d}%）")
+            lines.append(line2)
+        e = discord.Embed(title="🧳 貿易商", color=BROWN, description="\n".join(lines))
+        e.set_footer(text=f"加工品不會壞，可以等好價再賣 · 行情每天 ±{rng_pct}%，全伺服器一樣 · "
+                          + " · ".join(f"{q['emoji']}{q['name']} ×{q['price_mult']:g}" for q in quals.values())
+                          + "\n全賣和一鍵賣出會保留任務牆需要的數量（先保留普通品）")
+
+        options = []
+        for rid, r in recipes.items():
+            total = sum(inv.get(f"goods:{rid}:{q}", 0) for q in quals)
+            desc = " / ".join(f"{q['emoji']}{q['name']} {inv.get(f'goods:{rid}:{qid}', 0)}" for qid, q in quals.items())
+            if reserve.get(rid):
+                desc = f"📜 任務需要 ×{reserve[rid]} · " + desc
+            options.append(discord.SelectOption(
+                label=f"{r['name']} · 今日 {price[rid]['normal']:,}（{pct[rid]:+d}%）· 持有 {total}", value=rid,
+                emoji=r["emoji"], description=desc[:100], default=rid == sel))
+        items = [TownSelect("trader", owner, options=options, placeholder="選擇要賣的加工品", row=0)]
+        if sel:
+            can, kept = svc.goods_sellable(self.content, sel, inv, reserve.get(sel, 0))
+            name = recipes[sel]["name"]
+
+            def all_label(qid, prefix):
+                n = can[qid]
+                if not n:
+                    return f"{prefix}：沒有可賣的" + ("（保留給任務）" if kept[qid] else "")
+                return f"{prefix}全賣 {n} 個（{n * price[sel][qid]:,} 風幣）" + (f"・保留 {kept[qid]}" if kept[qid] else "")
+
+            have_normal = inv.get(f"goods:{sel}:normal", 0)
+            items.append(self._btn("gsellone", owner, sel, label=f"賣 1 個普通（{price[sel]['normal']:,} 風幣）", emoji="🪙",
+                                   disabled=not have_normal, row=1))
+            items.append(self._btn("gsellnormal", owner, sel, label=all_label("normal", "普通"), emoji="💰",
+                                   style=discord.ButtonStyle.success, disabled=not can["normal"], row=1))
+            items.append(self._btn("gsellfine", owner, sel, label=all_label("fine", "精緻"), emoji="✨",
+                                   style=discord.ButtonStyle.success, disabled=not can["fine"], row=1))
+            if confirm and can["perfect"]:
+                items.append(self._btn("gsellperfok", owner, sel,
+                                       label=f"確定賣出 {can['perfect']} 個完美{name}？（{can['perfect'] * price[sel]['perfect']:,} 風幣）",
+                                       emoji="⚠️", style=discord.ButtonStyle.danger, row=1))
+            else:
+                items.append(self._btn("gsellperf", owner, sel, label=all_label("perfect", "完美"), emoji="🌟",
+                                       disabled=not can["perfect"], row=1))
+        rising = 0
+        for rid in recipes:
+            if pct[rid] > 0:
+                rising += svc.goods_sellable(self.content, rid, inv, reserve.get(rid, 0))[0]["normal"] * price[rid]["normal"]
+        items += [
+            self._btn("gsellup", owner, sel,
+                      label=f"賣出今日上漲的普通品（{rising:,} 風幣）" if rising else "今天沒有上漲的普通品可賣",
+                      emoji="📈", style=discord.ButtonStyle.primary, disabled=not rising, row=2),
+            self._btn("trader", owner, sel, label="重新整理", emoji="🔄", row=2),
+            self._btn("workshop", owner, label="工坊", emoji="🏭", row=2),
+            self._back(owner, row=2),
         ]
         return e, items
 
@@ -833,15 +1077,16 @@ class TownCog(commands.Cog):
         items.append(self._back(owner, row=1))
         return e, items
 
-    def render_bag(self, g, owner):
-        inv = self.db.inventory(g, owner)
+    def render_bag(self, g, owner, now):
+        inv = self.db.inventory(g, owner, now)
         e = discord.Embed(title="🎒 你的背包", color=GREEN)
         if not inv:
             e.description = "背包是空的。收成和挖礦得到的東西都會放在這裡。"
             return e
         lines = [f"{i['emoji']} {'⭐' if i['rare'] else ''}{i['name']} ×{i['qty']} — 單價 {i['price']:,} 風幣" for i in inv]
         e.description = "\n".join(lines)[:4000]
-        e.set_footer(text=f"全部賣出可得 {sum(i['total'] for i in inv):,} 風幣 · 到「🏪 商店」賣出")
+        e.set_footer(text=f"總價值約 {sum(i['total'] for i in inv):,} 風幣 · 作物、礦物到「🏪 商店」賣，"
+                              "加工品到「🧳 貿易商」賣（價格是今天的行情）")
         return e
 
 

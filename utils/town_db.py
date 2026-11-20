@@ -49,6 +49,11 @@ SCHEMA = [
     """CREATE TABLE IF NOT EXISTS town_achievements (
         guild_id TEXT, user_id TEXT, achievement_id TEXT, earned_at INTEGER,
         PRIMARY KEY (guild_id, user_id, achievement_id))""",
+    # 工坊製作槽：一列 = 一個製作中（或做完還沒領）的槽；品質開始製作時就擲好
+    """CREATE TABLE IF NOT EXISTS town_workshop (
+        guild_id TEXT, user_id TEXT, slot INTEGER, recipe_id TEXT, quality TEXT,
+        started_at INTEGER, ready_at INTEGER, notified INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (guild_id, user_id, slot))""",
 ]
 
 EMPTY_PLOT = dict(crop_id=None, planted_at=None, ready_at=None, mutation=None, mutation_alt=None,
@@ -81,6 +86,9 @@ class TownDB:
             if "notified" not in plot_cols:
                 # 已通知的位元（1 = 成熟、2 = 快過熟），種下新作物時歸零
                 conn.execute("ALTER TABLE town_plots ADD COLUMN notified INTEGER NOT NULL DEFAULT 0")
+            if "workshop_slots" not in cols:
+                # 工坊製作槽數；0 = 還沒解鎖工坊
+                conn.execute("ALTER TABLE town_players ADD COLUMN workshop_slots INTEGER NOT NULL DEFAULT 0")
             mine_cols = {r["name"] for r in conn.execute("PRAGMA table_info(town_mining)")}
             if "notified" not in mine_cols:
                 conn.execute("ALTER TABLE town_mining ADD COLUMN notified INTEGER NOT NULL DEFAULT 0")
@@ -158,6 +166,19 @@ class TownDB:
                          (g, u, key, n))
 
     @staticmethod
+    def _workshop(conn, g, u):
+        return {r["slot"]: dict(r) for r in conn.execute(
+            "SELECT * FROM town_workshop WHERE guild_id=? AND user_id=?", (g, u))}
+
+    @staticmethod
+    def _take_items(conn, g, u, take):
+        """扣掉背包物品 {item_id: qty}（呼叫前要先確認數量夠）。"""
+        for item_id, n in take.items():
+            conn.execute("UPDATE town_inventory SET qty = qty - ? WHERE guild_id=? AND user_id=? AND item_id=?",
+                         (n, g, u, item_id))
+        conn.execute("DELETE FROM town_inventory WHERE guild_id=? AND user_id=? AND qty <= 0", (g, u))
+
+    @staticmethod
     def _plots(conn, g, u):
         rows = conn.execute("SELECT * FROM town_plots WHERE guild_id=? AND user_id=? AND crop_id IS NOT NULL",
                             (g, u)).fetchall()
@@ -202,9 +223,10 @@ class TownDB:
             player = self._player(conn, g, u)
             mining = conn.execute("SELECT * FROM town_mining WHERE guild_id=? AND user_id=?", (g, u)).fetchone()
             return {"player": player, "plots": self._plots(conn, g, u), "tiers": self._tiers(conn, g, u),
-                    "mining": dict(mining) if mining else None}
+                    "mining": dict(mining) if mining else None, "workshop": self._workshop(conn, g, u)}
 
-    def inventory(self, guild_id, user_id):
+    def inventory(self, guild_id, user_id, now=None):
+        """背包清單。給 now 時加工品用貿易商今天的收購價計價。"""
         g, u = self._ids(guild_id, user_id)
         with self.read() as conn:
             rows = conn.execute("SELECT item_id, qty FROM town_inventory WHERE guild_id=? AND user_id=? AND qty > 0",
@@ -212,6 +234,8 @@ class TownDB:
         items = []
         for r in rows:
             info = svc.item_info(self.content, r["item_id"])
+            if now is not None and r["item_id"].startswith("goods:"):
+                info["price"] = svc.goods_price(self.content, g, r["item_id"], now)
             items.append({"item_id": r["item_id"], "qty": r["qty"], **info, "total": info["price"] * r["qty"],
                           "rare": svc.is_rare_item(self.content, r["item_id"])})
         items.sort(key=lambda i: -i["total"])
@@ -450,7 +474,7 @@ class TownDB:
             if item_id:
                 sql += " AND item_id=?"
                 args += (item_id,)
-            rows = conn.execute(sql, args).fetchall()
+            rows = [r for r in conn.execute(sql, args).fetchall() if not r["item_id"].startswith("goods:")]
             if kind:
                 rows = [r for r in rows if r["item_id"].startswith(kind + ":")]
             kept = 0
@@ -510,6 +534,147 @@ class TownDB:
             self._spend(conn, g, u, nxt["price"], "pickaxe", now)
             conn.execute("UPDATE town_players SET pickaxe_lv=? WHERE guild_id=? AND user_id=?", (nxt["level"], g, u))
         return nxt
+
+    # ---------- 工坊 ----------
+
+    def unlock_workshop(self, guild_id, user_id, now):
+        g, u = self._ids(guild_id, user_id)
+        price = self.content.workshop["unlock_price"]
+        with self.tx() as conn:
+            if self._player(conn, g, u)["workshop_slots"] > 0:
+                raise TownError("工坊已經解鎖了。")
+            self._spend(conn, g, u, price, "workshop", now)
+            conn.execute("UPDATE town_players SET workshop_slots=1 WHERE guild_id=? AND user_id=?", (g, u))
+        return price
+
+    def upgrade_workshop(self, guild_id, user_id, now):
+        """加一個製作槽：花風幣＋礦石。"""
+        g, u = self._ids(guild_id, user_id)
+        with self.tx() as conn:
+            p = self._player(conn, g, u)
+            if p["workshop_slots"] == 0:
+                raise TownError("要先解鎖工坊。")
+            nxt = svc.next_workshop_slot(self.content, p["workshop_slots"])
+            if nxt is None:
+                raise TownError("製作槽已經是最多了。")
+            inv = self._inventory_map(conn, g, u)
+            missing = [f"{self.content.ores[o]['emoji']}{self.content.ores[o]['name']} ×{n - inv.get(f'ore:{o}', 0)}"
+                       for o, n in nxt["ores"].items() if inv.get(f"ore:{o}", 0) < n]
+            if missing:
+                raise TownError("礦石不夠，還缺：" + "、".join(missing))
+            self._spend(conn, g, u, nxt["price"], "workshop", now)
+            self._take_items(conn, g, u, {f"ore:{o}": n for o, n in nxt["ores"].items()})
+            conn.execute("UPDATE town_players SET workshop_slots=? WHERE guild_id=? AND user_id=?", (nxt["slot"], g, u))
+        return nxt
+
+    def craft(self, guild_id, user_id, recipe_id, now, rng=random):
+        """用最小號的空製作槽開始做一份加工品。回傳 {slot, recipe, ready_at, take}。"""
+        g, u = self._ids(guild_id, user_id)
+        recipe = self.content.workshop["recipes"].get(recipe_id)
+        if not recipe:
+            raise TownError("沒有這個配方。")
+        with self.tx() as conn:
+            p = self._player(conn, g, u)
+            if p["workshop_slots"] == 0:
+                raise TownError("要先解鎖工坊。")
+            if p["pickaxe_lv"] < recipe["min_pickaxe"]:
+                raise TownError(f"{recipe['name']}需要 Lv{recipe['min_pickaxe']} 十字鎬才能做，先到商店升級吧！")
+            busy = self._workshop(conn, g, u)
+            free = [s for s in range(1, p["workshop_slots"] + 1) if s not in busy]
+            if not free:
+                raise TownError("製作槽都在忙，先等它們做完並領取吧。")
+            take, missing = svc.recipe_input_items(self.content, recipe_id, self._inventory_map(conn, g, u))
+            if take is None:
+                parts = []
+                for inp, n in missing:
+                    info = svc.input_info(self.content, inp)
+                    parts.append(f"{info['emoji']}{info['name']} ×{n}")
+                raise TownError("材料不夠，還缺：" + "、".join(parts) + "（有突變的作物不會被拿去加工）")
+            self._take_items(conn, g, u, take)
+            slot, ready = free[0], now + int(recipe["hours"] * svc.HOUR)
+            conn.execute("""INSERT INTO town_workshop (guild_id, user_id, slot, recipe_id, quality, started_at, ready_at)
+                            VALUES (?,?,?,?,?,?,?)""",
+                         (g, u, slot, recipe_id, svc.roll_quality(self.content, rng), now, ready))
+        return {"slot": slot, "recipe": recipe, "ready_at": ready, "take": take}
+
+    def collect_workshop(self, guild_id, user_id, now):
+        """領取所有做好的加工品。回傳 [{slot, recipe_id, quality, item_id}]。"""
+        g, u = self._ids(guild_id, user_id)
+        out = []
+        with self.tx() as conn:
+            self._player(conn, g, u)
+            for s, row in sorted(self._workshop(conn, g, u).items()):
+                if now < row["ready_at"]:
+                    continue
+                conn.execute("DELETE FROM town_workshop WHERE guild_id=? AND user_id=? AND slot=?", (g, u, s))
+                item_id = f"goods:{row['recipe_id']}:{row['quality']}"
+                self._add_item(conn, g, u, item_id, 1)
+                self._bump(conn, g, u, "craft_total")
+                self._bump(conn, g, u, f"made_{row['recipe_id']}")
+                if row["quality"] == "perfect":
+                    self._bump(conn, g, u, "craft_perfect")
+                out.append({"slot": s, "recipe_id": row["recipe_id"], "quality": row["quality"], "item_id": item_id})
+        if not out:
+            raise TownError("還沒有做好的加工品。")
+        return out
+
+    # ---------- 貿易商 ----------
+
+    def _quest_reserve(self, conn, g, now):
+        """任務牆上還開著的任務需要的加工品：{recipe_id: 數量}（多個任務要同一種就加總）。"""
+        need = {}
+        for q in self._latest_quests(conn, g).values():
+            if q["status"] != "open" or now >= q["expires_at"]:
+                continue
+            for r in q["requirements"]:
+                if r["match"].startswith("goods:"):
+                    rid = r["match"].split(":")[1]
+                    need[rid] = need.get(rid, 0) + r["qty"]
+        return need
+
+    def quest_reserve(self, guild_id, now):
+        with self.read() as conn:
+            return self._quest_reserve(conn, str(guild_id), now)
+
+    def sell_goods(self, guild_id, user_id, now, mode, recipe_id=None, quality="normal"):
+        """貿易商收購。mode：
+        "one"    — 賣 1 個 recipe_id 的普通品（不保留任務數量，玩家自己指定要賣）
+        "all"    — 賣掉 recipe_id 的某個品質全部，但保留任務牆需要的數量
+        "rising" — 今天行情高於基準價的加工品，普通品全部賣掉（保留任務數量）
+        回傳 {gold, count, kept, sold: {item_id: qty}}。"""
+        g, u = self._ids(guild_id, user_id)
+        recipes = self.content.workshop["recipes"]
+        if recipe_id is not None and recipe_id not in recipes:
+            raise TownError("沒有這種加工品。")
+        if quality not in self.content.workshop["qualities"]:
+            raise TownError("沒有這種品質。")
+        with self.tx() as conn:
+            self._player(conn, g, u)
+            inv = self._inventory_map(conn, g, u)
+            reserve = self._quest_reserve(conn, g, now)
+            sell, kept = {}, 0
+            if mode == "one":
+                item_id = f"goods:{recipe_id}:normal"
+                if inv.get(item_id, 0) < 1:
+                    raise TownError("背包裡沒有普通的" + recipes[recipe_id]["name"] + "。")
+                sell[item_id] = 1
+            else:
+                targets = [recipe_id] if mode == "all" else [
+                    rid for rid in recipes if svc.market_pct(self.content, g, rid, svc.market_day(now)) > 0]
+                q = quality if mode == "all" else "normal"
+                for rid in targets:
+                    can, keep = svc.goods_sellable(self.content, rid, inv, reserve.get(rid, 0))
+                    kept += keep[q]
+                    if can[q]:
+                        sell[f"goods:{rid}:{q}"] = can[q]
+                if not sell:
+                    if mode == "rising":
+                        raise TownError("今天沒有上漲的普通加工品可以賣" + ("（任務需要的已保留）。" if kept else "。"))
+                    raise TownError("沒有可以賣的" + ("（都保留給任務了）。" if kept else "。"))
+            total = sum(svc.goods_price(self.content, g, i, now) * n for i, n in sell.items())
+            self._take_items(conn, g, u, sell)
+            self._add_gold(conn, g, u, total, "sell", now)
+        return {"gold": total, "count": sum(sell.values()), "kept": kept, "sold": sell}
 
     # ---------- 任務牆 ----------
 
@@ -584,10 +749,7 @@ class TownDB:
                 missing = [f"{svc.requirement_info(self.content, r['match'])['name']} ×{r['qty'] - h}"
                            for r, h in zip(q["requirements"], have) if h < r["qty"]]
                 raise TownError("背包裡的東西不夠，還缺：" + "、".join(missing) + "（作物要 100% 新鮮的才算）")
-            for item_id, n in take.items():
-                conn.execute("UPDATE town_inventory SET qty = qty - ? WHERE guild_id=? AND user_id=? AND item_id=?",
-                             (n, g, u, item_id))
-            conn.execute("DELETE FROM town_inventory WHERE guild_id=? AND user_id=? AND qty <= 0", (g, u))
+            self._take_items(conn, g, u, take)
             reward = svc.quest_reward(self.content, q, take)
             conn.execute("UPDATE town_quests SET status='done', completed_by=?, completed_at=?, reward=? WHERE id=?",
                          (u, now, reward, quest_id))
@@ -617,6 +779,7 @@ class TownDB:
         for key, tier in (("plots_mid", 2), ("plots_large", 3)):
             stats[key] = conn.execute("SELECT COUNT(*) FROM town_plots WHERE guild_id=? AND user_id=? AND tier >= ?",
                                       (g, u, tier)).fetchone()[0]
+        stats["craft_kinds"] = sum(1 for rid in self.content.workshop["recipes"] if stats.get(f"made_{rid}", 0) > 0)
         stats["sell_total"] = conn.execute(
             "SELECT COALESCE(SUM(delta), 0) FROM town_ledger WHERE guild_id=? AND user_id=? AND reason='sell'", (g, u)).fetchone()[0]
         return stats
@@ -663,6 +826,13 @@ class TownDB:
         ev["plots"] = {s: plots[s] for s in ev["ready"]}
         ev["plots"].update({s: plots[s] for s, _ in ev["warn"]})
         ev["mining"] = dict(mining) if ev["mine"] else None
+        # 工坊：做好且還沒通知過的槽（跟礦坑一樣兩種模式都會通知）
+        ev["crafts"] = [dict(r) for r in conn.execute(
+            "SELECT * FROM town_workshop WHERE guild_id=? AND user_id=? AND notified=0 AND ready_at<=? ORDER BY slot",
+            (g, u, now))]
+        if ev["crafts"]:
+            conn.execute("UPDATE town_workshop SET notified=1 WHERE guild_id=? AND user_id=? AND notified=0 AND ready_at<=?",
+                         (g, u, now))
         return ev
 
     def cycle_notify(self, guild_id, user_id, now):
@@ -684,7 +854,7 @@ class TownDB:
         with self.tx() as conn:
             for p in conn.execute("SELECT guild_id, user_id, notify FROM town_players WHERE notify != 'off'").fetchall():
                 ev = self._notify_events(conn, p["guild_id"], p["user_id"], p["notify"], now)
-                if ev["ready"] or ev["warn"] or ev["mine"]:
+                if ev["ready"] or ev["warn"] or ev["mine"] or ev["crafts"]:
                     out.append({"guild_id": p["guild_id"], "user_id": p["user_id"], **ev})
         return out
 

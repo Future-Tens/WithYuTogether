@@ -1,0 +1,29 @@
+{
+    "unlock_price": 800,
+    "slots": [
+        { "slot": 2, "price": 2000, "ores": { "iron": 20 } },
+        { "slot": 3, "price": 6000, "ores": { "mithril": 5 } }
+    ],
+    "qualities": {
+        "normal":  { "name": "普通", "emoji": "",   "weight": 80, "price_mult": 1 },
+        "fine":    { "name": "精緻", "emoji": "✨", "weight": 19, "price_mult": 1.5 },
+        "perfect": { "name": "完美", "emoji": "🌟", "weight": 1,  "price_mult": 3, "announce": true }
+    },
+    "market": { "range_pct": 20, "trend_days": 7 },
+    "recipes": {
+        "pickle":   { "name": "醃白菜",   "emoji": "🥬", "tier": 1, "min_pickaxe": 1, "hours": 1,
+                      "inputs": { "crop:bokchoy": 4, "ore:stone": 5 }, "base_price": 140 },
+        "ketchup":  { "name": "番茄醬",   "emoji": "🥫", "tier": 1, "min_pickaxe": 1, "hours": 3,
+                      "inputs": { "crop:tomato": 3, "ore:copper": 2 }, "base_price": 340 },
+        "corncan":  { "name": "玉米罐頭", "emoji": "🌽", "tier": 2, "min_pickaxe": 2, "hours": 5,
+                      "inputs": { "crop:corn": 3, "ore:iron": 3 }, "base_price": 490 },
+        "pie":      { "name": "南瓜派",   "emoji": "🥧", "tier": 2, "min_pickaxe": 2, "hours": 6,
+                      "inputs": { "crop:pumpkin": 2, "crop:carrot": 2, "ore:copper": 3 }, "base_price": 520 },
+        "goldpine": { "name": "黃金鳳梨", "emoji": "🍍", "tier": 3, "min_pickaxe": 3, "hours": 10,
+                      "inputs": { "crop:pineapple": 2, "ore:goldore": 4 }, "base_price": 1100 },
+        "jewelry":  { "name": "寶石首飾", "emoji": "💍", "tier": 3, "min_pickaxe": 3, "hours": 6,
+                      "inputs": { "ore:gem": 2, "ore:mithril": 1 }, "base_price": 470 },
+        "starjam":  { "name": "星辰果醬", "emoji": "🫙", "tier": 3, "min_pickaxe": 3, "hours": 12,
+                      "inputs": { "crop:watermelon": 2, "ore:starstone": 1 }, "base_price": 1060 }
+    }
+}
