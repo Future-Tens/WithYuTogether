@@ -167,7 +167,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
   </div>
 
   <nav class="toc" aria-label="章節">
-    <a href="#day">一天怎麼玩</a><a href="#farm">種田</a><a href="#rare">稀有作物</a><a href="#mine">挖礦</a><a href="#friends">拜訪朋友</a><a href="#quest">任務牆</a><a href="#shop">商店與排行</a><a href="#tips">小撇步</a><a href="#faq">常見問題</a><a href="updates.html">更新日誌</a>
+    <a href="#day">一天怎麼玩</a><a href="#farm">種田</a><a href="#rare">稀有作物</a><a href="#mine">挖礦</a><a href="#workshop">工坊與貿易商</a><a href="#friends">拜訪朋友</a><a href="#quest">任務牆</a><a href="#shop">商店與排行</a><a href="#tips">小撇步</a><a href="#faq">常見問題</a><a href="updates.html">更新日誌</a>
   </nav>
 
   <section id="day">
@@ -226,7 +226,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
         <tr><td>🔔 全部</td><td>所有種了作物的田都成熟才私訊一次</td></tr>
       </tbody>
     </table></div>
-    <p>兩種模式都會在<b>作物過熟前 1 小時</b>和<b>礦坑挖完</b>時私訊你。私訊會寫出是哪個伺服器的小鎮，每個伺服器分開設定。</p>
+    <p>兩種模式都會在<b>作物過熟前 1 小時</b>、<b>礦坑挖完</b>和<b>工坊做好</b>時私訊你。私訊會寫出是哪個伺服器的小鎮，每個伺服器分開設定。</p>
     <div class="note"><p>記得開啟這個伺服器的私訊。如果私訊送不出去，通知會自動關閉，下次打開 <code>/小鎮</code> 時會提醒你。</p></div>
 
     <h3>🐛 小心蟲子</h3>
@@ -276,6 +276,44 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
     </table></div>
   </section>
 
+  <section id="workshop">
+    <h2>工坊與貿易商</h2>
+    <p>在小鎮首頁按「🏭 工坊」，花 <b>800 風幣</b>解鎖後，就能把作物和礦石做成更值錢的<b>加工品</b>。選一個配方，材料會馬上扣掉，時間到了回來按「📦 領取做好的加工品」。</p>
+    <ul>
+      <li><b>過熟、有蟲的作物也算全價！</b>做加工品時會先用品質最差的，來不及收的作物最適合拿來加工。</li>
+      <li>有突變的作物（金色、巨大、彩虹）<b>不會</b>被拿去加工，可以放心留著交任務。</li>
+      <li>一開始有 1 個製作槽，一個槽一次做一份。之後可以加到 3 個：第 2 槽要 2,000 風幣＋⚙️鐵礦 ×20，第 3 槽要 6,000 風幣＋🔷秘銀 ×5。</li>
+    </ul>
+    <div class="tbl"><table>
+      <thead><tr><th>加工品</th><th class="w">材料</th><th>時間</th><th class="num">基準價</th></tr></thead>
+      <tbody>
+        <tr><td>🥬 醃白菜</td><td class="w">小白菜 ×4＋石頭 ×5</td><td>1 小時</td><td class="num">140</td></tr>
+        <tr><td>🥫 番茄醬</td><td class="w">番茄 ×3＋銅礦 ×2</td><td>3 小時</td><td class="num">340</td></tr>
+        <tr><td>🌽 玉米罐頭（Lv2 十字鎬）</td><td class="w">玉米 ×3＋鐵礦 ×3</td><td>5 小時</td><td class="num">490</td></tr>
+        <tr><td>🥧 南瓜派（Lv2 十字鎬）</td><td class="w">南瓜 ×2＋胡蘿蔔 ×2＋銅礦 ×3</td><td>6 小時</td><td class="num">520</td></tr>
+        <tr><td>🍍 黃金鳳梨（Lv3 十字鎬）</td><td class="w">鳳梨 ×2＋金礦 ×4</td><td>10 小時</td><td class="num">1,100</td></tr>
+        <tr><td>💍 寶石首飾（Lv3 十字鎬）</td><td class="w">寶石 ×2＋秘銀 ×1</td><td>6 小時</td><td class="num">470</td></tr>
+        <tr><td>🫙 星辰果醬（Lv3 十字鎬）</td><td class="w">西瓜 ×2＋星辰石 ×1</td><td>12 小時</td><td class="num">1,060</td></tr>
+      </tbody>
+    </table></div>
+    <h3>✨ 品質</h3>
+    <p>每份加工品都有品質，開始製作時就決定好了，領取時才揭曉。</p>
+    <div class="rare">
+      <div><span class="big">🥫</span><b>普通</b><span class="pct">80%</span><span class="small">基準價</span></div>
+      <div class="gold"><span class="big">✨</span><b>精緻</b><span class="pct">19%</span><span class="small">賣 1.5 倍價</span></div>
+      <div class="rainbow"><span class="big">🌟</span><b>完美</b><span class="pct">1%</span><span class="small">賣 3 倍價，全伺服器公告</span></div>
+    </div>
+    <h3>🧳 貿易商與每日行情</h3>
+    <p>加工品要賣給「🧳 貿易商」（商店不收加工品）。貿易商的收購價<b>每天都不一樣</b>：每種加工品每天在基準價的 <b>±20%</b> 之間變動，台灣時間 00:00 換行情，同一個伺服器的大家看到的都一樣。作物和礦石的價格不受影響。</p>
+    <ul>
+      <li>貿易商會列出每種加工品今天的價格、比昨天漲或跌多少、近 7 天的走勢，以及你持有的數量。</li>
+      <li>加工品<b>不會壞</b>，行情不好可以先留著，等漲價再賣。</li>
+      <li>從選單選一種加工品，可以「賣 1 個」或按品質「全賣」。賣🌟完美品要按兩次確認，避免手滑。</li>
+      <li>「📈 賣出今日上漲的普通品」會一次賣掉今天漲價的所有普通加工品，精緻和完美的會留著。</li>
+      <li>任務牆正在要的加工品會被<b>自動保留</b>：「全賣」和「賣出今日上漲的普通品」不會把任務需要的數量賣掉。</li>
+    </ul>
+  </section>
+
   <section id="friends">
     <h2>拜訪朋友</h2>
     <p>看到朋友的農場訊息，直接按最下排的按鈕就能幫忙；也可以輸入 <code>/小鎮</code> 並在「成員」選項選朋友，去他家逛逛。拜訪畫面<b>只有你看得到</b>，上面只有澆水、除蟲、按讚和「🔄 重新整理」，不會洗版頻道。互相幫忙兩邊都有好處。</p>
@@ -289,7 +327,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
 
   <section id="quest">
     <h2>任務牆</h2>
-    <p>在小鎮首頁按「📜 任務牆」。牆上隨時有 6 個任務，<b>整個伺服器共用</b>：大家看到的都一樣，<b>誰先交付誰拿獎勵</b>。任務要的是背包裡的作物或礦石，交付時會扣掉，換到比直接賣掉更多的風幣。</p>
+    <p>在小鎮首頁按「📜 任務牆」。牆上隨時有 6 個任務，<b>整個伺服器共用</b>：大家看到的都一樣，<b>誰先交付誰拿獎勵</b>。任務要的是背包裡的作物、礦石或加工品，交付時會扣掉，換到比直接賣掉更多的風幣。</p>
     <div class="tbl"><table>
       <thead><tr><th>稀有度</th><th class="num">出現機率</th><th class="num">獎勵</th><th class="w">期限與內容</th></tr></thead>
       <tbody>
@@ -303,12 +341,13 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
     <ul>
       <li>任務被完成後，那一格會在 <b>30 分鐘</b>後換上新任務；過期沒人完成的任務會直接換掉。</li>
       <li>作物只收 <b>100% 新鮮</b>的，過熟或被蟲咬過的不算。</li>
+      <li>加工品任務<b>任何品質都算</b>，交付時會先用普通的，精緻和完美的會留著。獎勵依基準價計算，不受當天行情影響。初級加工品出現在普通～稀有任務，中級在稀有～罕見，高級在傳說～神話。</li>
       <li>「任意金色作物」這類需求，任何一種符合的作物都能交，會先用你背包裡最便宜的那種。獎勵依你<b>實際交出的作物</b>計價，交越貴的拿越多；任務牆上會顯示「xxx 風幣起」，物品夠的時候也會顯示你現在交付能拿多少。</li>
       <li>沒有每日次數上限，搶得到就是你的。</li>
       <li>🟡 傳說和 🌈 神話任務出現、被完成時，會在伺服器的公告頻道通知大家。</li>
     </ul>
     <h3>🏅 成就與稱號</h3>
-    <p>種田、挖礦、幫朋友、存錢、做任務都能解鎖成就，共 38 個。在首頁按「🏅 成就」可以看到每個成就的進度，並選一個裝備成稱號，顯示在你的小鎮標題旁邊。以前玩的紀錄也會算進去。標 📢 的成就解鎖時會在公告頻道通知大家。</p>
+    <p>種田、挖礦、加工、幫朋友、存錢、做任務都能解鎖成就，共 44 個。在首頁按「🏅 成就」可以看到每個成就的進度，並選一個裝備成稱號，顯示在你的小鎮標題旁邊。以前玩的紀錄也會算進去。標 📢 的成就解鎖時會在公告頻道通知大家。</p>
     <div class="tbl"><table>
       <thead><tr><th>分類</th><th>稱號</th><th class="w">條件</th></tr></thead>
       <tbody>
@@ -334,6 +373,12 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
         <tr><td>⛏️ 礦坑</td><td>🔷 秘銀礦工</td><td class="w">挖到 10 塊秘銀</td></tr>
         <tr><td>⛏️ 礦坑</td><td>🌠 摘星者</td><td class="w">挖到 1 顆星辰石</td></tr>
         <tr><td>⛏️ 礦坑</td><td>🛠️ 頂級裝備</td><td class="w">十字鎬升到 Lv3</td></tr>
+        <tr><td>🏭 工坊</td><td>🏭 初次加工</td><td class="w">領取 1 個加工品</td></tr>
+        <tr><td>🏭 工坊</td><td>🧑‍🍳 工坊師傅</td><td class="w">領取 50 個加工品</td></tr>
+        <tr><td>🏭 工坊</td><td>🏆 加工大師 📢</td><td class="w">領取 300 個加工品</td></tr>
+        <tr><td>🏭 工坊</td><td>🧰 全能工匠</td><td class="w">做出全部 7 種加工品</td></tr>
+        <tr><td>🏭 工坊</td><td>🌟 完美主義</td><td class="w">做出 1 個完美加工品</td></tr>
+        <tr><td>🏭 工坊</td><td>💫 匠心獨具 📢</td><td class="w">做出 10 個完美加工品</td></tr>
         <tr><td>🤝 社交</td><td>💧 好幫手</td><td class="w">幫朋友澆水 10 次</td></tr>
         <tr><td>🤝 社交</td><td>💦 園藝志工</td><td class="w">幫朋友澆水 100 次</td></tr>
         <tr><td>🤝 社交</td><td>🐛 除蟲專家</td><td class="w">幫朋友除蟲 20 次</td></tr>
@@ -356,7 +401,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
 
   <section id="shop">
     <h2>商店與排行</h2>
-    <p>收成和挖到的東西拿到商店賣。按「🧺 賣出普通作物」或「⛏️ 賣出普通礦物」可以一次賣掉同一類的普通物品，<b>⭐ 稀有物品會留著</b>（金色、巨大、彩虹作物，以及金礦、寶石、秘銀、星辰石），方便之後交任務；想全部清掉就按「全部賣出」，或從選單挑一樣賣。</p>
+    <p>收成和挖到的東西拿到商店賣。按「🧺 賣出普通作物」或「⛏️ 賣出普通礦物」可以一次賣掉同一類的普通物品，<b>⭐ 稀有物品會留著</b>（金色、巨大、彩虹作物，以及金礦、寶石、秘銀、星辰石），方便之後交任務；想全部清掉就按「全部賣出」，或從選單挑一樣賣。加工品不在商店賣，請到「🧳 貿易商」。</p>
     <p>存下來的錢可以拿來擴大農場、升級工具。</p>
     <div class="tbl"><table>
       <thead><tr><th>項目</th><th class="num">價格</th><th class="w">效果</th></tr></thead>
@@ -386,6 +431,7 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
       <div><span>⛏️</span><p>種田和挖礦是分開的，兩個可以同時進行，別讓礦坑閒著。</p></div>
       <div><span>🤝</span><p>每天幫 5 位不同的朋友澆水，簡單就多賺 25 風幣，還能交朋友。</p></div>
       <div><span>🌾</span><p>5 塊田都解鎖後，把最常種的那塊先升級成中型。升級後同一份種子收兩倍，大約一週多就能回本。</p></div>
+      <div><span>🏭</span><p>作物來不及收、過熟了也別急著賤賣，拿去工坊加工照樣算全價。做好的加工品不會壞，等貿易商漲價再賣。</p></div>
       <div><span>📜</span><p>賣東西前先看一下任務牆，同樣的作物交給任務能換到 1.5 倍以上的風幣。金色、彩虹作物可以先留著，等高稀有度的任務出現。</p></div>
     </div>
   </section>
@@ -400,6 +446,8 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
       <details><summary>任務牆的公告會發在哪裡？</summary><p>伺服器管理員可以用 <code>/設定公告 頻道:#頻道</code> 指定公告頻道。沒設定的話，傳說和神話任務出現時不會另外通知。</p></details>
       <details><summary>我跟別人同時按交付，誰拿到？</summary><p>先送到機器人的那一個。另一個人會看到「手慢了」，他的物品不會被扣掉。</p></details>
       <details><summary>為什麼收不到通知私訊？</summary><p>先確認首頁的通知按鈕是「🔔」。再到伺服器的「隱私設定」打開「允許來自伺服器成員的私訊」。私訊送不出去時通知會自動關閉，打開私訊後要再按一次通知按鈕。</p></details>
+      <details><summary>為什麼貿易商不讓我把加工品全賣掉？</summary><p>任務牆上有任務正在要這種加工品，「全賣」會先保留任務需要的數量。任務被完成或過期後就能全部賣掉；真的想賣的話，也可以用「賣 1 個」一個一個賣。</p></details>
+      <details><summary>行情是每個人都不一樣嗎？</summary><p>不是。同一個伺服器、同一天，大家看到的行情都一樣，可以一起討論今天什麼好賣。不同伺服器的行情不一樣。</p></details>
       <details><summary>按鈕按了沒反應怎麼辦？</summary><p>可能是訊息太舊了。重新輸入 <code>/小鎮</code> 打開一則新的農場畫面就好。</p></details>
       <details><summary>按到別人農場的「農田」按鈕會怎樣？</summary><p>什麼都不會發生，只有你看得到一則提醒。每個人只能操作自己的農場。</p></details>
     </div>
